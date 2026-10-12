@@ -7,9 +7,10 @@ const { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, w
 const { initializeApp, deleteApp } = require('firebase/app');
 const { getAuth, connectAuthEmulator, signInWithEmailAndPassword } = require('firebase/auth');
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require('firebase/functions');
-const { initializeApp: adminApp } = require('../functions/node_modules/firebase-admin/app');
-const { getAuth: adminAuth } = require('../functions/node_modules/firebase-admin/auth');
-const { PNG } = require('../functions/node_modules/pngjs');
+const backendRequire = require('node:module').createRequire(require('node:path').resolve(__dirname,'../functions/package.json'));
+const { initializeApp: adminApp } = backendRequire('firebase-admin/app');
+const { getAuth: adminAuth } = backendRequire('firebase-admin/auth');
+const { PNG } = backendRequire('pngjs');
 const { OFFICE, DRIVER } = require('../functions/policy.cjs');
 const projectId = 'demo-marapo24';
 let env, driverClient, officeClient, clients = [];
