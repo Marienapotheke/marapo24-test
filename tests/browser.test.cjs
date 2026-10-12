@@ -37,7 +37,11 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   await driverPage.waitForFunction(()=>document.querySelector('#driverStops').textContent.includes('Erika Muster'));
   await driverPage.waitForFunction(()=>document.querySelectorAll('#vehicleSelect option').length>1);
   await driverPage.waitForFunction(async()=>!!(await import('/offline-store.mjs')).getPublicKey && !!(await (await import('/offline-store.mjs')).getPublicKey('browser-driver')));
-  await driverPage.evaluate(()=>navigator.serviceWorker.ready);await driverPage.waitForFunction(()=>!!navigator.serviceWorker.controller);
+  await driverPage.evaluate(()=>navigator.serviceWorker.ready);
+  // A newly installed worker controls the next navigation reliably.
+  await driverPage.reload();await driverPage.locator('#appMain:not(.hidden)').waitFor({timeout:30000});
+  await driverPage.waitForFunction(()=>!!navigator.serviceWorker.controller);
+  await driverPage.waitForFunction(()=>document.querySelector('#driverStops').textContent.includes('Erika Muster'));
   const car=await driverPage.locator('#vehicleSelect option').nth(1).getAttribute('value');await driverPage.locator('#vehicleSelect').selectOption(car);
   await driverContext.setOffline(true);await driverPage.locator('#startTour').click();
   await driverPage.locator('[data-done]').waitFor();await driverPage.locator('[data-done]').click();
