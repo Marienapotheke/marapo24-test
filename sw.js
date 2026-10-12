@@ -1,5 +1,13 @@
-const CACHE='marapo24-android-demo-v2';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{const names=await caches.keys();await Promise.all(names.filter(name=>name.startsWith('marapo24-')&&name!==CACHE).map(name=>caches.delete(name)));await self.clients.claim()})())});
-self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET'||new URL(req.url).origin!==self.location.origin)return;event.respondWith((async()=>{const cached=await caches.match(req);if(cached)return cached;return fetch(req)})())});
+const CACHE='marapo24-protected-app-v1';
+const ASSETS=['./','./index.html','./app.mjs','./app-config.js','./offline-store.mjs','./manifest.webmanifest'];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',event=>{
+  const request=event.request,url=new URL(request.url);
+  const local=url.origin===self.location.origin;
+  const sdk=url.origin==='https://www.gstatic.com'&&/^\/firebasejs\/11\.10\.0\/firebase-[a-z-]+\.js$/.test(url.pathname);
+  if(request.method!=='GET'||(!local&&!sdk))return;
+  if(local&&!ASSETS.some(x=>new URL(x,self.registration.scope).pathname===url.pathname))return;
+  // Auth/API/PDF responses and customer data never enter Cache Storage.
+  event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(request);if(response.ok)await cache.put(request,response.clone());return response;}catch(e){const saved=await cache.match(request);if(saved)return saved;throw e;}})());
+});

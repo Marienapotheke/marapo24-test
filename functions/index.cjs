@@ -2,13 +2,18 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const { PNG } = require('pngjs');
 const PDFDocument = require('pdfkit');
 const crypto = require('node:crypto');
 const policy = require('./policy.cjs');
+const envelope = require('./envelope.cjs');
+const privateKey = defineSecret('DELIVERY_PROOF_PRIVATE_KEY');
 initializeApp();
-const db = getFirestore();
-const options = { region: 'europe-west3', maxInstances: 3, timeoutSeconds: 30, memory: '256MiB', cors: true };
+const emulated = process.env.FUNCTIONS_EMULATOR === 'true';
+// Production never touches the default database used by v3.
+const db = getFirestore(emulated ? '(default)' : 'protected-deliveries');
+const options = { region: 'europe-west3', maxInstances: 3, concurrency: 10, timeoutSeconds: 30, memory: '256MiB', cors: true, enforceAppCheck: !emulated };
 function projectGuard() {
   const project = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT;
   if (project !== 'marap024-botendienst-test' &&
@@ -35,8 +40,8 @@ function validatePng(dataUrl) {
     policy.reject('invalid-argument', 'PNG kann nicht gelesen werden.');
   }
 }
-function callable(handler) {
-  return onCall(options, async request => {
+function callable(handler, needsKey=false) {
+  return onCall({...options,...(needsKey?{secrets:[privateKey]}:{})}, async request => {
     projectGuard();
     try { return await handler(request); }
     catch (e) {
@@ -51,25 +56,46 @@ exports.completeProtectedDelivery = callable(async request => {
   const uid = request.auth?.uid;
   if (!uid) policy.reject('unauthenticated', 'Anmeldung erforderlich.');
   const proofId = policy.identifiers(request.data);
+  const input=request.data;
+  if(Object.keys(input).some(k=>!['tourId','stopId','status','sealedSignature','completionId','capturedAt'].includes(k))||
+     typeof input.completionId!=='string'||!/^[0-9a-f-]{36}$/i.test(input.completionId)||typeof input.capturedAt!=='string'||input.capturedAt.length>40)
+    policy.reject('invalid-argument','Ungültiger Abschluss.');
+  const fingerprint=crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
   const tourRef = db.doc(`protectedTours/${request.data.tourId}`);
   const stopRef = tourRef.collection('stops').doc(request.data.stopId);
   const proofRef = db.doc(`protectedDeliveryProofs/${proofId}`);
   await db.runTransaction(async tx => {
     const [profile, tour, stop, proof] = await tx.getAll(db.doc(`users/${uid}`), tourRef, stopRef, proofRef);
-    const validated = policy.completion(request.data, uid, profile.data(), tour.data(), stop.data(), proof.exists, validatePng);
+    policy.authorize(uid,profile.data(),'driver');
+    if(tour.data()?.driverId!==uid)policy.reject('permission-denied','Tour nicht zugewiesen.');
+    if(proof.exists && proof.data().driverId===uid && proof.data().completionId===input.completionId && proof.data().requestFingerprint===fingerprint)return;
+    const identity={uid,tourId:input.tourId,stopId:input.stopId,completionId:input.completionId};
+    const opened=input.sealedSignature ? envelope.openEnvelope(input.sealedSignature,identity,privateKey.value()) : {signature:null,capturedAt:input.capturedAt};
+    if(opened.capturedAt!==input.capturedAt)policy.reject('invalid-argument','Erfassungszeit wurde verändert.');
+    const captured=Date.parse(input.capturedAt);
+    if(!Number.isFinite(captured)||captured>Date.now()+300000||Date.now()-captured>172800000)policy.reject('failed-precondition','Gerätezeit oder ausstehenden Offline-Abschluss prüfen.');
+    const validated = policy.completion({tourId:input.tourId,stopId:input.stopId,status:input.status,signature:opened.signature,completionId:input.completionId,capturedAt:input.capturedAt}, uid, profile.data(), tour.data(), stop.data(), proof.exists, validatePng);
     const timestamp = FieldValue.serverTimestamp();
     const s = stop.data();
     tx.create(proofRef, {
       schemaVersion: 2, tourId: tourRef.id, stopId: stopRef.id, driverId: uid,
       name: s.name, address: s.address, type: s.type, cents: s.cents,
-      status: request.data.status, completedAt: timestamp, signature: validated.signature,
+      status: request.data.status, completedAt: timestamp, capturedAtClient:input.capturedAt,
+      completionId:input.completionId,requestFingerprint:fingerprint,signature: validated.signature,
       signatureSha256: validated.signature ? crypto.createHash('sha256').update(Buffer.from(validated.signature.slice(22), 'base64')).digest('hex') : null
     });
     tx.update(stopRef, { status: request.data.status, completedAt: timestamp, proofId });
   });
   // No signature or proof data returned to driver, including retries.
   return { completed: true };
-});
+},true);
+exports.getDeliveryEncryptionKey = callable(async request=>{
+  const uid=request.auth?.uid;
+  if(!uid)policy.reject('unauthenticated','Anmeldung erforderlich.');
+  policy.authorize(uid,(await db.doc(`users/${uid}`).get()).data(),'driver');
+  const key=envelope.keys(privateKey.value());
+  return {version:1,keyId:key.keyId,publicKey:key.publicKey};
+},true);
 exports.downloadProtectedProof = callable(async request => {
   const uid = request.auth?.uid;
   if (!uid) policy.reject('unauthenticated', 'Anmeldung erforderlich.');
@@ -82,8 +108,8 @@ exports.downloadProtectedProof = callable(async request => {
   const chunks = [];
   const done = new Promise((resolve, reject) => { pdf.on('data', c => chunks.push(c)); pdf.on('end', () => resolve(Buffer.concat(chunks))); pdf.on('error', reject); });
   pdf.fontSize(20).text('MARAPO24 - Zustellnachweis');
-  pdf.fontSize(11).text('TEST - NUR FIKTIVE DATEN').moveDown();
-  for (const [label, value] of Object.entries({ Lieferung: proof.stopId, Tour: proof.tourId, Empfänger: proof.name, Adresse: proof.address, Status: proof.status, Zeitpunkt: proof.completedAt.toDate().toISOString(), 'Signatur SHA-256': proof.signatureSha256 || 'Keine Unterschrift' }))
+  pdf.fontSize(11).text('marap024-botendienst-test - NUR FIKTIVE DATEN').moveDown();
+  for (const [label, value] of Object.entries({ Lieferung: proof.stopId, Tour: proof.tourId, Empfänger: proof.name, Adresse: proof.address, Status: proof.status, 'Erfasst laut Gerät (ungeprüft)':proof.capturedAtClient, 'Serverseitig archiviert': proof.completedAt.toDate().toISOString(), 'Signatur SHA-256': proof.signatureSha256 || 'Keine Unterschrift' }))
     pdf.text(`${label}: ${value}`).moveDown(0.5);
   if (proof.signature) pdf.image(Buffer.from(proof.signature.slice(22), 'base64'), { fit: [480, 150] });
   pdf.end();

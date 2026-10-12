@@ -7,8 +7,8 @@ class PolicyError extends Error {
 function reject(code, message) { throw new PolicyError(code, message); }
 function authorize(uid, profile, role) {
   if (!uid) reject('unauthenticated', 'Anmeldung erforderlich.');
-  if (profile?.role !== role || uid !== (role === 'office' ? OFFICE : DRIVER))
-    reject('permission-denied', 'Kein freigegebenes Testkonto.');
+  if (profile?.role !== role || profile.active !== true)
+    reject('permission-denied', 'Kein aktives Mitarbeiterkonto.');
 }
 function identifiers(data) {
   for (const key of ['tourId', 'stopId'])
@@ -20,7 +20,7 @@ function identifiers(data) {
 function completion(data, uid, profile, tour, stop, proofExists, validatePng) {
   authorize(uid, profile, 'driver');
   const proofId = identifiers(data);
-  if (!data || Object.keys(data).some(k => !['tourId', 'stopId', 'status', 'signature'].includes(k)))
+  if (!data || Object.keys(data).some(k => !['tourId', 'stopId', 'status', 'signature', 'completionId', 'capturedAt'].includes(k)))
     reject('invalid-argument', 'Unerlaubte Abschlussfelder.');
   if (!tour || !stop) reject('not-found', 'Lieferung fehlt.');
   if (tour.driverId !== uid) reject('permission-denied', 'Tour nicht zugewiesen.');

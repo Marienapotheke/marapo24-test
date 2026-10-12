@@ -3,3 +3,9 @@ node_modules/
 *-debug.log
 .firebase/
 local-analysis.txt
+dist/
+.secret.local
+.env*
+staff-roster*.json
+invitation*.json
+frontend-check.mjs

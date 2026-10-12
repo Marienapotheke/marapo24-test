@@ -25,7 +25,7 @@ async function client(uid,email) {
   const auth = getAuth(app); connectAuthEmulator(auth,'http://127.0.0.1:9099',{disableWarnings:true});
   await signInWithEmailAndPassword(auth,email,'Fiktives-Passwort-123!');
   const functions = getFunctions(app,'europe-west3'); connectFunctionsEmulator(functions,'127.0.0.1',5001);
-  return { finish:httpsCallable(functions,'completeProtectedDelivery'), pdf:httpsCallable(functions,'downloadProtectedProof') };
+  return { finish:httpsCallable(functions,'completeProtectedDelivery'), pdf:httpsCallable(functions,'downloadProtectedProof'), key:httpsCallable(functions,'getDeliveryEncryptionKey') };
 }
 before(async()=>{
   // Fail before any SDK could contact a real project.
@@ -34,8 +34,10 @@ before(async()=>{
   assert.match(process.env.FIREBASE_AUTH_EMULATOR_HOST||'',/^(127\.0\.0\.1|localhost):9099$/);
   env = await initializeTestEnvironment({projectId,firestore:{host:'127.0.0.1',port:8080,rules:fs.readFileSync('firestore.rules','utf8')}});
   adminApp({projectId});
-  await seed(`users/${OFFICE}`,{role:'office'}); await seed(`users/${DRIVER}`,{role:'driver'});
-  await seed('users/attacker',{role:'office'});
+  await seed(`users/${OFFICE}`,{role:'office',active:true}); await seed(`users/${DRIVER}`,{role:'driver',active:true});
+  await seed('users/attacker',{role:'office',active:false});
+  for(let i=2;i<=11;i++)await seed(`users/driver-${i}`,{role:'driver',active:true,displayName:`Fiktiver Fahrer ${i}`});
+  for(let i=2;i<=20;i++)await seed(`users/office-${i}`,{role:'office',active:true,displayName:`Fiktives Büro ${i}`});
   await seed('protectedTours/tour1',tour()); await seed('protectedTours/foreign',{...tour(),driverId:'other'});
   await seed('protectedTours/tour1/stops/stop1',stop()); await seed('protectedTours/foreign/stops/stop1',stop());
   await seed('tours/legacy/stops/stop1',{...stop(),signature:'old secret signature'});
@@ -76,7 +78,7 @@ for(const uid of [DRIVER,OFFICE,'attacker']) test(`${uid}: browser cannot write 
   await assertFails(deleteDoc(ref(db,'protectedDeliveryProofs/seed')));
   await assertFails(updateDoc(ref(db,'protectedTours/tour1/stops/stop1'),{status:'zugestellt',signature:'fake'}));
   await assertFails(updateDoc(ref(db,'protectedTours/tour1'),{driverId:uid}));
-  await assertFails(setDoc(ref(db,`users/${uid}`),{role:'office'}));
+  await assertFails(setDoc(ref(db,`users/${uid}`),{role:'office',active:true}));
 });
 test('office creation validates required fields/types/limits and excludes signature',async()=>{
   const db=env.authenticatedContext(OFFICE).firestore();
@@ -89,19 +91,28 @@ test('office creation validates required fields/types/limits and excludes signat
   await assertFails(updateDoc(ref(db,'protectedTours/valid/stops/valid'),{name:'changed'}));
   await assertFails(setDoc(ref(db,'protectedTours/invalid'),{...tour(),driverId:'attacker'}));
 });
-test('real callable transactions: concurrent/replayed completion, archive isolation and PDF',async()=>{
+test('encrypted callable transactions: concurrent completion, idempotent retry, archive isolation and PDF',async()=>{
   const png=new PNG({width:300,height:150});png.data.fill(255);
   for(let i=0;i<100;i++){const pos=(10*300+i)*4;png.data[pos]=png.data[pos+1]=png.data[pos+2]=0;}
   const signature='data:image/png;base64,'+PNG.sync.write(png).toString('base64');
-  const data={tourId:'tour1',stopId:'stop1',status:'zugestellt',signature};
+  const crypto=require('node:crypto');
+  const {sealSignature}=await import('../offline-store.mjs');
+  const capturedAt=new Date().toISOString(),completionId=crypto.randomUUID(),key=(await driverClient.key({})).data;
+  const identity={uid:DRIVER,tourId:'tour1',stopId:'stop1',completionId};
+  const sealedSignature=await sealSignature(key,identity,signature,capturedAt);
+  const data={tourId:'tour1',stopId:'stop1',status:'zugestellt',sealedSignature,capturedAt,completionId};
   await assert.rejects(officeClient.finish(data),e=>e.code==='functions/permission-denied');
   await assert.rejects(driverClient.finish({...data,tourId:'foreign'}),e=>e.code==='functions/permission-denied');
   await assert.rejects(driverClient.finish({...data,signature:'data:image/png;base64,YWJj'}),e=>e.code==='functions/invalid-argument');
-  const results=await Promise.allSettled([driverClient.finish(data),driverClient.finish(data)]);
+  const otherId=crypto.randomUUID();
+  const otherBox=await sealSignature(key,{...identity,completionId:otherId},signature,capturedAt);
+  const results=await Promise.allSettled([driverClient.finish(data),driverClient.finish({...data,completionId:otherId,sealedSignature:otherBox})]);
   assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
   const rejected=results.find(r=>r.status==='rejected');assert.equal(rejected.reason.code,'functions/already-exists');
   assert.deepEqual(results.find(r=>r.status==='fulfilled').value.data,{completed:true});
-  await assert.rejects(driverClient.finish(data),e=>e.code==='functions/already-exists');
+  const winningData=results[0].status==='fulfilled'?data:{...data,completionId:otherId,sealedSignature:otherBox};
+  assert.deepEqual((await driverClient.finish(winningData)).data,{completed:true});
+  await assert.rejects(driverClient.finish({...winningData,status:'nicht zugestellt'}),e=>e.code==='functions/already-exists');
   const driverDb=env.authenticatedContext(DRIVER).firestore();
   const completed=(await getDoc(ref(driverDb,'protectedTours/tour1/stops/stop1'))).data();
   assert.equal(completed.status,'zugestellt');assert.equal('signature' in completed,false);
@@ -115,7 +126,20 @@ test('real callable transactions: concurrent/replayed completion, archive isolat
 });
 test('failed private/non-private completion rejects extraneous signature',async()=>{
   await seed('protectedTours/tour1/stops/failure',stop());
-  const data={tourId:'tour1',stopId:'failure',status:'nicht zugestellt',signature:null};
+  const data={tourId:'tour1',stopId:'failure',status:'nicht zugestellt',sealedSignature:null,completionId:require('node:crypto').randomUUID(),capturedAt:new Date().toISOString()};
   await driverClient.finish(data);
-  await assert.rejects(driverClient.finish(data),e=>e.code==='functions/already-exists');
+  assert.deepEqual((await driverClient.finish(data)).data,{completed:true});
+});
+test('11 drivers and 20 office users work without fixed test UIDs; revocation takes effect',async()=>{
+  for(let i=2;i<=11;i++){
+    const db=env.authenticatedContext(`driver-${i}`).firestore();
+    await seed(`protectedTours/driver-tour-${i}`,{...tour(),driverId:`driver-${i}`});
+    await assertSucceeds(getDocs(query(collection(db,'protectedTours'),where('driverId','==',`driver-${i}`))));
+    await assertFails(getDoc(ref(db,'protectedDeliveryProofs/seed')));
+  }
+  for(let i=2;i<=20;i++)await assertSucceeds(getDoc(ref(env.authenticatedContext(`office-${i}`).firestore(),'protectedDeliveryProofs/seed')));
+  await seed('users/driver-2',{role:'driver',active:false});
+  await assertFails(getDoc(ref(env.authenticatedContext('driver-2').firestore(),'protectedTours/driver-tour-2')));
+  await seed('users/office-2',{role:'office',active:false});
+  await assertFails(getDoc(ref(env.authenticatedContext('office-2').firestore(),'protectedDeliveryProofs/seed')));
 });
