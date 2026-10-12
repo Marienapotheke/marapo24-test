@@ -19,6 +19,9 @@ Installation: `pnpm install --frozen-lockfile --ignore-scripts` und `pnpm --dir 
 Die Emulatoren benötigen Java 21 und Node 22. Der GitHub-Workflow installiert diese ausschließlich für Tests. Keine Firebase-Zugangsdaten, keine Deployments und keine Echtdaten im Workflow.
 Der Test verweigert den Start ohne lokale Emulatorvariablen und Demo-Projekt-ID.
 
+## Nachgewiesener Teststand
+Am 12.10.2026 bestanden 34 Tests ohne übersprungene Fälle: 22 Backend-Berechtigungstests und 12 vollständige Emulator-Tests für Firestore, Auth und Functions. [Erfolgreicher Lauf](https://github.com/Marienapotheke/marapo24-test/actions/runs/38272703828), Code-Commit `c3b33d1369354b431f23f97b33aad5b80f095a19`. Der Standard-Firestore-Emulator hat die Regeln geladen; konkurrierende Abschlüsse, Archivschutz und echter Büro-PDF-Abruf wurden geprüft. Damit ist keine Live-Kompatibilität bestätigt.
+
 ## Firebase-Verbindung
 Das Firebase-Plugin ist installiert und aktiviert. In der aktuellen Sitzung sind seine MCP-Werkzeuge nicht verfügbar. Der lokale Firebase-Client meldet fehlende Anmeldung. Daher sind Projektzugriff, bestehende Regeln, Datenbankedition, IAM, App Check und Abrechnung noch nicht verifiziert.
 Die Regeln sind ein Prototyp für den Standard-Firestore-Emulator. Ihre Kompatibilität mit der tatsächlichen Datenbank muss nach Anmeldung geprüft werden.
