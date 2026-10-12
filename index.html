@@ -23,12 +23,23 @@ function display(){const ordered=[...tours].sort((a,b)=>String(b.date||'').local
  $('tours').innerHTML=ordered.map(t=>`<div class="stop"><b>${esc(t.type||t.name||'Testtour')}</b> · ${esc(t.date||'ohne Datum')} · Fahrer 1 <p>${(stops[t.id]||[]).length} Lieferungen</p><button data-edit="${esc(t.id)}">Öffnen</button></div>`).join('')||'<p>Noch keine Touren vorhanden.</p>';
  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{selected=b.dataset.edit;display()});
  $('editPanel').classList.toggle('hidden',!selected);
- if(selected){const t=tours.find(x=>x.id===selected);if(!t){selected=null;$('editPanel').classList.add('hidden')}else{$('editTitle').textContent=(t.type||t.name||'Tour')+' · '+(t.date||'');$('officeStops').innerHTML=(stops[selected]||[]).map(s=>`<div class="stop ${s.status==='zugestellt'?'done':''}"><b>${esc(s.name)}</b> · ${esc(s.type)}<div>${esc(s.address)}</div><small>${euro(s.cents)} · ${esc(s.status)} ${s.signature?'· signiert':''}</small></div>`).join('')||'<p>Noch keine Lieferungen.</p>'}}
+ if(selected){const t=tours.find(x=>x.id===selected);if(!t){selected=null;$('editPanel').classList.add('hidden')}else{$('editTitle').textContent=(t.type||t.name||'Tour')+' · '+(t.date||'');$('officeStops').innerHTML=(stops[selected]||[]).map(s=>`<div class="stop ${s.status==='zugestellt'?'done':''}"><b>${esc(s.name)}</b> · ${esc(s.type)}<div>${esc(s.address)}</div><small>${euro(s.cents)} · ${esc(s.status)} ${s.signature?'· signiert':''}</small>${s.status==='zugestellt' && s.signature ? `<div style="margin-top:9px"><button type="button" data-proof="${esc(s.id)}">Zustellnachweis ansehen / PDF</button></div>` : ''}</div>`).join('')||'<p>Noch keine Lieferungen.</p>';document.querySelectorAll('[data-proof]').forEach(b=>b.onclick=()=>showProof(b.dataset.proof));}}
  }
  const old=$('driverTour').value;
  $('driverTour').innerHTML=ordered.map(t=>`<option value="${esc(t.id)}">${esc(t.date||'Testtour')} · ${esc(t.type||t.name||'Tour')}</option>`).join('');
  if(ordered.some(t=>t.id===old))$('driverTour').value=old;
  renderDriver();
+}
+function showProof(stopId){
+ if(role!=='office'||!selected)return;
+ const s=(stops[selected]||[]).find(x=>x.id===stopId),t=tours.find(x=>x.id===selected);
+ if(!s||!t||s.status!=='zugestellt'||!s.signature)return alert('Kein unterschriebener Zustellnachweis vorhanden.');
+ const stamp=String(s.completedAt||'');const date=stamp&&!Number.isNaN(Date.parse(stamp))?new Date(stamp).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}):stamp;
+ const validSig=typeof s.signature==='string'&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(s.signature)&&s.signature.length<=180000;
+ const sig=validSig?'<img src="'+s.signature+'" alt="Testunterschrift" style="max-width:100%;max-height:170px;border:1px solid #ccc">':'Keine Unterschrift';
+ const win=window.open('','_blank');if(!win)return alert('Bitte Pop-ups erlauben.');
+ const html='<!doctype html><html lang="de"><head><meta charset="utf-8"><title>MARAPO24 Zustellnachweis</title><style>body{font:16px Arial;max-width:760px;margin:40px auto;padding:20px;color:#173447}dt{font-weight:bold;margin-top:14px}dd{margin:4px 0 0}button{padding:12px}@media print{button{display:none}}</style></head><body><h1>MARAPO24 · Zustellnachweis</h1><p>TESTVERSION – NUR FIKTIVE DATEN</p><dl><dt>Lieferungsnummer</dt><dd>'+esc(s.id)+'</dd><dt>Empfänger</dt><dd>'+esc(s.name)+'</dd><dt>Adresse</dt><dd>'+esc(s.address)+'</dd><dt>Datum / Uhrzeit</dt><dd>'+esc(date)+'</dd><dt>Status</dt><dd>'+esc(s.status)+'</dd><dt>Tour-ID</dt><dd>'+esc(t.id)+'</dd><dt>Unterschrift</dt><dd>'+sig+'</dd></dl><button onclick="window.print()">Drucken / Als PDF speichern</button></body></html>';
+ win.document.open();win.document.write(html);win.document.close();
 }
 function renderDriver(){const id=$('driverTour').value;if(!id){$('driverStops').innerHTML='<p>Keine zugewiesenen Touren vorhanden.</p>';return}
  $('driverStops').innerHTML=(stops[id]||[]).map(s=>`<div class="stop ${s.status==='zugestellt'?'done':''}"><b>${esc(s.name)}</b><div>${esc(s.address)}</div><small>${esc(s.type)} · ${euro(s.cents)} · ${esc(s.note)} · ${esc(s.status)}</small><div class="flex" style="margin-top:10px">${s.status==='offen'?`<button data-done="${esc(s.id)}">${s.type==='privat'?'Unterschrift & Zustellen':'Als zugestellt markieren'}</button><button class="secondary" data-fail="${esc(s.id)}">Nicht zugestellt</button>`:''}</div>${s.signature?'<small>Unterschrift gespeichert</small>':''}</div>`).join('')||'<p>Keine Stopps vorhanden.</p>';
