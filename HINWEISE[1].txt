@@ -1,0 +1,1 @@
+MARAPO24 Test v2: Firebase-Webprojekt initialisiert, KEINE Firestore-Synchronisierung, KEINE Anmeldung. Nur fiktive Testdaten. GitHub Pages ist öffentlich. Die App speichert weiterhin lokal im Browser. Bitte alle Dateien in das Stammverzeichnis des GitHub-Repositories hochladen.
