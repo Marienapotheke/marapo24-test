@@ -28,14 +28,15 @@ export async function enqueue(uid,input){
     let failure;
     r.onsuccess=()=>{
       const records=r.result.filter(x=>x?.kind==='pending'&&x.uid===uid);
-      if(records.some(x=>x.input.tourId===input.tourId&&x.input.stopId===input.stopId)){failure=Error('Für diese Lieferung ist bereits ein Abschluss gespeichert.');tx.abort();return;}
+      if(records.some(x=>(x.input.action||'delivery')===(input.action||'delivery')&&x.input.tourId===input.tourId&&x.input.stopId===input.stopId)){failure=Error('Für diesen Vorgang ist bereits ein Abschluss gespeichert.');tx.abort();return;}
       if(records.length>=200){failure=Error('200 Abschlüsse warten auf Übertragung. Bitte zuerst synchronisieren.');tx.abort();return;}
-      s.put({kind:'pending',uid,input,error:null},`pending:${uid}:${input.completionId}`);
+      const sequence=1+records.reduce((maximum,x)=>Math.max(maximum,x.sequence||0),0);
+      s.put({kind:'pending',uid,input,error:null,sequence},`pending:${uid}:${input.completionId}`);
     };
     tx.oncomplete=()=>resolve();tx.onabort=()=>reject(failure||tx.error||Error('Abschluss konnte nicht auf dem Gerät gespeichert werden.'));tx.onerror=()=>reject(tx.error);
   });
 }
-export async function pending(uid){const all=await operation('readonly',s=>s.getAll());return all.filter(x=>x?.kind==='pending'&&x.uid===uid);}
+export async function pending(uid){const all=await operation('readonly',s=>s.getAll());return all.filter(x=>x?.kind==='pending'&&x.uid===uid).sort((a,b)=>(a.sequence||0)-(b.sequence||0));}
 export async function acknowledge(uid,completionId){await remove(`pending:${uid}:${completionId}`);}
 export async function pendingError(uid,item,error){await put(`pending:${uid}:${item.input.completionId}`,{...item,error});}
 export async function saveAssignments(uid,value){

@@ -1,6 +1,7 @@
 const CACHE='marapo24-protected-app-v1';
 const ASSETS=['./','./index.html','./app.mjs','./app-config.js','./offline-store.mjs','./manifest.webmanifest'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+const SDK=['app','auth','firestore','functions','app-check'].map(name=>'https://www.gstatic.com/firebasejs/11.10.0/firebase-'+name+'.js');
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll([...ASSETS,...SDK]))));
 self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',event=>{
   const request=event.request,url=new URL(request.url);

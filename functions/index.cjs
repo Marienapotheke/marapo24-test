@@ -8,6 +8,7 @@ const PDFDocument = require('pdfkit');
 const crypto = require('node:crypto');
 const policy = require('./policy.cjs');
 const envelope = require('./envelope.cjs');
+const tourPolicy = require('./tour-policy.cjs');
 const privateKey = defineSecret('DELIVERY_PROOF_PRIVATE_KEY');
 initializeApp();
 const emulated = process.env.FUNCTIONS_EMULATOR === 'true';
@@ -43,7 +44,7 @@ function validatePng(dataUrl) {
 function callable(handler, needsKey=false) {
   return onCall({...options,...(needsKey?{secrets:[privateKey]}:{})}, async request => {
     projectGuard();
-    try { return await handler(request); }
+    try { if(request.auth&&request.auth.token.email_verified!==true)policy.reject('permission-denied','Bitte Mitarbeiter-E-Mail bestätigen.');return await handler(request); }
     catch (e) {
       if (e instanceof policy.PolicyError) throw new HttpsError(e.code, e.message);
       // Never log request payloads or signatures.
@@ -69,6 +70,7 @@ exports.completeProtectedDelivery = callable(async request => {
     policy.authorize(uid,profile.data(),'driver');
     if(tour.data()?.driverId!==uid)policy.reject('permission-denied','Tour nicht zugewiesen.');
     if(proof.exists && proof.data().driverId===uid && proof.data().completionId===input.completionId && proof.data().requestFingerprint===fingerprint)return;
+    if(!proof.exists&&tour.data().status!=='running')policy.reject('failed-precondition','Tour zuerst starten.');
     const identity={uid,tourId:input.tourId,stopId:input.stopId,completionId:input.completionId};
     const opened=input.sealedSignature ? envelope.openEnvelope(input.sealedSignature,identity,privateKey.value()) : {signature:null,capturedAt:input.capturedAt};
     if(opened.capturedAt!==input.capturedAt)policy.reject('invalid-argument','Erfassungszeit wurde verändert.');
@@ -96,6 +98,38 @@ exports.getDeliveryEncryptionKey = callable(async request=>{
   const key=envelope.keys(privateKey.value());
   return {version:1,keyId:key.keyId,publicKey:key.publicKey};
 },true);
+exports.startProtectedTour = callable(async request=>{
+  const uid=request.auth?.uid,input=request.data;
+  if(!uid)policy.reject('unauthenticated','Anmeldung erforderlich.');
+  // Validate paths before constructing document references.
+  if(typeof input?.tourId!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(input.tourId)||typeof input.vehicleId!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(input.vehicleId))policy.reject('invalid-argument','Tour und Fahrzeug auswählen.');
+  const tourRef=db.doc(`protectedTours/${input.tourId}`);
+  const fingerprint=crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+  await db.runTransaction(async tx=>{
+    const [profile,tour,vehicle]=await tx.getAll(db.doc(`users/${uid}`),tourRef,db.doc(`vehicles/${input.vehicleId}`));
+    tourPolicy.validateTourAction(input,uid,profile.data(),tour.data());
+    if(tour.data().startCompletionId===input.completionId&&tour.data().startFingerprint===fingerprint)return;
+    tourPolicy.canStart(tour.data(),vehicle.data());
+    tx.update(tourRef,{status:'running',vehicleId:input.vehicleId,vehicleLabel:vehicle.data().label,startedAt:FieldValue.serverTimestamp(),startCapturedAtClient:input.capturedAt,startCompletionId:input.completionId,startFingerprint:fingerprint});
+  });
+  return {started:true};
+});
+exports.finishProtectedTour = callable(async request=>{
+  const uid=request.auth?.uid,input=request.data;
+  if(!uid)policy.reject('unauthenticated','Anmeldung erforderlich.');
+  if(typeof input?.tourId!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(input.tourId)||input.vehicleId!==undefined)policy.reject('invalid-argument','Ungültiger Tourabschluss.');
+  const tourRef=db.doc(`protectedTours/${input.tourId}`),fingerprint=crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+  await db.runTransaction(async tx=>{
+    const [profile,tour]=await tx.getAll(db.doc(`users/${uid}`),tourRef);
+    tourPolicy.validateTourAction(input,uid,profile.data(),tour.data());
+    if(tour.data().endCompletionId===input.completionId&&tour.data().endFingerprint===fingerprint)return;
+    const stops=await tx.get(tourRef.collection('stops').limit(1001));
+    if(stops.size>1000)policy.reject('resource-exhausted','Tour enthält zu viele Stopps.');
+    tourPolicy.canFinish(tour.data(),stops.docs.map(d=>d.data()));
+    tx.update(tourRef,{status:'finished',endedAt:FieldValue.serverTimestamp(),endCapturedAtClient:input.capturedAt,endCompletionId:input.completionId,endFingerprint:fingerprint});
+  });
+  return {finished:true};
+});
 exports.downloadProtectedProof = callable(async request => {
   const uid = request.auth?.uid;
   if (!uid) policy.reject('unauthenticated', 'Anmeldung erforderlich.');

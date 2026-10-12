@@ -51,3 +51,11 @@ test('offline capture age validation does not silently delete the queued proof',
  await offline.clearAssignments(uid);assert.equal((await offline.pending(uid)).length,1);
  await offline.acknowledge(uid,identity.completionId);
 });
+test('offline actions preserve start/deliver/end order even when UUIDs sort differently',async()=>{
+ const tourId='ordered-tour';
+ await offline.enqueue(uid,{action:'start',tourId,completionId:'zz-start'});
+ await offline.enqueue(uid,{action:'delivery',tourId,stopId:'stop1',completionId:'aa-deliver'});
+ await offline.enqueue(uid,{action:'finish',tourId,completionId:'bb-finish'});
+ const records=await offline.pending(uid);assert.deepEqual(records.map(x=>x.input.action),['start','delivery','finish']);
+ for(const row of records)await offline.acknowledge(uid,row.input.completionId);
+});

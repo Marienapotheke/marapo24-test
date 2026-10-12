@@ -2,14 +2,16 @@
   "name": "marapo24-proof-tests",
   "private": true,
   "scripts": {
-    "test": "node --test tests/policy.test.cjs tests/offline.test.cjs tests/frontend.test.cjs",
+    "test": "node --test tests/policy.test.cjs tests/offline.test.cjs tests/frontend.test.cjs tests/staff.test.cjs tests/tour.test.cjs",
     "build": "node scripts/build.cjs",
-    "test:emulator": "node scripts/emulator-key.cjs && firebase emulators:exec --only firestore,auth,functions --project demo-marapo24 \"node --test --test-concurrency=1 tests/emulator.test.cjs\""
+    "test:browser": "node scripts/emulator-key.cjs && firebase emulators:exec --config firebase.emulators.json --only firestore,auth,functions --project demo-marapo24 \"node --test tests/browser.test.cjs\"",
+    "test:emulator": "node scripts/emulator-key.cjs && firebase emulators:exec --config firebase.emulators.json --only firestore,auth,functions --project demo-marapo24 \"node --test --test-concurrency=1 tests/emulator.test.cjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.0",
+    "fake-indexeddb": "^6.0.0",
     "firebase": "^11.10.0",
     "firebase-tools": "15.33.0",
-    "fake-indexeddb": "^6.0.0"
+    "playwright": "1.56.0"
   }
 }

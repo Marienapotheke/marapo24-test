@@ -7,7 +7,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function role(expected) {
-      return request.auth != null &&
+      return request.auth != null && request.auth.token.email_verified == true &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == expected &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true;
     }
@@ -35,6 +35,16 @@ service cloud.firestore {
         shortString(d.address,160) && d.address.size() > 0 && shortString(d.note,240) &&
         d.cents is int && d.cents >= 0 && d.cents <= 999900 && d.schemaVersion == 2 &&
         d.status == 'offen' && d.proofId == null && d.completedAt == null && d.createdAt == request.time;
+    }
+    function validVehicle(d) {
+      return d.keys().hasAll(['label','active','createdAt']) && d.keys().hasOnly(['label','active','createdAt']) &&
+        shortString(d.label,40) && d.label.size()>0 && d.active is bool && d.createdAt is timestamp;
+    }
+    match /vehicles/{vehicleId} {
+      allow read: if office() || (driver() && resource.data.active == true);
+      allow create: if office() && validVehicle(request.resource.data) && request.resource.data.createdAt == request.time;
+      allow update: if office() && validVehicle(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
     }
     match /users/{uid} {
       allow get: if office() || (request.auth != null && request.auth.uid == uid);
