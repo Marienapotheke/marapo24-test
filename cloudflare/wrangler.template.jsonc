@@ -10,7 +10,7 @@
   "vars": {
     "FIREBASE_PROJECT_ID": "marap024-botendienst-test",
     "FIREBASE_PROJECT_NUMBER": "233196612528",
-    "FIREBASE_APP_ID": "1:233196612528:web:180d083a20fe92f35f0475"
+    "FIREBASE_APP_ID": "1:233196612528:web:340794b3d8e13f895f0475"
   },
   "observability": {"enabled": false}
 }

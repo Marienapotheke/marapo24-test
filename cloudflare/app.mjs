@@ -1,14 +1,14 @@
 import {appConfig} from './app-config.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
 import {getAuth,setPersistence,browserLocalPersistence,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendEmailVerification,sendPasswordResetEmail,connectAuthEmulator} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import {initializeAppCheck,ReCaptchaV3Provider,getToken} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app-check.js';
+import {initializeAppCheck,ReCaptchaV3Provider,ReCaptchaEnterpriseProvider,getToken} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app-check.js';
 import {sealSignature,savePublicKey,getPublicKey,enqueue,pending,acknowledge,pendingError,saveAssignments,loadAssignments,clearAssignments} from './offline-store.mjs';
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=c=>(c/100).toLocaleString('de-DE',{style:'currency',currency:'EUR'}),today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const app=initializeApp(appConfig.firebase),auth=getAuth(app);let appCheck;
 if(appConfig.emulators){if(!['127.0.0.1','localhost'].includes(location.hostname)||appConfig.firebase.projectId!=='demo-marapo24')throw Error('Local fictional emulator only');connectAuthEmulator(auth,'http://127.0.0.1:9099',{disableWarnings:true});}
 else if(appConfig.testAppCheckToken)throw Error('Test tokens are forbidden in deployed apps');
-if(appConfig.appCheckSiteKey)appCheck=initializeAppCheck(app,{provider:new ReCaptchaV3Provider(appConfig.appCheckSiteKey),isTokenAutoRefreshEnabled:true});
+if(appConfig.appCheckSiteKey){const Provider=appConfig.appCheckProvider==='enterprise'?ReCaptchaEnterpriseProvider:ReCaptchaV3Provider;appCheck=initializeAppCheck(app,{provider:new Provider(appConfig.appCheckSiteKey),isTokenAutoRefreshEnabled:true});}
 let current=null,profile=null,role='',state={tours:[],stops:{},vehicles:[],catalog:[],specialTours:[],employees:[],cash:[]},queue=[],epoch=0,keyEpoch=0,syncing=false,selected='',signing=null,ink=false,writing=false,polling=false;
 const info=s=>$('message').textContent=s,has=r=>profile?.active===true&&profile.roles?.includes(r),online=()=>{if(!navigator.onLine){info('Für diesen Vorgang bitte mit dem Internet verbinden.');return false;}return true;};
 async function call(action,input={}){

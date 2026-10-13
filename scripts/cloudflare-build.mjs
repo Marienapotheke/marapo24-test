@@ -6,7 +6,7 @@ const require=createRequire(new URL('../cloudflare-probe/package.json',import.me
 const root=fileURLToPath(new URL('..',import.meta.url));
 const out=path.join(root,'dist-cloudflare');await fs.mkdir(out,{recursive:true});await fs.mkdir(path.join(root,'cloudflare/.build'),{recursive:true});
 for(const [source,target] of [['cloudflare/index.html','index.html'],['cloudflare/app.mjs','app.mjs'],['cloudflare/sw.js','sw.js'],['offline-store.mjs','offline-store.mjs'],['manifest.webmanifest','manifest.webmanifest']])await fs.copyFile(path.join(root,source),path.join(out,target));
-const {appConfig}=await import(new URL('../app-config.js',import.meta.url));const config={...appConfig,backend:'cloudflare',appCheckSiteKey:process.env.MARAPO24_APPCHECK_SITE_KEY||appConfig.appCheckSiteKey};
+const {appConfig}=await import(new URL('../app-config.js',import.meta.url));const config={...appConfig,backend:'cloudflare',appCheckProvider:'enterprise',appCheckSiteKey:process.env.MARAPO24_APPCHECK_SITE_KEY||'',firebase:{...appConfig.firebase,appId:'1:233196612528:web:340794b3d8e13f895f0475'}};
 await fs.writeFile(path.join(out,'app-config.js'),'export const appConfig='+JSON.stringify(config)+';\n');
 await build({absWorkingDir:root,entryPoints:['cloudflare/office-pdf.mjs'],bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:path.join(out,'office-pdf.mjs'),minify:true});
 await build({absWorkingDir:root,entryPoints:['cloudflare/worker.mjs'],bundle:true,format:'esm',platform:'node',target:'es2022',external:['node:*','fs','zlib','stream','util','events','buffer','crypto'],banner:{js:"import {createRequire} from 'node:module';const require=createRequire('/bundle/worker.js');"},outfile:path.join(root,'cloudflare/.build/worker.mjs'),minify:true});
