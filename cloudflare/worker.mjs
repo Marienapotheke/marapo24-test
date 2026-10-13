@@ -1,4 +1,5 @@
 import envelope from '../functions/envelope.cjs';
+import {payment,collected} from './payment.mjs';
 import policy from '../functions/policy.cjs';
 import {openWebEnvelope,deliveryKey} from './web-envelope.mjs';
 import {validatePng} from './png.mjs';
@@ -14,7 +15,7 @@ const iso=()=>new Date().toISOString();
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value))))).map(x=>x.toString(16).padStart(2,'0')).join('');
 function profile(row){return row?{uid:row.uid,displayName:row.display_name,roles:JSON.parse(row.roles),active:row.active===1,isAdmin:row.is_admin===1,canCreateSpecialTour:row.can_special===1}:null;}
 function tour(row){return row?{id:row.id,type:row.type,date:row.date,regularType:row.regular_type,driverId:row.driver_id,createdBy:row.created_by,status:row.status,schemaVersion:2,createdAt:row.created_at,vehicleId:row.vehicle_id,vehicleLabel:row.vehicle_label,startedAt:row.started_at,endedAt:row.ended_at,startCapturedAtClient:row.start_captured,endCapturedAtClient:row.end_captured}:null;}
-function stop(row){return row?{id:row.id,...JSON.parse(row.data),schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at}:null;}
+function stop(row){return row?{id:row.id,...JSON.parse(row.data),...(row.payment_data?JSON.parse(row.payment_data):{}),schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at}:null;}
 async function ownTour(db,uid,input,p){requireRole(p,'driver');const row=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!row)fail('not-found','Tour fehlt.');if(row.driver_id!==uid)fail('permission-denied','Tour ist einem anderen Fahrer zugewiesen.');return row;}
 const activeDriver="EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='driver'))";
 async function state(db,uid,p,input){
@@ -24,7 +25,8 @@ async function state(db,uid,p,input){
  requireRole(p,view);
  const rows=view==='office'?await all(db,'SELECT * FROM tours WHERE date=? ORDER BY created_at LIMIT 101',date):await all(db,"SELECT * FROM tours WHERE driver_id=? AND (status!='finished' OR date=?) ORDER BY created_at LIMIT 101",uid,date);
  if(rows.length>100)fail('resource-exhausted','Zu viele Touren für den Testlauf. Bitte Büro informieren.');
- const deliveries=view==='office'?await all(db,'SELECT s.* FROM stops s JOIN tours t ON t.id=s.tour_id WHERE t.date=? ORDER BY s.created_at LIMIT 3001',date):await all(db,"SELECT s.* FROM stops s JOIN tours t ON t.id=s.tour_id WHERE t.driver_id=? AND (t.status!='finished' OR t.date=?) ORDER BY s.created_at LIMIT 3001",uid,date);
+ const projection="SELECT s.*,json_object('collectedCents',json_extract(p.data,'$.collectedCents'),'collectionReason',json_extract(p.data,'$.collectionReason'),'collectionConfirmed',json_extract(p.data,'$.collectionConfirmed')) AS payment_data FROM stops s JOIN tours t ON t.id=s.tour_id LEFT JOIN proofs p ON p.id=s.proof_id ";
+ const deliveries=view==='office'?await all(db,projection+'WHERE t.date=? ORDER BY s.created_at LIMIT 3001',date):await all(db,projection+"WHERE t.driver_id=? AND (t.status!='finished' OR t.date=?) ORDER BY s.created_at LIMIT 3001",uid,date);
  if(deliveries.length>3000)fail('resource-exhausted','Zu viele Päckchen für den Testlauf. Bitte Büro informieren.');
  const stops={};for(const t of rows)stops[t.id]=[];for(const s of deliveries)if(stops[s.tour_id])stops[s.tour_id].push(stop(s));
  const vehicles=await all(db,view==='office'?'SELECT * FROM vehicles LIMIT 101':'SELECT * FROM vehicles WHERE active=1 LIMIT 101');
@@ -32,7 +34,7 @@ async function state(db,uid,p,input){
  const reserved=await all(db,'SELECT id,regular_type,driver_id FROM tours WHERE date=? AND regular_type IS NOT NULL',localDate());
  const catalog=regularTours(localDate()).map(t=>{const r=reserved.find(x=>x.regular_type===t.id);return {...t,date:localDate(),reserved:!!r,mine:r?.driver_id===uid,tourId:r?.driver_id===uid?r.id:null};});
  const specialTours=hasRole(p,'driver')?await all(db,"SELECT id,type,date FROM tours WHERE date=? AND regular_type IS NULL AND driver_id IS NULL AND status='open' LIMIT 101",localDate()):[];
- const totals={};for(const s of deliveries){const d=JSON.parse(s.data);if(s.status==='zugestellt')totals[d.origin]=(totals[d.origin]||0)+d.cents;}
+ const totals={};for(const s of deliveries){const d=stop(s);if(s.status==='zugestellt')totals[d.origin]=(totals[d.origin]||0)+collected(d);}
  const tours=rows.map(tour);await addOrders(db,tours,stops);return {profile:p,tours,stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
 }
 async function rpc(db,uid,p,action,input,env){
@@ -76,13 +78,14 @@ async function rpc(db,uid,p,action,input,env){
   const result=await run(db,`UPDATE tours SET status='finished',ended_at=?,end_captured=?,end_id=?,end_hash=? WHERE id=? AND driver_id=? AND status='running' AND ${activeDriver} AND NOT EXISTS(SELECT 1 FROM stops WHERE tour_id=? AND status='offen')`,iso(),input.capturedAt,input.completionId,fingerprint,t.id,uid,uid,t.id);if(!result.meta.changes){const fresh=await ownTour(db,uid,input,profile(await first(db,'SELECT * FROM users WHERE uid=?',uid)));if(fresh.end_id!==input.completionId||fresh.end_hash!==fingerprint)fail('failed-precondition','Zuerst alle Päckchen abschließen und übertragen.');}return {finished:true};
  }
  if(action==='completeProtectedDelivery'){
-  fields(input,['tourId','stopId','status','sealedSignature','completionId','capturedAt']);capture(input);const t=await ownTour(db,uid,input,p),stopId=id(input.stopId),proofId=policy.identifiers(input),fingerprint=await hash(input);
+  fields(input,['tourId','stopId','status','sealedSignature','completionId','capturedAt','collectedCents','collectionReason']);capture(input);const t=await ownTour(db,uid,input,p),stopId=id(input.stopId),proofId=policy.identifiers(input),fingerprint=await hash(input);
   const existing=await first(db,'SELECT * FROM proofs WHERE id=?',proofId);if(existing){if(existing.driver_id===uid&&existing.completion_id===input.completionId&&existing.fingerprint===fingerprint)return {completed:true};fail('already-exists','Lieferung bereits abgeschlossen.');}
   if(t.status!=='running')fail('failed-precondition','Tour zuerst starten.');const s=await first(db,'SELECT * FROM stops WHERE id=? AND tour_id=?',stopId,t.id);if(!s)fail('not-found','Päckchen fehlt.');
   const opened=input.sealedSignature?await openWebEnvelope(input.sealedSignature,{uid,tourId:t.id,stopId,completionId:input.completionId},env.DELIVERY_PROOF_PRIVATE_KEY):{signature:null,capturedAt:input.capturedAt};if(opened.capturedAt!==input.capturedAt)fail('invalid-argument','Erfassungszeit verändert.');
-  if(opened.signature)await validatePng(opened.signature);const {sealedSignature,...completionInput}=input;policy.completion({...completionInput,signature:opened.signature},uid,{role:'driver',active:true},tour(t),stop(s),false,()=>{});
+  let receipt;try{receipt=payment(input,JSON.parse(s.data).cents,input.status);}catch(e){fail('invalid-argument',e.message);}
+  if(opened.signature)await validatePng(opened.signature);const {sealedSignature,collectedCents,collectionReason,...completionInput}=input;policy.completion({...completionInput,signature:opened.signature},uid,{role:'driver',active:true},tour(t),stop(s),false,()=>{});
   const digest=opened.signature?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Buffer.from(opened.signature.slice(22),'base64')))).map(x=>x.toString(16).padStart(2,'0')).join(''):null;
-  const packageInfo=JSON.parse(s.data);const data={...packageInfo,...customerIdentity(packageInfo),tourId:t.id,stopId,driverId:uid,status:input.status,completedAt:iso(),capturedAtClient:input.capturedAt,signature:opened.signature,signatureSha256:digest};
+  const packageInfo=JSON.parse(s.data);const data={...packageInfo,...receipt,...customerIdentity(packageInfo),tourId:t.id,stopId,driverId:uid,status:input.status,completedAt:iso(),capturedAtClient:input.capturedAt,signature:opened.signature,signatureSha256:digest};
   try{await run(db,'INSERT INTO proofs VALUES (?,?,?,?,?,?,?)',proofId,t.id,stopId,uid,input.completionId,fingerprint,JSON.stringify(data));}
   catch(e){const winner=await first(db,'SELECT * FROM proofs WHERE id=?',proofId);if(winner){if(winner.driver_id===uid&&winner.completion_id===input.completionId&&winner.fingerprint===fingerprint)return {completed:true};fail('already-exists','Lieferung bereits abgeschlossen.');}throw e;}
   return {completed:true};

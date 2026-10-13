@@ -5,6 +5,7 @@ import {createRequire} from 'node:module';
 import {fixtureRuntime} from './fixture-runtime.mjs';
 import {regularTours,localDate,packageData} from './domain.mjs';
 import {sealSignature} from '../offline-store.mjs';
+import {payment} from './payment.mjs';
 const require=createRequire(import.meta.url),{PNG}=require('../functions/node_modules/pngjs');
 let f,winner,loser,tourId,privateStop,failedStop,signature,winInput;
 const capture=()=>({completionId:crypto.randomUUID(),capturedAt:new Date().toISOString()});
@@ -57,11 +58,23 @@ test('tour start documents vehicle and device/server time; late packages and pre
  assert.equal((await f.call(winner,'finishProtectedTour',{tourId,...capture()})).status,400);
  const t=(await f.call(winner,'state')).body.data.tours[0];assert.equal(t.vehicleLabel,'Fiktives Testauto');assert.ok(t.startedAt);assert.equal(t.startCapturedAtClient,input.capturedAt);
 });
+test('payment rejects impossible amounts and requires a reason for unpaid delivery',()=>{
+ for(const input of [{collectedCents:-1,collectionReason:''},{collectedCents:151,collectionReason:''},{collectedCents:1.5,collectionReason:''},{collectedCents:0,collectionReason:''},{collectedCents:150,collectionReason:'Kein Geld vorhanden'}])assert.throws(()=>payment(input,150,'zugestellt'));
+ assert.throws(()=>payment({collectedCents:50,collectionReason:''},150,'nicht zugestellt'));
+ assert.deepEqual(payment({collectedCents:0,collectionReason:'Kein Geld vorhanden'},150,'zugestellt'),{collectedCents:0,collectionReason:'Kein Geld vorhanden',collectionConfirmed:true});
+ assert.equal(payment({},150,'zugestellt').collectionConfirmed,false);
+});
+test('backend rejects cash on a failed delivery without archiving it',async()=>{
+ const input={tourId,stopId:failedStop,status:'nicht zugestellt',sealedSignature:null,...capture(),collectedCents:100,collectionReason:''};
+ assert.equal((await f.call(winner,'completeProtectedDelivery',input)).status,400);
+ assert.equal((await f.db.prepare('SELECT status FROM stops WHERE id=?').bind(failedStop).first()).status,'offen');
+});
 test('parallel encrypted deliveries create exactly one immutable proof; retry has no signature response',async()=>{
  const key=(await f.call(winner,'getDeliveryEncryptionKey')).body.data;assert.equal('privateKey' in key,false);
- const variants=await Promise.all([1,2].map(async()=>{const c=capture(),identity={uid:winner,tourId,stopId:privateStop,completionId:c.completionId};return {tourId,stopId:privateStop,status:'zugestellt',...c,sealedSignature:await sealSignature(key,identity,signature,c.capturedAt)};}));
+ const variants=await Promise.all([1,2].map(async()=>{const c=capture(),identity={uid:winner,tourId,stopId:privateStop,completionId:c.completionId};return {tourId,stopId:privateStop,status:'zugestellt',collectedCents:50,collectionReason:'Nur Teilbetrag vorhanden',...c,sealedSignature:await sealSignature(key,identity,signature,c.capturedAt)};}));
  const results=await Promise.all(variants.map(input=>f.call(winner,'completeProtectedDelivery',input)));assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);winInput=variants[results.findIndex(r=>r.status===200)];
  assert.deepEqual((await f.call(winner,'completeProtectedDelivery',winInput)).body.data,{completed:true});
+ assert.equal((await f.call(winner,'completeProtectedDelivery',{...winInput,collectedCents:100})).status,409);
  const state=(await f.call(winner,'state')).body.data;assert.equal(JSON.stringify(state).includes('data:image/png'),false);assert.equal(state.stops[tourId].find(s=>s.id===privateStop).status,'zugestellt');
  await assert.rejects(f.db.prepare('UPDATE proofs SET data=?').bind('{}').run());await assert.rejects(f.db.prepare('DELETE FROM proofs').run());
 });
@@ -70,7 +83,7 @@ test('only office sees archived proof; failed delivery needs no explanation and 
  const proof=await f.call('office','downloadProtectedProof',{tourId,stopId:privateStop});assert.equal(proof.status,200);assert.equal(proof.body.data.proof.signature,signature);assert.match(proof.body.data.filename,/\.pdf$/);
  const input={tourId,stopId:failedStop,status:'nicht zugestellt',sealedSignature:null,...capture()};assert.equal((await f.call(winner,'completeProtectedDelivery',input)).status,200);
  const end={tourId,...capture()};assert.deepEqual((await Promise.all([1,2].map(()=>f.call(winner,'finishProtectedTour',end)))).map(r=>r.status),[200,200]);
- const state=(await f.call('office','state')).body.data;assert.deepEqual(state.cash,[{origin:'Marienapotheke',cents:150}]);
+ const state=(await f.call('office','state')).body.data;assert.deepEqual(state.cash,[{origin:'Marienapotheke',cents:50}]);const paid=state.stops[tourId].find(s=>s.id===privateStop);assert.equal(paid.collectedCents,50);assert.equal(paid.collectionReason,'Nur Teilbetrag vorhanden');assert.equal(proof.body.data.proof.collectedCents,50);
 });
 test('administrator manages existing roles; privilege flags and administrator access cannot be self-assigned',async()=>{
  assert.equal((await f.call('office','listUsers')).status,403);

@@ -16,6 +16,8 @@ Offene Signaturen werden vor Warteschlangenspeicherung verschlüsselt. Abmeldung
 
 ## Kunden und Reihenfolge
 
+Beim Zustellabschluss bestätigt der Fahrer vollständig, teilweise oder nicht kassiert. Teilzahlungen erfassen den tatsächlich erhaltenen Betrag; bei offenem Betrag ist ein Grund erforderlich. Die Signaturpflicht richtet sich weiterhin nach der Empfängerart. Zahlungen werden zusammen mit dem Abschluss offline gespeichert und unveränderlich archiviert. Büroansicht und PDF zeigen Sollbetrag, tatsächlichen Eingang, offenen Betrag und Grund; Kassensummen berücksichtigen ausschließlich den Eingang. Nicht zugestellte Lieferungen dürfen keinen Eingang enthalten. Alte Nachweise und bereits wartende Abschlüsse bleiben kompatibel und werden als nicht gesondert bestätigter Zahlungsaltbestand gekennzeichnet; keine bestehenden Archive geändert.
+
 Erfolgreiche Zustellungen aktualisieren Kundenvorschläge anhand Name und Adresse. Suche ab drei Zeichen, maximal zehn Vorschläge, nur aktive berechtigte Mitarbeiter. Vorschläge enthalten Adresse, Telefon und Lieferhinweis, keine Signatur, Barzahlung oder Archivkennungen. Zahlungsbetrag je Lieferung neu prüfen.
 
 Offene Stopps der eigenen Tour mit Pfeiltasten sortieren. Jede Änderung enthält alle offenen Stopps exakt einmal; atomare Versionsprüfung verhindert Überschreiben gleichzeitiger Änderungen. Straßenberechnung über Geoapify Free, maximal 80 Stopps, ab dem ersten erfassten Stopp. Nur Adressen und Koordinaten verlassen die App, keine Namen, Telefonnummern, Hinweise, Signaturen oder internen Auftragskennungen. Unvollständige Anbieterantworten, Fehlzuordnungen und zwischenzeitliche Änderungen erhalten die bisherige Reihenfolge. Manuelle Änderungen bleiben möglich. Google Maps erhält die jeweilige Zieladresse.
