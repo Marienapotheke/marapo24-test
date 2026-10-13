@@ -101,7 +101,9 @@ function listen(){
  },err);
 }
 async function refreshQueue(){
- queue=current?await pending(current.uid):[];
+ const uid=current?.uid,epoch=sessionEpoch,items=uid?await pending(uid):[];
+ if(sessionEpoch!==epoch||current?.uid!==uid)return;
+ queue=items;
  $('pendingStatus').textContent=queue.length?queue.length+' Abschluss/Abschlüsse warten auf Übertragung. '+(queue.some(x=>x.error)?'Bitte Hinweise bei den Lieferungen prüfen.':'Bei Funkloch Gerät bis zur Synchronisierung behalten.'):'Keine ausstehenden Abschlüsse.';
  $('syncNow').classList.toggle('hidden',role!=='driver'||queue.length===0);
  renderDriver();renderTour();
@@ -180,12 +182,12 @@ onAuthStateChanged(auth,async user=>{
   let onlineProfile=false;
   if(navigator.onLine){
    let timer;
-   try{const profile=await Promise.race([getDoc(doc(db,'users',user.uid)),new Promise((_,reject)=>timer=setTimeout(()=>reject(Object.assign(Error('Verbindung unterbrochen'),{code:'unavailable'})),8000))]);if(!profile.exists())throw Error('Benutzerprofil fehlt');profileData=profile.data();onlineProfile=true}
+   try{const profile=await Promise.race([getDoc(doc(db,'users',user.uid)),new Promise((_,reject)=>timer=setTimeout(()=>reject(Object.assign(Error('Verbindung unterbrochen'),{code:'unavailable'})),8000))]);if(sessionEpoch!==epoch)return;if(!profile.exists())throw Error('Benutzerprofil fehlt');profileData=profile.data();onlineProfile=true}
    catch(e){if(e.code!=='unavailable'&&e.code!=='deadline-exceeded')throw e}
    finally{clearTimeout(timer)}
   }
   if(!onlineProfile){
-   const cache=await loadAssignments(user.uid);if(!cache)throw Error('Bitte vor der Abfahrt online anmelden und Touren laden.');
+   const cache=await loadAssignments(user.uid);if(sessionEpoch!==epoch)return;if(!cache)throw Error('Bitte vor der Abfahrt online anmelden und Touren laden.');
    profileData=cache.profile;tours=cache.tours;stops=cache.stops;vehicles=cache.vehicles||[];
   }
   if(current?.uid!==user.uid||sessionEpoch!==epoch)return;

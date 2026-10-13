@@ -25,6 +25,7 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm --dir functions install --frozen-lockfile --ignore-scripts
       - run: pnpm test
+      - run: pnpm build
       - run: pnpm test:emulator
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:browser

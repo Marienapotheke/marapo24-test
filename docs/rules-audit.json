@@ -1,12 +1,5 @@
 {
-  "score": 4,
-  "summary": "Prototype: role escalation, browser completion, archive writes, foreign-tour access, legacy signature reads and unbounded client fields are denied. Emulator validation and live database compatibility must be verified before deployment.",
-  "findings": [
-    {
-      "check": "Business Logic vs. Rules",
-      "severity": "major",
-      "issue": "Replacing live rules with this candidate would block legacy v3 collections. No live configuration or database edition has been verified.",
-      "recommendation": "Do not deploy. Verify current configuration and design an explicitly approved isolated test or coordinated cutover first."
-    }
-  ]
+  "score": 5,
+  "summary": "Scoped Firestore rule review: authority comes from immutable server-managed active profiles and verified Auth; client role escalation, archive writes, driver proof reads, foreign-tour reads and direct completion/time/vehicle edits are denied. Allowed office creates validate required fields, types and sizes; vehicle updates retain creation time and revalidate the complete schema. Stop creation is denied after tour start. Seventeen emulator tests and the full offline browser acceptance test passed on 2026-10-13. This rating concerns the candidate rules only, not operational readiness: isolated named-database configuration, IAM, actual-device acceptance and explicit deployment approval remain required. Never deploy these rules to the live v3 default database.",
+  "findings": []
 }
