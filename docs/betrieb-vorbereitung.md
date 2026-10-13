@@ -20,7 +20,7 @@ Erfolgreiche Zustellungen aktualisieren Kundenvorschläge anhand Name und Adress
 
 Offene Stopps der eigenen Tour mit Pfeiltasten sortieren. Jede Änderung enthält alle offenen Stopps exakt einmal; atomare Versionsprüfung verhindert Überschreiben gleichzeitiger Änderungen. Straßenberechnung über Geoapify Free, maximal 80 Stopps, ab dem ersten erfassten Stopp. Nur Adressen und Koordinaten verlassen die App, keine Namen, Telefonnummern, Hinweise, Signaturen oder internen Auftragskennungen. Unvollständige Anbieterantworten, Fehlzuordnungen und zwischenzeitliche Änderungen erhalten die bisherige Reihenfolge. Manuelle Änderungen bleiben möglich. Google Maps erhält die jeweilige Zieladresse.
 
-Der geheime Geoapify-Schlüssel ist noch separat zu verbinden. Atomare Tagesgrenze 2.500 Credits, kein automatischer Tarifwechsel. Geocoding ein Credit; Route Planner für N Start-/Zielpositionen N×min(N,10) Credits. [Offizielle Berechnung](https://www.geoapify.com/pricing-details/).
+Der geheime Geoapify-Schlüssel ist noch separat zu verbinden. Atomare Grenze von 2.500 Credits innerhalb gleitender 24 Stunden, unabhängig von Tageswechseln oder Abrechnungszeitzonen, kein automatischer Tarifwechsel. Geocoding ein Credit; Route Planner für N Start-/Zielpositionen N×min(N,10) Credits. [Offizielle Berechnung](https://www.geoapify.com/pricing-details/).
 
 ## Sicherung
 

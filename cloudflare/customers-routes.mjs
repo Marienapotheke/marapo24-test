@@ -14,7 +14,13 @@ export async function saveOrder(db,uid,p,input){
  if(r.meta.changes!==1)fail('failed-precondition','Tour oder Stopps wurden inzwischen geändert. Bitte neu laden.');return {revision,stopIds:input.stopIds};
 }
 export async function addOrders(db,tours,stops){if(!tours.length)return;const plans=(await db.prepare('SELECT * FROM tour_orders WHERE tour_id IN(SELECT value FROM json_each(?))').bind(JSON.stringify(tours.map(t=>t.id))).all()).results;const lookup=new Map(plans.map(p=>[p.tour_id,p]));for(const tour of tours){const plan=lookup.get(tour.id);tour.orderRevision=plan?.revision||0;if(plan){const ids=JSON.parse(plan.stop_ids),position=new Map(ids.map((v,i)=>[v,i]));stops[tour.id]?.sort((a,b)=>(position.get(a.id)??100000)-(position.get(b.id)??100000));}}}
-async function consumeCredits(db,amount){if(amount>2500)fail('resource-exhausted','Kostenloses Kartenkontingent geschützt. Bitte manuell sortieren.');const day=localDate(),r=await db.prepare('INSERT INTO routing_usage VALUES (?,?) ON CONFLICT(day) DO UPDATE SET credits=credits+excluded.credits WHERE credits+excluded.credits<=2500 RETURNING credits').bind(day,amount).first();if(!r)fail('resource-exhausted','Kostenloses Kartenkontingent geschützt. Bitte manuell sortieren.');}
+async function consumeCredits(db,amount){
+ if(amount>2500)fail('resource-exhausted','Kostenloses Kartenkontingent geschützt. Bitte manuell sortieren.');const now=Date.now(),since=now-86400000;
+ await db.prepare('DELETE FROM routing_credit_events WHERE at<=?').bind(since).run();
+ const r=await db.prepare('INSERT INTO routing_credit_events SELECT ?,?,? WHERE COALESCE((SELECT sum(credits) FROM routing_credit_events WHERE at>?),0)+?<=2500').bind(crypto.randomUUID(),now,amount,since,amount).run();
+ if(r.meta.changes!==1)fail('resource-exhausted','Kostenloses Kartenkontingent geschützt. Bitte manuell sortieren.');
+ await db.prepare('INSERT INTO routing_usage VALUES (?,?) ON CONFLICT(day) DO UPDATE SET credits=credits+excluded.credits').bind(localDate(),amount).run();
+}
 async function providerFetch(url,options){let r;try{r=await fetch(url,{...options,signal:AbortSignal.timeout(12000)});}catch{fail('unavailable','Kartenberechnung nicht erreichbar. Reihenfolge bleibt erhalten.');}if(!r.ok)fail('unavailable','Kartenberechnung nicht bestätigt. Bitte manuell sortieren.');return r.json();}
 async function location(db,data,key){
  const addressId=hash([normalize(data.street),data.postalCode,normalize(data.city)]),old=await first(db,'SELECT * FROM address_locations WHERE id=?',addressId);if(old)return old;

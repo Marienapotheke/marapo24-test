@@ -20,7 +20,7 @@ test('street planning sends only addresses and coordinates, preserves manual con
  for(const privateValue of ['Erika','Theo','01234567','Fiktiver Hinweis','signature',tourId,...stops])assert.equal(transmitted.join().includes(privateValue),false);
  const usage=await f.db.prepare('SELECT credits FROM routing_usage').first();assert.equal(usage.credits,18);
  incomplete=true;assert.equal((await f.call('driver-a','optimizeStops',{tourId,baseRevision:2})).status,503);assert.equal((await f.db.prepare('SELECT revision FROM tour_orders').first()).revision,2);incomplete=false;
- await f.db.prepare('UPDATE routing_usage SET credits=2499').run();const before=transmitted.length;assert.equal((await f.call('driver-a','optimizeStops',{tourId,baseRevision:2})).status,429);assert.equal(transmitted.length,before);
+ await f.db.prepare('DELETE FROM routing_credit_events').run();await f.db.prepare('INSERT INTO routing_credit_events VALUES (?,?,?)').bind('fictional-prior-budget',Date.now()-3600000,2499).run();const before=transmitted.length;assert.equal((await f.call('driver-a','optimizeStops',{tourId,baseRevision:2})).status,429);assert.equal(transmitted.length,before);
  assert.equal((await f.call('driver-a','reorderStops',{tourId,stopIds:stops,baseRevision:2})).status,200);
 });
 test('successful deliveries remember customer fields without money or signatures and merge repeat customers',async()=>{

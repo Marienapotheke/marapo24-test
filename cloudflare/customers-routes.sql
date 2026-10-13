@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS address_locations (
  id TEXT PRIMARY KEY,lat REAL NOT NULL,lon REAL NOT NULL,provider TEXT NOT NULL,updated_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS routing_usage(day TEXT PRIMARY KEY,credits INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS routing_credit_events(id TEXT PRIMARY KEY,at INTEGER NOT NULL,credits INTEGER NOT NULL CHECK(credits>0));
+CREATE INDEX IF NOT EXISTS routing_credit_time ON routing_credit_events(at);
 CREATE TRIGGER IF NOT EXISTS remember_delivered_customer AFTER INSERT ON proofs
 WHEN json_extract(NEW.data,'$.status')='zugestellt' AND json_extract(NEW.data,'$.customerId') IS NOT NULL
 BEGIN
