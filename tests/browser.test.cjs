@@ -24,6 +24,8 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   browser=await chromium.launch();
   const officeContext=await browser.newContext(),driverContext=await browser.newContext();
   const office=await officeContext.newPage();driverPage=await driverContext.newPage();
+  await driverPage.addInitScript(()=>{const original=IDBObjectStore.prototype.delete;IDBObjectStore.prototype.delete=function(key){console.info('Demo cache delete',key,new Error().stack);return original.call(this,key);};});
+  driverPage.on('console',m=>{if(m.text().startsWith('Demo cache delete'))console.error(m.text());});
   office.on('pageerror',e=>failures.push(e.message));driverPage.on('pageerror',e=>failures.push(e.message));
   driverPage.on('dialog',async d=>{alerts.push(d.message());await d.dismiss();});
   async function login(page,id){await page.goto('http://127.0.0.1:4173');await page.locator('#loginEmail').fill(id+'@example.test');await page.locator('#loginPassword').fill(password);await page.locator('#loginButton').click();await page.locator('#appMain:not(.hidden)').waitFor({timeout:30000});}

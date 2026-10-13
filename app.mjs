@@ -17,7 +17,7 @@ const startTourCall=httpsCallable(functions,'startProtectedTour'),finishTourCall
 const getEncryptionKey=httpsCallable(functions,'getDeliveryEncryptionKey');
 const finishDelivery=httpsCallable(functions,'completeProtectedDelivery'),downloadProof=httpsCallable(functions,'downloadProtectedProof');
 let vehicles=[],unsubVehicles=null,unsubProfile=null;
-let employees=[],unsubEmployees=null,queue=[],syncing=false,profileData=null;
+let employees=[],unsubEmployees=null,queue=[],syncing=false,profileData=null,sessionEpoch=0;
 let role='',current=null,tours=[],stops={},selected=null,signStop=null,hasInk=false,writing=false,unsubTours=null,unsubStops=[];
 function info(s){$('firebaseStatus').textContent=s}
 function err(e){info('Fehler: '+(e?.message||'Vorgang konnte nicht bestätigt werden. Bitte Verbindung prüfen oder Büro kontaktieren.'))}
@@ -58,18 +58,27 @@ function renderDriver(){
  document.querySelectorAll('[data-fail]').forEach(b=>b.onclick=()=>mark(b.dataset.fail,'nicht zugestellt'));
 }
 async function cacheCurrent(){
- if(role==='driver'&&current&&profileData?.active===true)
+ if(role==='driver'&&current&&profileData?.active===true){
   await saveAssignments(current.uid,{profile:profileData,tours,stops,vehicles}).catch(()=>info('Tourcache konnte nicht gespeichert werden. Offline-Neustart ist nicht verfügbar.'));
+  await offlineReadiness();
+ }
+}
+async function offlineReadiness(){
+ if(role!=='driver'||!current)return;
+ const uid=current.uid;
+ try{const [key,cache]=await Promise.all([getPublicKey(uid),loadAssignments(uid)]);if(current?.uid===uid&&role==='driver')$('offlineStatus').textContent=key&&cache?'Für Funklöcher vorbereitet. Ausstehende Abschlüsse anschließend übertragen.':'Noch nicht für Funklöcher vorbereitet. Bitte vor der Abfahrt mit Internet verbinden.';}
+ catch(e){$('offlineStatus').textContent='Offline-Vorbereitung fehlgeschlagen. Bitte Büro kontaktieren.';}
 }
 function listen(){
- const uid=current.uid;
+ const uid=current.uid,epoch=sessionEpoch;
  const vehicleQuery=role==='office'?collection(db,'vehicles'):query(collection(db,'vehicles'),where('active','==',true));
  unsubVehicles=onSnapshot(vehicleQuery,{includeMetadataChanges:true},snap=>{
-  if(current?.uid!==uid||snap.metadata.fromCache)return;
+  if(current?.uid!==uid||sessionEpoch!==epoch||snap.metadata.fromCache)return;
   vehicles=snap.docs.map(d=>({id:d.id,...d.data()}));renderVehicles();renderTour();cacheCurrent();
  },err);
  const q=role==='office'?collection(db,'protectedTours'):query(collection(db,'protectedTours'),where('driverId','==',uid));
  if(role==='office')unsubEmployees=onSnapshot(query(collection(db,'users'),where('role','==','driver'),where('active','==',true)),snap=>{
+  if(current?.uid!==uid||sessionEpoch!==epoch)return;
   employees=snap.docs.map(d=>({id:d.id,...d.data()}));
   const old=$('tourDriver').value;
   $('tourDriver').innerHTML='<option value="">Fahrer auswählen</option>'+employees.map(d=>`<option value="${esc(d.id)}">${esc(d.displayName||d.id)}</option>`).join('');
@@ -77,14 +86,14 @@ function listen(){
   display();
  },err);
  unsubTours=onSnapshot(q,{includeMetadataChanges:true},snap=>{
-  if(current?.uid!==uid||snap.metadata.fromCache)return;
+  if(current?.uid!==uid||sessionEpoch!==epoch||snap.metadata.fromCache)return;
   tours=snap.docs.map(d=>({id:d.id,...d.data()}));
   for(const u of unsubStops)u();unsubStops=[];
   const oldStops=stops;stops={};
   for(const t of tours){
    stops[t.id]=oldStops[t.id]||[];
    unsubStops.push(onSnapshot(collection(db,'protectedTours',t.id,'stops'),{includeMetadataChanges:true},s=>{
-    if(current?.uid!==uid||s.metadata.fromCache)return;
+    if(current?.uid!==uid||sessionEpoch!==epoch||s.metadata.fromCache)return;
     stops[t.id]=s.docs.map(d=>({id:d.id,...d.data()}));display();cacheCurrent();
    },err));
   }
@@ -158,8 +167,9 @@ $('saveSig').onclick=async()=>{
 function network(){$('network').textContent=navigator.onLine?'Online':'Offline – Abschlüsse werden zwischengespeichert';if(navigator.onLine){if(current&&role&&!unsubTours)listen();syncPending();if(role==='driver'&&current){const uid=current.uid;getEncryptionKey({}).then(r=>savePublicKey(uid,r.data)).catch(()=>{})}}}addEventListener('online',network);addEventListener('offline',network);network();
 $('loginForm').onsubmit=async e=>{e.preventDefault();$('loginButton').disabled=true;$('loginStatus').textContent='Anmeldung läuft …';try{await signInWithEmailAndPassword(auth,$('loginEmail').value.trim(),$('loginPassword').value);$('loginPassword').value=''}catch(e){$('loginStatus').textContent='Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.'}finally{$('loginButton').disabled=false}};
 $('logoutButton').onclick=async()=>{try{const uid=current?.uid;if(uid&&(await pending(uid)).length&&!confirm('Es gibt ausstehende Abschlüsse auf diesem Gerät. Sie bleiben verschlüsselt gespeichert und werden erst nach erneuter Anmeldung dieses Kontos übertragen. Trotzdem abmelden?'))return;if(uid)await clearAssignments(uid);await signOut(auth)}catch(e){err(e)}};
-setPersistence(auth,browserLocalPersistence).catch(err);
+await setPersistence(auth,browserLocalPersistence).catch(err);
 onAuthStateChanged(auth,async user=>{
+ const epoch=++sessionEpoch;
  clearListeners();$('sigDialog').close();clearSignature();current=user;role='';profileData=null;queue=[];
  $('driverStops').textContent='';$('officeStops').textContent='';$('tours').textContent='';
  $('appMain').classList.add('hidden');$('sessionBar').classList.toggle('hidden',!user);$('authPanel').classList.toggle('hidden',!!user);
@@ -178,7 +188,7 @@ onAuthStateChanged(auth,async user=>{
    const cache=await loadAssignments(user.uid);if(!cache)throw Error('Bitte vor der Abfahrt online anmelden und Touren laden.');
    profileData=cache.profile;tours=cache.tours;stops=cache.stops;vehicles=cache.vehicles||[];
   }
-  if(current?.uid!==user.uid)return;
+  if(current?.uid!==user.uid||sessionEpoch!==epoch)return;
   if(profileData.active!==true||!['office','driver'].includes(profileData.role))throw Error('Konto nicht freigegeben.');
   role=profileData.role;
   if(role==='office'&&!onlineProfile)throw Error('Büro benötigt eine Internetverbindung.');
@@ -187,15 +197,15 @@ onAuthStateChanged(auth,async user=>{
   if(onlineProfile){
    listen();
    unsubProfile=onSnapshot(doc(db,'users',user.uid),snap=>{
-    if(current?.uid!==user.uid||snap.metadata.fromCache)return;
+    if(current?.uid!==user.uid||sessionEpoch!==epoch||snap.metadata.fromCache)return;
     if(!snap.exists()||snap.data().active!==true||snap.data().role!==role){
      $('sigDialog').close();clearSignature();
      clearAssignments(user.uid).catch(()=>{});role='';$('appMain').classList.add('hidden');$('authPanel').classList.remove('hidden');$('driverStops').textContent='';$('officeStops').textContent='';$('tours').textContent='';$('loginStatus').textContent='Zugriff wurde geändert. Bitte Büro kontaktieren und erneut anmelden.';
     }
    },err);
-   if(role==='driver'){try{const result=await getEncryptionKey({});await savePublicKey(user.uid,result.data);await syncPending()}catch(e){err(e)}}
-  }else info('Offline: zuletzt geladene Touren verfügbar. Abschlüsse warten auf Übertragung.');
- }catch(e){err(e);role='';$('authPanel').classList.remove('hidden');$('appMain').classList.add('hidden');$('loginStatus').textContent=e.message||'Kein freigegebenes Benutzerprofil.'}
+   if(role==='driver'){try{const result=await getEncryptionKey({});if(sessionEpoch!==epoch||current?.uid!==user.uid)return;await savePublicKey(user.uid,result.data);await offlineReadiness();await syncPending()}catch(e){if(sessionEpoch===epoch)err(e)}}
+  }else {info('Offline: zuletzt geladene Touren verfügbar. Abschlüsse warten auf Übertragung.');await offlineReadiness();}
+ }catch(e){if(sessionEpoch!==epoch)return;err(e);role='';$('authPanel').classList.remove('hidden');$('appMain').classList.add('hidden');$('loginStatus').textContent=e.message||'Kein freigegebenes Benutzerprofil.'}
 },err);
 $('syncNow').onclick=syncPending;
 const reset=document.createElement('button');reset.type='button';reset.className='secondary';reset.textContent='Passwort einrichten / zurücksetzen';$('loginForm').after(reset);
@@ -235,6 +245,7 @@ function renderTour(){
 async function queueTourAction(action){
  const uid=current?.uid,tourId=$('driverTour').value,tour=tours.find(t=>t.id===tourId);
  if(role!=='driver'||!uid||!tour)return;
+ if(!navigator.onLine&&(!(await getPublicKey(uid))||!(await loadAssignments(uid))))return alert('Offline-Tourstart noch nicht vorbereitet. Bitte vor der Abfahrt mit Internet verbinden.');
  if(action==='start'&&(effectiveTourStatus(tourId)!=='open'||!$('vehicleSelect').value))return alert('Vor dem Tourstart ein Fahrzeug auswählen.');
  if(action==='finish'&&effectiveTourStatus(tourId)!=='running')return;
  const input={action,tourId,completionId:crypto.randomUUID(),capturedAt:new Date().toISOString()};
