@@ -1,4 +1,5 @@
 import envelope from '../functions/envelope.cjs';
+import {purgeExpired,RETENTION_POLICY} from './retention.mjs';
 import {payment,collected} from './payment.mjs';
 import policy from '../functions/policy.cjs';
 import {openWebEnvelope,deliveryKey} from './web-envelope.mjs';
@@ -103,6 +104,7 @@ async function rpc(db,uid,p,action,input,env){
 }
 async function readInput(request){const reader=request.body?.getReader();if(!reader)return {};let size=0;const chunks=[];while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>300000){await reader.cancel();fail('resource-exhausted','Anfrage zu groß.');}chunks.push(value);}const bytes=new Uint8Array(size);let offset=0;for(const c of chunks){bytes.set(c,offset);offset+=c.length;}try{return JSON.parse(new TextDecoder().decode(bytes));}catch{fail('invalid-argument','Ungültige Anfrage.');}}
 export default {
+ async scheduled(controller,env){if(env.RETENTION_POLICY!==RETENTION_POLICY)return;const result=await purgeExpired(env.DB,{policy:env.RETENTION_POLICY});console.log(JSON.stringify({event:'retention',...result}));},
  async fetch(request,env){
   const url=new URL(request.url);if(!url.pathname.startsWith('/api/'))return env.ASSETS?env.ASSETS.fetch(request):new Response('Test app not built',{status:404});
   if(request.method!=='POST')return Response.json({error:{code:'invalid-argument',message:'POST required'}},{status:405});
