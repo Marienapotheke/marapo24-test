@@ -1,14 +1,18 @@
+import {deriveOfficeProof,temporaryOfficeProof,newOfficeSalt} from './password-proof.mjs';
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {fixtureRuntime} from './fixture-runtime.mjs';
 let f,temporary,session;
-async function call(action,input={},identity=null,cookie='',claims={}){const r=await f.runtime.dispatchFetch('https://fictional.invalid/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Firebase-AppCheck':f.appToken(),...(identity?{Authorization:'Bearer '+f.authToken(identity,claims)}:{}),...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(input)});return {status:r.status,body:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0],headers:r.headers};}
+async function call(action,input={},identity=null,cookie='',claims={}){
+if(action==='officePasswordLogin'&&Object.hasOwn(input,'password')){const challenge=(await call('officePasswordChallenge',{username:input.username})).body.data;const passwordProof=challenge.scheme==='temporary'?await temporaryOfficeProof(input.password):await deriveOfficeProof(challenge.username,challenge.salt,input.password);input={username:input.username,passwordProof};}
+if(action==='changeOfficePassword'&&Object.hasOwn(input,'password')){const s=(await call('session',{},null,cookie)).body.data.profile;const salt=newOfficeSalt();input={salt,passwordProof:input.password.length>=14?await deriveOfficeProof(s.officeUsername,salt,input.password):'invalid'};}
+const r=await f.runtime.dispatchFetch('https://fictional.invalid/api/'+action,{method:'POST',headers:{'Content-Type':'application/json','X-Firebase-AppCheck':f.appToken(),...(identity?{Authorization:'Bearer '+f.authToken(identity,claims)}:{}),...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(input)});return {status:r.status,body:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0],headers:r.headers};}
 before(async()=>{f=await fixtureRuntime();});after(async()=>{await f?.runtime.dispose();});
 test('only the verified personal recovery administrator can issue office credentials',async()=>{
  assert.equal((await call('resetOfficePassword',{uid:'office',username:'erika.muster'},'office')).status,403);
  assert.equal((await call('resetOfficePassword',{uid:'office',username:'erika.muster'},'admin','',{email:'someone@example.test'})).status,403);
  const r=await call('resetOfficePassword',{uid:'office',username:'erika.muster'},'admin');assert.equal(r.status,200);temporary=r.body.data.temporaryPassword;assert.equal(r.body.data.username,'erika.muster@marapo24.de');
- const stored=await f.db.prepare("SELECT * FROM office_credentials WHERE uid='office'").first();assert.equal(JSON.stringify(stored).includes(temporary),false);assert.match(stored.password_hash,/^[a-f0-9]{64}$/);
+ const stored=await f.db.prepare("SELECT * FROM office_credentials_v2 WHERE uid='office'").first();assert.equal(JSON.stringify(stored).includes(temporary),false);assert.match(stored.password_hash,/^[a-f0-9]{64}$/);
  assert.equal((await call('officePasswordLogin',{username:'erika.muster',password:'wrong-password'})).status,401);
 });
 test('temporary office passwords permit only personal password change before data access',async()=>{

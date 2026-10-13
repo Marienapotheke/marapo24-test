@@ -107,13 +107,13 @@ export default {
   try{
    const action=url.pathname.slice(5),input=await readInput(request);let result;
    if(['driverLoginOptions','driverPinLogin','driverPinLogout'].includes(action)){await authenticateApp(request,env);result=await driverPublicAction(action,input,request,env);}
-   else if(['officePasswordLogin','officePasswordLogout','officeForgotPassword'].includes(action)){await authenticateApp(request,env);result=await officePublicAction(action,input,request,env);}
+   else if(['officePasswordLogin','officePasswordLogout','officeForgotPassword','officePasswordChallenge'].includes(action)){await authenticateApp(request,env);result=await officePublicAction(action,input,request,env);}
    else{
-    let uid,kind,email,mustChange=false;
+    let uid,kind,email,officeUsername,mustChange=false;
     if(request.headers.has('Authorization')){const identity=await authenticateIdentity(request,env);uid=identity.uid;email=identity.email;kind='firebase';}
-    else {await authenticateApp(request,env);if((request.headers.get('Cookie')||'').includes('__Host-marapo24-office=')){const session=await officeSession(request,env);uid=session.uid;mustChange=session.mustChange;kind='office';}else{uid=await driverSession(request,env);kind='driver';}}
+    else {await authenticateApp(request,env);if((request.headers.get('Cookie')||'').includes('__Host-marapo24-office=')){const session=await officeSession(request,env);uid=session.uid;mustChange=session.mustChange;officeUsername=session.username;kind='office';}else{uid=await driverSession(request,env);kind='driver';}}
     let p=profile(await first(env.DB,'SELECT * FROM users WHERE uid=?',uid));
-    if(p){p={...p,sessionKind:kind,loginEmail:email,mustChangePassword:mustChange};if(kind==='driver')p={...p,roles:p.roles.filter(r=>r==='driver'),isAdmin:false,canCreateSpecialTour:false};if(kind==='office')p={...p,roles:p.roles.filter(r=>r==='office')};p.canRecoverPasswords=isRecoveryAdmin(p,env);}
+    if(p){p={...p,sessionKind:kind,loginEmail:email,mustChangePassword:mustChange,officeUsername};if(kind==='driver')p={...p,roles:p.roles.filter(r=>r==='driver'),isAdmin:false,canCreateSpecialTour:false};if(kind==='office')p={...p,roles:p.roles.filter(r=>r==='office')};p.canRecoverPasswords=isRecoveryAdmin(p,env);}
     if(mustChange&&!['changeOfficePassword','session'].includes(action))fail('failed-precondition','Bitte zuerst das vorläufige Passwort ändern.');
     if(action==='session'){fields(input,[]);result={data:{profile:p}};}
     else if(['changeOfficePassword','listPasswordRequests','resetOfficePassword'].includes(action))result=await officeAccountAction(action,input,request,env,p);
