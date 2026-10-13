@@ -41,8 +41,18 @@ Lokale Tests messen keine verlässliche gehostete CPU-Zeit. Die geringe CPU-Gren
 
 Quellen: [Workers](https://developers.cloudflare.com/workers/platform/pricing/), [D1-Preise](https://developers.cloudflare.com/d1/platform/pricing/), [D1-Grenzen](https://developers.cloudflare.com/d1/platform/limits/).
 
-## Nächster freizugebender Schritt
+## Einrichtung nach ausdrücklicher Freigabe
 
 Erst nach grüner Prüfung des finalen Commits und **expliziter Zustimmung zur Veröffentlichung der separaten Testvariante**: neue D1-Testdatenbank in Europa anlegen, Schema ausschließlich dort ausführen, RSA-Secret erzeugen und geschützt hinterlegen, Worker-Subdomain festlegen, Firebase-Anmeldedomäne und App Check für diese Subdomain konfigurieren, fiktive verifizierte Testkonten und D1-Profile bereitstellen und die neue Oberfläche veröffentlichen. App Check darf nicht als Abkürzung abgeschaltet werden. Keine Änderung der v3, ihrer Hosting-Ziele, ihres Datenbestands oder ihrer Firestore-Regeln.
 
 `cloudflare/wrangler.template.jsonc` ist absichtlich nicht ausführbar konfiguriert: die Datenbank-ID fehlt. Es gibt keinen Standard-`wrangler.json`, kein Remote-Schema-Kommando und keine Deploy-Automation im Repository. Eine lokale, ignorierte Konfiguration wird erst nach Freigabe erstellt. Nach Freigabe müssen die gehosteten Rollen-/Nachweistests, CPU-/Quotenprüfung und Wiederanmeldung auf einem echten Android-Tablet bestanden sein. Bis dahin ist dies eine lokal geprüfte Kandidatenversion.
+
+## Veröffentlichter Pilot – 13.10.2026
+
+Der Nutzer hat nach grüner Prüfung ausdrücklich „ja dann veröffentliche diese“ freigegeben und Cloudflares Werkzeugverbindung persönlich bestätigt. Die separate Version wurde veröffentlicht: https://marapo24-protected-test.apotheker-stoeck.workers.dev/ . Getesteter Quellstand: `2c20b2dccc3d6bdb6afb8ee3e45f5f34162896f8`; GitHub-Lauf `38373007059` erfolgreich, einschließlich aller 68 Prüfungen. Worker-Version: `f39e9c17-6a4e-4469-9636-ee0a97a12e1a`.
+
+Neue D1-Datenbank `marapo24-protected-test`, EU-Jurisdiktion, getrenntes Schema und ausschließlich fiktive Profile/Beispiellieferungen. Neue Firebase-Web-App `1:233196612528:web:340794b3d8e13f895f0475` mit reCAPTCHA Enterprise App Check ausschließlich für diese Testadresse. Eine Anmeldedomäne wurde ergänzt; bestehende Domänen und v3-Web-App bleiben erhalten. Firebase ohne Rechnungskonto, Cloudflare Workers Free, kein kostenpflichtiges Upgrade. Bestehende Firestore-Regeln wurden nicht verändert; `main` unverändert bei `ced0e7bc798bffab10b4d76c65719204ac30193d`.
+
+Gehostet geprüft: echte Firebase-Anmeldung plus App Check, Fahrer-Tourstart mit Fahrzeug und Geräte-/Serverzeit, verschlüsselte fiktive Signatur, fehlgeschlagene Lieferung ohne Zusatzfelder, einmaliger Abschluss, Tourende, Abmeldung und Bürozugriff. Büro-PDF heruntergeladen: gültige PDF-Datei mit eingebettetem Signaturbild. Unangemeldete API-Anfrage antwortet 401 und `Cache-Control: no-store`. Passwörter und private Schlüssel stehen ausschließlich außerhalb des Repositories; private RSA-Daten sind Worker-Secrets. Der Pilot ist für fiktive Erprobung freigegeben, nicht für Patienten-/Echtdaten.
+
+Laufzeitbeobachtung: alle beobachteten API-Aufrufe waren erfolgreich und ohne Worker-Ausnahme. Einzelne Aufrufe überschritten die nominelle Free-CPU-Grenze, insbesondere die erste Signaturprüfung mit 145 ms. Die Plattform hat diese Testaufrufe akzeptiert; dies ist keine Zusicherung für dauerhafte oder höhere Last. Vor einer Betriebsfreigabe müssen PNG-/Schlüsselprüfung weiter optimiert und CPU/Quota unter realistischer Last erneut geprüft werden. Eine bezahlte Variante wurde nicht aktiviert. reCAPTCHA hat ohne Rechnungskonto ebenfalls ein begrenztes Gratiskontingent; bei Überschreitung muss die App die fehlende Bestätigung beibehalten. Quelle: https://docs.cloud.google.com/recaptcha/docs/billing-information .
