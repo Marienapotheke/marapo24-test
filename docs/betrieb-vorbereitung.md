@@ -20,7 +20,7 @@ Erfolgreiche Zustellungen aktualisieren Kundenvorschläge anhand Name und Adress
 
 Offene Stopps der eigenen Tour mit Pfeiltasten sortieren. Jede Änderung enthält alle offenen Stopps exakt einmal; atomare Versionsprüfung verhindert Überschreiben gleichzeitiger Änderungen. Straßenberechnung über Geoapify Free, maximal 80 Stopps, ab dem ersten erfassten Stopp. Nur Adressen und Koordinaten verlassen die App, keine Namen, Telefonnummern, Hinweise, Signaturen oder internen Auftragskennungen. Unvollständige Anbieterantworten, Fehlzuordnungen und zwischenzeitliche Änderungen erhalten die bisherige Reihenfolge. Manuelle Änderungen bleiben möglich. Google Maps erhält die jeweilige Zieladresse.
 
-Der geheime Geoapify-Schlüssel ist noch separat zu verbinden. Atomare Grenze von 2.500 Credits innerhalb gleitender 24 Stunden, unabhängig von Tageswechseln oder Abrechnungszeitzonen, kein automatischer Tarifwechsel. Geocoding ein Credit; Route Planner für N Start-/Zielpositionen N×min(N,10) Credits. [Offizielle Berechnung](https://www.geoapify.com/pricing-details/).
+Geoapify Free ist am 13.10.2026 verbunden: Schlüssel ausschließlich als Backend-Geheimnis, keine Auslieferung an den Browser. Eine echte Anbieterberechnung mit zwei synthetischen Positionen lieferte HTTP 200 und eine vollständige Reihenfolge; keine Personendaten übertragen. Tarif im Konto bestätigt: Free, 3.000 Credits/Tag, 0 USD/Monat. Atomare App-Grenze von 2.500 Credits innerhalb gleitender 24 Stunden, unabhängig von Tageswechseln oder Abrechnungszeitzonen, kein automatischer Tarifwechsel. Geocoding ein Credit; Route Planner für N Start-/Zielpositionen N×min(N,10) Credits. [Offizielle Berechnung](https://www.geoapify.com/pricing-details/).
 
 ## Sicherung
 
@@ -28,13 +28,15 @@ Der geheime Geoapify-Schlüssel ist noch separat zu verbinden. Atomare Grenze vo
 
 Erste Server-Sicherung am 13.10.2026 erfolgreich geprüft: vier fiktive Konten, eine Tour, zwei Stopps, zwei Nachweise. Täglicher Windows-Auftrag eingerichtet, nur bei eingeschaltetem Arbeitsplatz und angemeldeter Person; verpasste Ausführung nachholen. Ergebnis in privater `.backups/last-backup-status.json`. Kein vom Arbeitsplatz unabhängiger Sicherungsdienst; Erfolg regelmäßig prüfen. Wiederherstellungsschlüssel separat geschützt an Verantwortliche übergeben, bevor bei Computerverlust echte Daten gefährdet wären.
 
-Zusätzliche verschlüsselte Backend-Schlüsselsicherung ist vorbereitet, bis zur ausdrücklichen Speicherortfreigabe nicht auf den Netzwerkserver übertragen. Keine automatische Sicherungslöschung.
+Die zusätzliche verschlüsselte Backend-Schlüsselsicherung wurde ausdrücklich für den privaten Server-Speicherort freigegeben und erfolgreich gespeichert sowie isoliert zurückgelesen. Letzte Prüfung einschließlich Geoapify-Schlüssel: 13.10.2026, 12:44 UTC, 35 Zugangsprofile, drei fiktive Touren, drei Stopps und drei Nachweise. Der Entschlüsselungsschlüssel bleibt getrennt auf dem Arbeitsplatz. Keine automatische Sicherungslöschung.
+
+## Veröffentlichter geprüfter Stand
+
+Code-Commit `93f2abe2961cf9c9626a92fe07afe6f8ed070ff7`, GitHub-Prüflauf `38398020422` erfolgreich mit 89 Tests einschließlich Firebase-Emulatoren, Regeln, Backend, Browser und Sicherung. Getrennte Test-App am 13.10.2026 veröffentlicht, Worker-Version `6b147b63-2972-485b-acbb-5ca96a30125f`. Administratoranmeldung nach E-Mail-Bestätigung erneut geprüft; abgemeldete Formulare und Passwortfelder werden geleert. Gehostete Büropasswort-Anmeldung nach Optimierung mit 6 ms CPU gemessen; einzelne kalte Datenabfragen mit 14 ms zeigen, dass weitere realistische Lastprüfung notwendig bleibt.
 
 ## Vor echten Lieferungen offen
 
-- Finalen Commit einschließlich aller Firebase-Emulator- und Browserprüfungen validieren; nur additive Testmigrationen.
 - Gehostete CPU-Zeit/Quoten nach Optimierung mit fiktiver realistischer Last prüfen. Gratis-Dauerbetrieb noch nicht zugesichert; kein kostenpflichtiges Upgrade aktiviert.
 - Administratoradresse bestätigen, Mitarbeiterberechtigungen prüfen und drei echte Android-Tablets einschließlich Funkloch, Neustart, Abmeldung, Widerruf und ausstehenden Abschlüssen erproben.
-- Geoapify-Konto verbinden, notwendige Vertrags-/Anmeldeschritte vom Kontoinhaber bestätigen lassen.
 - Datenschutz, Aufbewahrung/Löschung, Zuständigkeiten, Wiederherstellung und Störungsweg festlegen. Keine rechtliche Frist geraten.
 - Ausdrückliche Freigabe für echte Kundendaten. Testkennzeichnung bleibt bis dahin sichtbar.
