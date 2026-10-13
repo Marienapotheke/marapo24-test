@@ -46,6 +46,7 @@ function callable(handler, needsKey=false) {
     projectGuard();
     try { if(request.auth&&request.auth.token.email_verified!==true)policy.reject('permission-denied','Bitte Mitarbeiter-E-Mail bestätigen.');return await handler(request); }
     catch (e) {
+      if (emulated) console.error('Demo callable failure:', e.name, e.code, e.message);
       if (e instanceof policy.PolicyError) throw new HttpsError(e.code, e.message);
       // Never log request payloads or signatures.
       if (e instanceof HttpsError) throw e;

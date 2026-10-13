@@ -36,6 +36,7 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   await office.waitForFunction(()=>document.querySelector('#officeStops').textContent.includes('Erika Muster'));
   await login(driverPage,driverId);
   await driverPage.waitForFunction(()=>document.querySelector('#driverStops').textContent.includes('Erika Muster'));
+  await driverPage.waitForFunction(async()=>{const m=await import('/offline-store.mjs');return Boolean(await m.getPublicKey('browser-driver'));},null,{timeout:30000});
   await driverPage.waitForFunction(()=>document.querySelectorAll('#vehicleSelect option').length>1);
   await driverPage.waitForFunction(async()=>!!(await import('/offline-store.mjs')).getPublicKey && !!(await (await import('/offline-store.mjs')).getPublicKey('browser-driver')));
   await driverPage.evaluate(()=>navigator.serviceWorker.ready);
