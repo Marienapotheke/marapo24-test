@@ -151,8 +151,8 @@ $('cancelSig').onclick=()=>{$('sigDialog').close();clearSignature()};
 $('sigDialog').addEventListener('cancel',clearSignature);
 $('saveSig').onclick=async()=>{
  if(!hasInk||!signStop)return alert('Bitte erst unterschreiben.');
- const target=signStop;$('saveSig').disabled=true;
- try{if(await mark(target.id,'zugestellt',canvas.toDataURL('image/png'),target.tourId)){$('sigDialog').close();clearSignature()}}
+ const target=signStop;$('saveSig').disabled=true;$('sigStatus').textContent='Unterschrift wird verschlüsselt gespeichert …';
+ try{if(await mark(target.id,'zugestellt',canvas.toDataURL('image/png'),target.tourId)){$('sigDialog').close();clearSignature()}else{$('sigStatus').textContent=$('firebaseStatus').textContent}}
  finally{$('saveSig').disabled=false}
 };
 function network(){$('network').textContent=navigator.onLine?'Online':'Offline – Abschlüsse werden zwischengespeichert';if(navigator.onLine){if(current&&role&&!unsubTours)listen();syncPending();if(role==='driver'&&current){const uid=current.uid;getEncryptionKey({}).then(r=>savePublicKey(uid,r.data)).catch(()=>{})}}}addEventListener('online',network);addEventListener('offline',network);network();

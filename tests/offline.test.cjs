@@ -12,7 +12,8 @@ test('browser encryption is readable only by backend and bound to identity',asyn
  assert.equal(JSON.stringify(box).includes(signature),false);
  for(const change of [{uid:'other'},{tourId:'other'},{stopId:'other'},{completionId:'other'}])assert.throws(()=>openEnvelope(box,{...identity,...change},pem),e=>e.code==='invalid-argument');
  assert.throws(()=>openEnvelope({...box,iv:'YWJj'},identity,pem),e=>e.code==='invalid-argument');
- assert.throws(()=>openEnvelope({...box,ciphertext:'A'+box.ciphertext.slice(1)},identity,pem),e=>e.code==='invalid-argument');
+ const tampered=Buffer.from(box.ciphertext,'base64');tampered[0]^=1;
+ assert.throws(()=>openEnvelope({...box,ciphertext:tampered.toString('base64')},identity,pem),e=>e.code==='invalid-argument');
  assert.throws(()=>openEnvelope({...box,keyId:'different'},identity,pem),e=>e.code==='failed-precondition');
 });
 test('queue survives reopening, exposes no signature and rejects duplicate capture atomically',async()=>{
