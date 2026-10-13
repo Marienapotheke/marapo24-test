@@ -57,7 +57,8 @@ service cloud.firestore {
       allow update, delete: if false;
       match /stops/{stopId} {
         allow read: if office() || assigned(tourId);
-        allow create: if office() && exists(/databases/$(database)/documents/protectedTours/$(tourId)) && validStop(request.resource.data);
+        allow create: if office() && exists(/databases/$(database)/documents/protectedTours/$(tourId)) &&
+          get(/databases/$(database)/documents/protectedTours/$(tourId)).data.status == 'open' && validStop(request.resource.data);
         allow update, delete: if false;
       }
     }

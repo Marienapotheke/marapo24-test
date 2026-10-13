@@ -127,7 +127,7 @@ async function syncPending(){
 }
 async function mark(id,status,signature=null,tourId=$('driverTour').value){
  const uid=current?.uid,s=(stops[tourId]||[]).find(x=>x.id===id);
- if(role!=='driver'||!s||s.status!=='offen'||effectiveTourStatus(tourId)!=='running')return false;
+ if(role!=='driver'||!s||s.status!=='offen'||effectiveTourStatus(tourId)!=='running'){info('Abschluss nicht gespeichert: Bitte aktive Tour und offenen Stopp prüfen.');return false;}
  const capturedAt=new Date().toISOString(),completionId=crypto.randomUUID();
  try{
   const key=signature?await getPublicKey(uid):null;

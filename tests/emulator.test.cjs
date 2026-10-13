@@ -173,3 +173,10 @@ test('vehicle permissions and update validation prevent driver edits and schema 
  await assertFails(updateDoc(ref(officeDb,'vehicles/car1'),{label:'x'.repeat(41)}));
  await assertSucceeds(updateDoc(ref(officeDb,'vehicles/car1'),{active:false}));
 });
+test('office cannot append stops after the driver starts or finishes the tour',async()=>{
+ const db=verifiedContext(OFFICE).firestore();
+ for(const status of ['running','finished']){
+  await seed('protectedTours/locked-'+status,{...tour(),status});
+  await assertFails(setDoc(ref(db,'protectedTours/locked-'+status+'/stops/late'),stop()));
+ }
+});
