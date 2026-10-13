@@ -24,8 +24,6 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   browser=await chromium.launch();
   const officeContext=await browser.newContext(),driverContext=await browser.newContext();
   const office=await officeContext.newPage();driverPage=await driverContext.newPage();
-  await driverPage.addInitScript(()=>{const original=IDBObjectStore.prototype.delete;IDBObjectStore.prototype.delete=function(key){console.info('Demo cache delete',key,new Error().stack);return original.call(this,key);};});
-  driverPage.on('console',m=>{if(m.text().startsWith('Demo cache delete'))console.error(m.text());});
   office.on('pageerror',e=>failures.push(e.message));driverPage.on('pageerror',e=>failures.push(e.message));
   driverPage.on('dialog',async d=>{alerts.push(d.message());await d.dismiss();});
   async function login(page,id){await page.goto('http://127.0.0.1:4173');await page.locator('#loginEmail').fill(id+'@example.test');await page.locator('#loginPassword').fill(password);await page.locator('#loginButton').click();await page.locator('#appMain:not(.hidden)').waitFor({timeout:30000});}
@@ -38,15 +36,15 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   await office.waitForFunction(()=>document.querySelector('#officeStops').textContent.includes('Erika Muster'));
   await login(driverPage,driverId);
   await driverPage.waitForFunction(()=>document.querySelector('#driverStops').textContent.includes('Erika Muster'));
-  await driverPage.waitForFunction(async()=>{const m=await import('/offline-store.mjs');return Boolean(await m.getPublicKey('browser-driver'));},null,{timeout:30000});
+  await driverPage.waitForFunction(()=>document.querySelector('#offlineStatus').textContent.startsWith('Für Funklöcher vorbereitet.'),null,{timeout:30000});
   await driverPage.waitForFunction(()=>document.querySelectorAll('#vehicleSelect option').length>1);
-  await driverPage.waitForFunction(async()=>!!(await import('/offline-store.mjs')).getPublicKey && !!(await (await import('/offline-store.mjs')).getPublicKey('browser-driver')));
   await driverPage.evaluate(()=>navigator.serviceWorker.ready);
   // A newly installed worker controls the next navigation reliably.
   await driverPage.reload();await driverPage.locator('#appMain:not(.hidden)').waitFor({timeout:30000});
   await driverPage.waitForFunction(()=>!!navigator.serviceWorker.controller);
   await driverPage.waitForFunction(()=>document.querySelector('#driverStops').textContent.includes('Erika Muster'));
-  await driverPage.waitForFunction(async()=>{const m=await import('/offline-store.mjs');return Boolean(await m.getPublicKey('browser-driver'));},null,{timeout:30000});
+  await driverPage.waitForFunction(()=>document.querySelector('#offlineStatus').textContent.startsWith('Für Funklöcher vorbereitet.'),null,{timeout:30000});
+  assert.ok(await driverPage.evaluate(async()=>Boolean(await (await import('/offline-store.mjs')).getPublicKey('browser-driver'))));
   const car=await driverPage.locator('#vehicleSelect option').nth(1).getAttribute('value');await driverPage.locator('#vehicleSelect').selectOption(car);
   await driverContext.setOffline(true);await driverPage.locator('#startTour').click();
   await driverPage.locator('[data-done]').waitFor();await driverPage.locator('[data-done]').click();
@@ -72,3 +70,4 @@ test('real browser: office setup, offline start/signature/end, offline reload an
  }catch(e){if(driverPage){console.error('Fictional browser diagnostics:',JSON.stringify({failures,alerts,state:await driverPage.evaluate(async()=>({uid:(await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js')).getAuth().currentUser?.uid,keyReady:Boolean(await (await import('/offline-store.mjs')).getPublicKey('browser-driver')),status:document.querySelector('#firebaseStatus')?.textContent,pending:document.querySelector('#pendingStatus')?.textContent,tour:document.querySelector('#tourStatus')?.textContent,captureStatus:document.querySelector('#sigStatus')?.textContent,saveDisabled:document.querySelector('#saveSig')?.disabled,stops:document.querySelector('#driverStops')?.textContent,dialogOpen:document.querySelector('#sigDialog')?.open,queue:(await (await import('/offline-store.mjs')).pending('browser-driver')).map(x=>({action:x.input.action,error:x.error}))})).catch(()=>null)}));fs.mkdirSync('artifacts',{recursive:true});await driverPage.screenshot({path:'artifacts/browser-failure.png',fullPage:true}).catch(()=>{});}throw e;}
  finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 });
+
