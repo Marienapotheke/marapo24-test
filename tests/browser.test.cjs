@@ -19,12 +19,13 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   else res.end(fs.readFileSync(file));
  });
  await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
- let browser,driverPage;
+ let browser,driverPage;const failures=[],alerts=[];
  try{
   browser=await chromium.launch();
   const officeContext=await browser.newContext(),driverContext=await browser.newContext();
   const office=await officeContext.newPage();driverPage=await driverContext.newPage();
-  const failures=[];office.on('pageerror',e=>failures.push(e.message));driverPage.on('pageerror',e=>failures.push(e.message));
+  office.on('pageerror',e=>failures.push(e.message));driverPage.on('pageerror',e=>failures.push(e.message));
+  driverPage.on('dialog',async d=>{alerts.push(d.message());await d.dismiss();});
   async function login(page,id){await page.goto('http://127.0.0.1:4173');await page.locator('#loginEmail').fill(id+'@example.test');await page.locator('#loginPassword').fill(password);await page.locator('#loginButton').click();await page.locator('#appMain:not(.hidden)').waitFor({timeout:30000});}
   await login(office,officeId);
   await office.locator('#vehicleLabel').fill('Fiktives Testauto B');await office.locator('#vehicleForm button').click();
@@ -64,6 +65,7 @@ test('real browser: office setup, offline start/signature/end, offline reload an
   const [download]=await Promise.all([office.waitForEvent('download'),office.locator('[data-proof]').click()]);
   const file=await download.path();assert.equal(fs.readFileSync(file).subarray(0,5).toString(),'%PDF-');
   assert.deepEqual(failures,[]);
- }catch(e){if(driverPage){fs.mkdirSync('artifacts',{recursive:true});await driverPage.screenshot({path:'artifacts/browser-failure.png',fullPage:true}).catch(()=>{});}throw e;}
+ }catch(e){if(driverPage){console.error('Fictional browser diagnostics:',JSON.stringify({failures,alerts,state:await driverPage.evaluate(async()=>({status:document.querySelector('#firebaseStatus')?.textContent,pending:document.querySelector('#pendingStatus')?.textContent,tour:document.querySelector('#tourStatus')?.textContent,dialogOpen:document.querySelector('#sigDialog')?.open,queue:(await (await import('/offline-store.mjs')).pending('browser-driver')).map(x=>({action:x.input.action,error:x.error}))})).catch(()=>null)}));fs.mkdirSync('artifacts',{recursive:true});await driverPage.screenshot({path:'artifacts/browser-failure.png',fullPage:true}).catch(()=>{});}throw e;}
  finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 });
+
