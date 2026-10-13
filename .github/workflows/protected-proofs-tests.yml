@@ -24,11 +24,15 @@ jobs:
           java-version: '21'
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm --dir functions install --frozen-lockfile --ignore-scripts
+      - run: pnpm --dir cloudflare-probe install --frozen-lockfile --ignore-scripts
       - run: pnpm test
       - run: pnpm build
       - run: pnpm test:emulator
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:browser
+      - run: pnpm test:free
+      - run: pnpm build:free
+      - run: pnpm test:free:browser
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -1,0 +1,16 @@
+{
+  // Preparation only: copy to an ignored local config after explicit deployment approval.
+  "name": "marapo24-protected-test",
+  "main": ".build/worker.mjs",
+  "compatibility_date": "2026-07-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {"directory": "../dist-cloudflare", "binding": "ASSETS", "run_worker_first": ["/api/*"]},
+  "d1_databases": [{"binding": "DB", "database_name": "marapo24-protected-test", "database_id": "REPLACE_AFTER_APPROVAL"}],
+  "vars": {
+    "FIREBASE_PROJECT_ID": "marap024-botendienst-test",
+    "FIREBASE_PROJECT_NUMBER": "233196612528",
+    "FIREBASE_APP_ID": "1:233196612528:web:180d083a20fe92f35f0475"
+  },
+  "observability": {"enabled": false}
+}

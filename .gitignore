@@ -9,3 +9,10 @@ dist/
 staff-roster*.json
 invitation*.json
 frontend-check.mjs
+dist-cloudflare/
+cloudflare/.build/
+.wrangler/
+.dev.vars*
+artifacts/
+staff-bootstrap*.sql
+cloudflare/wrangler.local.json*
