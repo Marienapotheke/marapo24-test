@@ -2,12 +2,15 @@ import fs from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {productionHtml,productionOffline} from './free-app-view.mjs';
 const require=createRequire(new URL('../cloudflare-probe/package.json',import.meta.url)),{build}=require('esbuild');
 const root=fileURLToPath(new URL('..',import.meta.url));
+const production=process.env.MARAPO24_MODE==='production';
 const out=path.join(root,'dist-cloudflare');await fs.mkdir(out,{recursive:true});await fs.mkdir(path.join(root,'cloudflare/.build'),{recursive:true});
 for(const [source,target] of [['cloudflare/payment.mjs','payment.mjs'],['cloudflare/password-proof.mjs','password-proof.mjs'],['cloudflare/index.html','index.html'],['cloudflare/app.mjs','app.mjs'],['cloudflare/sw.js','sw.js'],['offline-store.mjs','offline-store.mjs'],['manifest.webmanifest','manifest.webmanifest']])await fs.copyFile(path.join(root,source),path.join(out,target));
-const {appConfig}=await import(new URL('../app-config.js',import.meta.url));const config={...appConfig,backend:'cloudflare',appCheckProvider:'enterprise',appCheckSiteKey:process.env.MARAPO24_APPCHECK_SITE_KEY||'',firebase:{...appConfig.firebase,appId:'1:233196612528:web:340794b3d8e13f895f0475'}};
+if(production){await fs.writeFile(path.join(out,'index.html'),productionHtml(await fs.readFile(path.join(out,'index.html'),'utf8')));await fs.writeFile(path.join(out,'offline-store.mjs'),productionOffline(await fs.readFile(path.join(out,'offline-store.mjs'),'utf8')));await fs.writeFile(path.join(out,'sw.js'),(await fs.readFile(path.join(out,'sw.js'),'utf8')).replace('marapo24-free-pilot-v4','marapo24-botendienst-v1'));const manifest=JSON.parse(await fs.readFile(path.join(out,'manifest.webmanifest'),'utf8'));manifest.name='MARAPO24 Botendienst';manifest.short_name='MARAPO24';await fs.writeFile(path.join(out,'manifest.webmanifest'),JSON.stringify(manifest));}
+const {appConfig}=await import(new URL('../app-config.js',import.meta.url));const config={...appConfig,mode:production?'production':'test',backend:'cloudflare',appCheckProvider:'enterprise',appCheckSiteKey:process.env.MARAPO24_APPCHECK_SITE_KEY||'',firebase:{...appConfig.firebase,appId:'1:233196612528:web:340794b3d8e13f895f0475'}};
 await fs.writeFile(path.join(out,'app-config.js'),'export const appConfig='+JSON.stringify(config)+';\n');
-await build({absWorkingDir:root,entryPoints:['cloudflare/office-pdf.mjs'],bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:path.join(out,'office-pdf.mjs'),minify:true});
+await build({absWorkingDir:root,entryPoints:['cloudflare/office-pdf.mjs'],bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:path.join(out,'office-pdf.mjs'),minify:true,plugins:[{name:'free-pdf-config',setup(b){b.onResolve({filter:/^\.\/app-config\.js$/},()=>({path:path.join(out,'app-config.js')}));}}]});
 await build({absWorkingDir:root,entryPoints:['cloudflare/worker.mjs'],bundle:true,format:'esm',platform:'node',target:'es2022',external:['node:*','fs','zlib','stream','util','events','buffer','crypto'],banner:{js:"import {createRequire} from 'node:module';const require=createRequire('/bundle/worker.js');"},outfile:path.join(root,'cloudflare/.build/worker.mjs'),minify:true});
 console.log('Separate free-pilot app and Worker built. No deployment performed.');

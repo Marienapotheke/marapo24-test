@@ -14,7 +14,7 @@ const job=JSON.parse(await fs.readFile(path.resolve(jobFile),'utf8'));
 for(const name of ['wranglerBin','workerConfig','authDirectory','destination','recoveryKeyFile'])if(typeof job[name]!=='string'||!path.isAbsolute(job[name]))throw Error('Backup paths must be absolute.');
 const sourceConfig=JSON.parse(await fs.readFile(job.workerConfig,'utf8')),database=sourceConfig.d1_databases?.find(d=>d.binding==='DB');
 const target={accountId:sourceConfig.account_id,databaseId:database?.database_id,name:database?.database_name};
-if(JSON.stringify(target)!==JSON.stringify(job.expectedTarget)||target.name!=='marapo24-protected-test')throw Error('Source database is not the reviewed isolated test database.');
+if(JSON.stringify(target)!==JSON.stringify(job.expectedTarget)||!['marapo24-protected-test','marapo24-botendienst'].includes(target.name))throw Error('Source database is not the reviewed isolated MARAPO24 database.');
 const keyData=JSON.parse(await fs.readFile(job.recoveryKeyFile,'utf8')),key=Buffer.from(keyData.key,'base64');if(keyData.version!==1||key.length!==32)throw Error('Invalid recovery key.');
 const staging=path.join(root,'.backups'),id=crypto.randomUUID(),sql=path.join(staging,id+'.sql'),restore=path.join(staging,id+'.restore.sql');
 await fs.mkdir(staging,{recursive:true});await fs.mkdir(job.destination,{recursive:true});
