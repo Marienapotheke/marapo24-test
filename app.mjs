@@ -20,7 +20,7 @@ let vehicles=[],unsubVehicles=null,unsubProfile=null;
 let employees=[],unsubEmployees=null,queue=[],syncing=false,profileData=null;
 let role='',current=null,tours=[],stops={},selected=null,signStop=null,hasInk=false,writing=false,unsubTours=null,unsubStops=[];
 function info(s){$('firebaseStatus').textContent=s}
-function err(e){info('Fehler: '+(e?.code||e?.message||'Verbindung fehlgeschlagen')+'. Prüfe Firestore-Regeln und Internetverbindung.')}
+function err(e){info('Fehler: '+(e?.message||'Vorgang konnte nicht bestätigt werden. Bitte Verbindung prüfen oder Büro kontaktieren.'))}
 function clearListeners(){if(unsubProfile)unsubProfile();unsubProfile=null;if(unsubVehicles)unsubVehicles();unsubVehicles=null;vehicles=[];if(unsubEmployees)unsubEmployees();unsubEmployees=null;employees=[];if(unsubTours)unsubTours();unsubTours=null;for(const u of unsubStops)u();unsubStops=[];tours=[];stops={};selected=null}
 function requireOnline(){if(!navigator.onLine){alert('Keine Internetverbindung. Bitte online erneut versuchen.');return false}return true}
 function display(){const ordered=[...tours].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
@@ -189,6 +189,7 @@ onAuthStateChanged(auth,async user=>{
    unsubProfile=onSnapshot(doc(db,'users',user.uid),snap=>{
     if(current?.uid!==user.uid||snap.metadata.fromCache)return;
     if(!snap.exists()||snap.data().active!==true||snap.data().role!==role){
+     $('sigDialog').close();clearSignature();
      clearAssignments(user.uid).catch(()=>{});role='';$('appMain').classList.add('hidden');$('authPanel').classList.remove('hidden');$('driverStops').textContent='';$('officeStops').textContent='';$('tours').textContent='';$('loginStatus').textContent='Zugriff wurde geändert. Bitte Büro kontaktieren und erneut anmelden.';
     }
    },err);
