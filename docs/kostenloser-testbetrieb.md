@@ -1,5 +1,7 @@
 # Kostenloser, getrennter MARAPO24-Testbetrieb
 
+Aktuelle Ergänzungen zu Fahrer-PIN, Büro-Benutzernamen, Kundenvorschlägen, Sortierung und Sicherung: [Betriebsvorbereitung](betrieb-vorbereitung.md).
+
 Die neue Variante liegt ausschließlich im Testzweig. `cloudflare/` enthält die neue Oberfläche, den vertrauenswürdigen Worker und das D1-Schema. Die bisherigen Firebase-Dateien bleiben als getrennte Variante erhalten. Es gibt keine Migration oder Verbindung zu Bestellungen der laufenden v3, keine Änderung der aktiven Firestore-Regeln und keinen automatischen Deploy-Schritt.
 
 ## Architektur und Schutz

@@ -16,3 +16,6 @@ cloudflare/.build/
 artifacts/
 staff-bootstrap*.sql
 cloudflare/wrangler.local.json*
+.backups/
+backup-key*.json
+staff-accounts*.json

@@ -31,6 +31,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:browser
       - run: pnpm test:free
+      - run: pnpm test:backup
       - run: pnpm build:free
       - run: pnpm test:free:browser
       - uses: actions/upload-artifact@v4

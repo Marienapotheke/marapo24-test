@@ -1,8 +1,11 @@
 import envelope from '../functions/envelope.cjs';
 import policy from '../functions/policy.cjs';
-import {openWebEnvelope} from './web-envelope.mjs';
+import {openWebEnvelope,deliveryKey} from './web-envelope.mjs';
 import {validatePng} from './png.mjs';
-import {authenticate} from './auth.mjs';
+import {authenticateIdentity,authenticateApp} from './auth.mjs';
+import {officeSession,officePublicAction,officeAccountAction,isRecoveryAdmin} from './office-auth.mjs';
+import {driverSession,driverPublicAction,driverAdminAction} from './driver-auth.mjs';
+import {customerIdentity,customerRouteAction,addOrders} from './customers-routes.mjs';
 import {fail,hasRole,requireRole,localDate,regularTours,weekday,fields,text,id,capture,packageData} from './domain.mjs';
 const first=(db,sql,...args)=>db.prepare(sql).bind(...args).first();
 const all=async(db,sql,...args)=>(await db.prepare(sql).bind(...args).all()).results;
@@ -30,7 +33,7 @@ async function state(db,uid,p,input){
  const catalog=regularTours(localDate()).map(t=>{const r=reserved.find(x=>x.regular_type===t.id);return {...t,date:localDate(),reserved:!!r,mine:r?.driver_id===uid,tourId:r?.driver_id===uid?r.id:null};});
  const specialTours=hasRole(p,'driver')?await all(db,"SELECT id,type,date FROM tours WHERE date=? AND regular_type IS NULL AND driver_id IS NULL AND status='open' LIMIT 101",localDate()):[];
  const totals={};for(const s of deliveries){const d=JSON.parse(s.data);if(s.status==='zugestellt')totals[d.origin]=(totals[d.origin]||0)+d.cents;}
- return {profile:p,tours:rows.map(tour),stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
+ const tours=rows.map(tour);await addOrders(db,tours,stops);return {profile:p,tours,stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
 }
 async function rpc(db,uid,p,action,input,env){
  if(action==='state')return state(db,uid,p,input);
@@ -61,7 +64,7 @@ async function rpc(db,uid,p,action,input,env){
   if(action==='createVehicle'){const vehicleId=crypto.randomUUID(),result=await run(db,"INSERT INTO vehicles SELECT ?,?,1,? WHERE EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",vehicleId,text(input.label,40,true),iso(),uid);if(result.meta.changes!==1)fail('permission-denied','Berechtigung wurde geändert.');return {vehicleId};}
   if(typeof input.active!=='boolean')fail('invalid-argument','Fahrzeugfreigabe prüfen.');const result=await run(db,"UPDATE vehicles SET active=? WHERE id=? AND EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",input.active?1:0,id(input.vehicleId),uid);if(!result.meta.changes)fail('not-found','Fahrzeug fehlt oder Berechtigung geändert.');return {updated:true};
  }
- if(action==='getDeliveryEncryptionKey'){requireRole(p,'driver');const key=envelope.keys(env.DELIVERY_PROOF_PRIVATE_KEY);return {version:1,keyId:key.keyId,publicKey:key.publicKey};}
+ if(action==='getDeliveryEncryptionKey'){requireRole(p,'driver');const key=deliveryKey(env.DELIVERY_PROOF_PRIVATE_KEY);return {version:1,keyId:key.keyId,publicKey:key.publicKey};}
  if(action==='startProtectedTour'||action==='finishProtectedTour'){
   fields(input,action==='startProtectedTour'?['tourId','vehicleId','completionId','capturedAt']:['tourId','completionId','capturedAt']);capture(input);const t=await ownTour(db,uid,input,p),fingerprint=await hash(input);
   const start=action==='startProtectedTour',savedId=start?t.start_id:t.end_id,savedHash=start?t.start_hash:t.end_hash;
@@ -77,9 +80,9 @@ async function rpc(db,uid,p,action,input,env){
   const existing=await first(db,'SELECT * FROM proofs WHERE id=?',proofId);if(existing){if(existing.driver_id===uid&&existing.completion_id===input.completionId&&existing.fingerprint===fingerprint)return {completed:true};fail('already-exists','Lieferung bereits abgeschlossen.');}
   if(t.status!=='running')fail('failed-precondition','Tour zuerst starten.');const s=await first(db,'SELECT * FROM stops WHERE id=? AND tour_id=?',stopId,t.id);if(!s)fail('not-found','Päckchen fehlt.');
   const opened=input.sealedSignature?await openWebEnvelope(input.sealedSignature,{uid,tourId:t.id,stopId,completionId:input.completionId},env.DELIVERY_PROOF_PRIVATE_KEY):{signature:null,capturedAt:input.capturedAt};if(opened.capturedAt!==input.capturedAt)fail('invalid-argument','Erfassungszeit verändert.');
-  const {sealedSignature,...completionInput}=input;policy.completion({...completionInput,signature:opened.signature},uid,{role:'driver',active:true},tour(t),stop(s),false,validatePng);
+  if(opened.signature)await validatePng(opened.signature);const {sealedSignature,...completionInput}=input;policy.completion({...completionInput,signature:opened.signature},uid,{role:'driver',active:true},tour(t),stop(s),false,()=>{});
   const digest=opened.signature?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Buffer.from(opened.signature.slice(22),'base64')))).map(x=>x.toString(16).padStart(2,'0')).join(''):null;
-  const data={...JSON.parse(s.data),tourId:t.id,stopId,driverId:uid,status:input.status,completedAt:iso(),capturedAtClient:input.capturedAt,signature:opened.signature,signatureSha256:digest};
+  const packageInfo=JSON.parse(s.data);const data={...packageInfo,...customerIdentity(packageInfo),tourId:t.id,stopId,driverId:uid,status:input.status,completedAt:iso(),capturedAtClient:input.capturedAt,signature:opened.signature,signatureSha256:digest};
   try{await run(db,'INSERT INTO proofs VALUES (?,?,?,?,?,?,?)',proofId,t.id,stopId,uid,input.completionId,fingerprint,JSON.stringify(data));}
   catch(e){const winner=await first(db,'SELECT * FROM proofs WHERE id=?',proofId);if(winner){if(winner.driver_id===uid&&winner.completion_id===input.completionId&&winner.fingerprint===fingerprint)return {completed:true};fail('already-exists','Lieferung bereits abgeschlossen.');}throw e;}
   return {completed:true};
@@ -101,7 +104,25 @@ export default {
   const url=new URL(request.url);if(!url.pathname.startsWith('/api/'))return env.ASSETS?env.ASSETS.fetch(request):new Response('Test app not built',{status:404});
   if(request.method!=='POST')return Response.json({error:{code:'invalid-argument',message:'POST required'}},{status:405});
   const origin=request.headers.get('Origin');if(origin&&origin!==url.origin)return Response.json({error:{code:'permission-denied',message:'Origin denied'}},{status:403,headers:{'Cache-Control':'no-store'}});
-  try{const uid=await authenticate(request,env),p=profile(await first(env.DB,'SELECT * FROM users WHERE uid=?',uid)),input=await readInput(request),data=await rpc(env.DB,uid,p,url.pathname.slice(5),input,env);return Response.json({data},{headers:{'Cache-Control':'no-store'}});}
-  catch(e){const code=e instanceof policy.PolicyError?e.code:'unavailable';return Response.json({error:{code,message:e instanceof policy.PolicyError?e.message:'Vorgang nicht bestätigt. Daten bleiben auf dem Gerät. Bitte später erneut versuchen.'}},{status:code==='unauthenticated'?401:code==='permission-denied'?403:code==='already-exists'?409:code==='not-found'?404:code==='unavailable'?503:400,headers:{'Cache-Control':'no-store'}});}
+  try{
+   const action=url.pathname.slice(5),input=await readInput(request);let result;
+   if(['driverLoginOptions','driverPinLogin','driverPinLogout'].includes(action)){await authenticateApp(request,env);result=await driverPublicAction(action,input,request,env);}
+   else if(['officePasswordLogin','officePasswordLogout','officeForgotPassword'].includes(action)){await authenticateApp(request,env);result=await officePublicAction(action,input,request,env);}
+   else{
+    let uid,kind,email,mustChange=false;
+    if(request.headers.has('Authorization')){const identity=await authenticateIdentity(request,env);uid=identity.uid;email=identity.email;kind='firebase';}
+    else {await authenticateApp(request,env);if((request.headers.get('Cookie')||'').includes('__Host-marapo24-office=')){const session=await officeSession(request,env);uid=session.uid;mustChange=session.mustChange;kind='office';}else{uid=await driverSession(request,env);kind='driver';}}
+    let p=profile(await first(env.DB,'SELECT * FROM users WHERE uid=?',uid));
+    if(p){p={...p,sessionKind:kind,loginEmail:email,mustChangePassword:mustChange};if(kind==='driver')p={...p,roles:p.roles.filter(r=>r==='driver'),isAdmin:false,canCreateSpecialTour:false};if(kind==='office')p={...p,roles:p.roles.filter(r=>r==='office')};p.canRecoverPasswords=isRecoveryAdmin(p,env);}
+    if(mustChange&&!['changeOfficePassword','session'].includes(action))fail('failed-precondition','Bitte zuerst das vorläufige Passwort ändern.');
+    if(action==='session'){fields(input,[]);result={data:{profile:p}};}
+    else if(['changeOfficePassword','listPasswordRequests','resetOfficePassword'].includes(action))result=await officeAccountAction(action,input,request,env,p);
+    else if(['authorizeDriverDevice','listDriverDevices','revokeDriverDevice','setDriverPin'].includes(action)){if(action==='setDriverPin'&&!isRecoveryAdmin(p,env))fail('permission-denied','Persönlicher Administratorzugang zum Zurücksetzen der Fahrer-PIN erforderlich.');result=await driverAdminAction(action,input,request,env,p);}
+    else if(['searchCustomers','reorderStops','optimizeStops','prepareRouteAddress'].includes(action))result={data:await customerRouteAction(action,input,uid,p,env)};
+    else result={data:await rpc(env.DB,uid,p,action,input,env)};
+   }
+   const headers=new Headers({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});for(const value of result.cookies||[])headers.append('Set-Cookie',value);return Response.json({data:result.data},{headers});
+  }
+  catch(e){const code=e instanceof policy.PolicyError?e.code:'unavailable';return Response.json({error:{code,message:e instanceof policy.PolicyError?e.message:'Vorgang nicht bestätigt. Daten bleiben auf dem Gerät. Bitte später erneut versuchen.'}},{status:code==='unauthenticated'?401:code==='permission-denied'?403:code==='already-exists'?409:code==='not-found'?404:code==='unavailable'?503:code==='resource-exhausted'?429:400,headers:{'Cache-Control':'no-store'}});}
  }
 };

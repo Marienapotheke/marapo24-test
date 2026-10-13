@@ -1,5 +1,7 @@
 # MARAPO24 – Ablauf bis zur Betriebsfreigabe
 
+Aktueller Stand der kostenlosen veröffentlichten Variante: [Betriebsvorbereitung](betrieb-vorbereitung.md). Die folgenden Firebase-Aktivierungsschritte beschreiben die weiterhin getrennte alternative Functions-Variante.
+
 ## Bereitstehender Umfang
 11 Fahrer, bis zu 20 Büro-Konten, Fahrzeuge, Tourstart und Tourende, Zustellabschluss mit geschützter Unterschrift, ausschließlich Büro-PDF und verschlüsselte Offline-Warteschlange.
 Der Branch und Draft-PR enthalten die Umsetzung. Die App ist noch nicht bereitgestellt; aktuelle Beispieldaten und Tests bleiben fiktiv.

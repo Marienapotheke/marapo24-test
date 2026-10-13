@@ -1,4 +1,4 @@
-const CACHE='marapo24-free-pilot-v1';
+const CACHE='marapo24-free-pilot-v2';
 const ASSETS=['./','./index.html','./app.mjs','./app-config.js','./offline-store.mjs','./office-pdf.mjs','./manifest.webmanifest'];
 const SDK=['app','auth','app-check'].map(name=>'https://www.gstatic.com/firebasejs/11.10.0/firebase-'+name+'.js');
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll([...ASSETS,...SDK]))));

@@ -7,11 +7,11 @@ import {createRequire} from 'node:module';
 import {fixtureRuntime} from './fixture-runtime.mjs';
 import {regularTours,localDate} from './domain.mjs';
 const require=createRequire(import.meta.url),{chromium}=require('playwright'),backendRequire=createRequire(path.resolve('functions/package.json'));
-const {initializeApp}=backendRequire('firebase-admin/app'),{getAuth}=backendRequire('firebase-admin/auth');
 test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, restart, office PDF and safe shared-device logout',{timeout:180000},async()=>{
- assert.equal(process.env.GCLOUD_PROJECT,'demo-marapo24');assert.match(process.env.FIREBASE_AUTH_EMULATOR_HOST||'',/^(127\.0\.0\.1|localhost):9099$/);
- const f=await fixtureRuntime(),admin=getAuth(initializeApp({projectId:'demo-marapo24'})),password='Fiktives-Testpasswort-123!';
- for(const uid of ['driver-a','driver-b','office','admin'])await admin.createUser({uid,email:uid+'@example.test',emailVerified:true,password});
+ const f=await fixtureRuntime();
+ const issue=await f.call('admin','resetOfficePassword',{uid:'office',username:'erika.muster'}),password=issue.body.data.temporaryPassword;
+ for(const [uid,pin] of [['driver-a','642893'],['driver-b','819264']])assert.equal((await f.call('admin','setDriverPin',{uid,pin})).status,200);
+ const paired=await f.runtime.dispatchFetch('https://fictional.invalid/api/authorizeDriverDevice',{method:'POST',headers:{Authorization:'Bearer '+f.authToken('admin'),'X-Firebase-AppCheck':f.appToken(),'Content-Type':'application/json'},body:JSON.stringify({label:'Fiktives Testtablet'})});assert.equal(paired.status,200);const deviceToken=paired.headers.get('set-cookie').split(';')[0].split('=')[1];
  if(!regularTours(localDate()).length)await f.call('admin','createSpecialTour',{date:localDate(),type:'Fiktive Sonntags-Sondertour'});
  const files=new Set(['index.html','app.mjs','app-config.js','offline-store.mjs','office-pdf.mjs','sw.js','manifest.webmanifest']);
  let loseStartReceipt=true,notifyLostReceipt;const lostReceipt=new Promise(resolve=>notifyLostReceipt=resolve);
@@ -21,11 +21,11 @@ test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, rest
    if(url.pathname.startsWith('/api/')){
     // LOCAL TEST BRIDGE: validate emulator identity, then sign a synthetic token.
     // Production Worker accepts only Google-signed tokens; bridge is never deployed.
-    const token=req.headers.authorization?.replace(/^Bearer /,''),decoded=await admin.verifyIdToken(token);
+    if(req.headers.authorization)throw Error('Cookie-only browser test');
     let body='';for await(const chunk of req)body+=chunk;
-    const response=await f.runtime.dispatchFetch(url.href,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+f.authToken(decoded.uid,{email_verified:decoded.email_verified===true}),'X-Firebase-AppCheck':req.headers['x-firebase-appcheck'],...(req.headers.origin?{Origin:req.headers.origin}:{})},body});
+    const response=await f.runtime.dispatchFetch(url.href,{method:'POST',headers:{'Content-Type':'application/json','X-Firebase-AppCheck':req.headers['x-firebase-appcheck'],Cookie:(req.headers.cookie||'').replaceAll('local-marapo24-','__Host-marapo24-'),...(req.headers.origin?{Origin:req.headers.origin}:{})},body});
     if(url.pathname==='/api/startProtectedTour'&&response.status===200&&loseStartReceipt){loseStartReceipt=false;res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:{code:'unavailable',message:'Fiktiv verlorene Bestätigung'}}));notifyLostReceipt();return;}
-    res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(Buffer.from(await response.arrayBuffer()));return;
+    const cookies=response.headers.getSetCookie().map(s=>s.replaceAll('__Host-marapo24-','local-marapo24-').replace('; Secure',''));res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store',...(cookies.length?{'Set-Cookie':cookies}:{})});res.end(Buffer.from(await response.arrayBuffer()));return;
    }
    const file=url.pathname.slice(1)||'index.html';if(!files.has(file)){res.writeHead(404);res.end();return;}
    res.setHeader('Content-Type',file.endsWith('.html')?'text/html':file.endsWith('webmanifest')?'application/manifest+json':'text/javascript');
@@ -36,8 +36,9 @@ test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, rest
  await new Promise(resolve=>server.listen(4174,'127.0.0.1',resolve));let browser,page;const errors=[];
  try{
   browser=await chromium.launch();const tabletContext=await browser.newContext({viewport:{width:768,height:1024},isMobile:true,hasTouch:true}),officeContext=await browser.newContext();page=await tabletContext.newPage();const office=await officeContext.newPage();
+  await tabletContext.addCookies([{name:'local-marapo24-device',value:deviceToken,url:'http://127.0.0.1:4174',httpOnly:true,sameSite:'Strict'}]);
   for(const p of [page,office])p.on('pageerror',e=>errors.push(e.message));
-  async function login(p,uid){await p.goto('http://127.0.0.1:4174');await p.locator('#email').fill(uid+'@example.test');await p.locator('#password').fill(password);await p.locator('#loginButton').click();await p.locator('#app:not(.hidden)').waitFor({timeout:30000});}
+  async function login(p,uid){await p.goto('http://127.0.0.1:4174');if(uid==='office'){await p.locator('#chooseOffice').click();await p.locator('#officeUsername').fill('erika.muster');await p.locator('#officePassword').fill(password);await p.locator('#officeLoginButton').click();await p.locator('#passwordChangePanel:not(.hidden)').waitFor();assert.equal(await p.locator('#app:not(.hidden)').count(),0);await p.locator('#newPassword').fill('Fiktive-persoenliche-Passphrase-456!');await p.locator('#confirmPassword').fill('Fiktive-persoenliche-Passphrase-456!');await p.locator('#passwordChangeForm button').click();await p.locator('#officePassword').fill('Fiktive-persoenliche-Passphrase-456!');await p.locator('#officeLoginButton').click();}else{await p.locator('#driverName').selectOption(uid);await p.locator('#driverPin').fill(uid==='driver-a'?'642893':'819264');await p.locator('#pinButton').click();}await p.locator('#app:not(.hidden)').waitFor({timeout:30000});}
   await login(page,'driver-a');
   const claim=regularTours(localDate()).length?page.locator('[data-claim]:not([disabled])').first():page.locator('[data-special]').first();await claim.click();await page.locator('#packagePanel:not(.hidden)').waitFor();
   async function parcel(name,origin,amount){await page.locator('#origin').selectOption(origin);await page.locator('#recipient').fill(name);await page.locator('#street').fill('Musterweg 1');await page.locator('#postalCode').fill('54321');await page.locator('#city').fill('Musterstadt');await page.locator('#amount').fill(amount);await page.locator('#packageForm button').click();await page.waitForFunction(n=>document.querySelector('#driverStops').textContent.includes(n),name);}
@@ -56,7 +57,7 @@ test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, rest
   const [download]=await Promise.all([office.waitForEvent('download'),office.locator('[data-proof]').first().click()]);assert.equal(fs.readFileSync(await download.path()).subarray(0,5).toString(),'%PDF-');
   await page.locator('#logout').click();await page.locator('#loginPanel:not(.hidden)').waitFor();assert.equal((await page.locator('body').textContent()).includes('Erika Muster'),false);
   assert.equal(await page.evaluate(async()=>await (await import('/offline-store.mjs')).loadAssignments('driver-a')),null);
-  await page.locator('#email').fill('driver-b@example.test');await page.locator('#password').fill(password);await page.locator('#loginButton').click();await page.locator('#app:not(.hidden)').waitFor();assert.equal(await page.locator('#driverTour option').count(),0);assert.equal((await page.locator('body').textContent()).includes('Erika Muster'),false);
+  await page.locator('#driverName').selectOption('driver-b');await page.locator('#driverPin').fill('819264');await page.locator('#pinButton').click();await page.locator('#app:not(.hidden)').waitFor();assert.equal(await page.locator('#driverTour option').count(),0);assert.equal((await page.locator('body').textContent()).includes('Erika Muster'),false);
   assert.deepEqual(errors,[]);
  }catch(e){console.error('Fictional free-pilot browser failure:',JSON.stringify({errors,state:page?await page.evaluate(()=>({message:document.querySelector('#message')?.textContent,login:document.querySelector('#loginStatus')?.textContent,ready:document.querySelector('#offlineReady')?.textContent,pending:document.querySelector('#pendingStatus')?.textContent,signature:document.querySelector('#sigStatus')?.textContent})).catch(()=>null):null}));if(page){fs.mkdirSync('artifacts',{recursive:true});await page.screenshot({path:'artifacts/free-pilot-browser-failure.png',fullPage:true}).catch(()=>{});}throw e;}
  finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));await f.runtime.dispose();}
