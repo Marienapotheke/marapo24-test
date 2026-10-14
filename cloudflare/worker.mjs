@@ -4,6 +4,7 @@ import {payment,collected} from './payment.mjs';
 import policy from '../functions/policy.cjs';
 import {odometer,handover} from './tour-workflow.mjs';
 import {validateCompletion} from './completion-policy.mjs';
+import {cashSettlement} from './cash-settlement.mjs';
 import {editPackage} from './package-edit.mjs';
 import {openWebEnvelope,deliveryKey} from './web-envelope.mjs';
 import {validatePng} from './png.mjs';
@@ -17,7 +18,7 @@ const all=async(db,sql,...args)=>(await db.prepare(sql).bind(...args).all()).res
 const run=(db,sql,...args)=>db.prepare(sql).bind(...args).run();
 const iso=()=>new Date().toISOString();
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value))))).map(x=>x.toString(16).padStart(2,'0')).join('');
-function profile(row){return row?{uid:row.uid,displayName:row.display_name,roles:JSON.parse(row.roles),active:row.active===1,isAdmin:row.is_admin===1,canCreateSpecialTour:row.can_special===1}:null;}
+function profile(row){return row?{uid:row.uid,displayName:row.display_name,roles:JSON.parse(row.roles),active:row.active===1,isAdmin:row.is_admin===1,canCreateSpecialTour:row.active===1&&JSON.parse(row.roles).includes('office')}:null;}
 function tour(row){return row?{id:row.id,type:row.type,date:row.date,regularType:row.regular_type,driverId:row.driver_id,createdBy:row.created_by,status:row.status,schemaVersion:2,createdAt:row.created_at,vehicleId:row.vehicle_id,vehicleLabel:row.vehicle_label,startedAt:row.started_at,endedAt:row.ended_at,startCapturedAtClient:row.start_captured,endCapturedAtClient:row.end_captured,startOdometerKm:row.start_odometer,endOdometerKm:row.end_odometer,workflowVersion:row.workflow_version}:null;}
 function stop(row){if(!row)return null;const {_editVersion=0,...data}=JSON.parse(row.data);return {id:row.id,...data,...(row.payment_data?JSON.parse(row.payment_data):{}),editVersion:_editVersion,schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at};}
 async function ownTour(db,uid,input,p){requireRole(p,'driver');const row=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!row)fail('not-found','Tour fehlt.');if(row.driver_id!==uid)fail('permission-denied','Tour ist einem anderen Fahrer zugewiesen.');return row;}
@@ -40,10 +41,11 @@ async function state(db,uid,p,input){
  const catalog=regularTours(view==='office'?date:localDate()).map(t=>{const r=reserved.find(x=>x.regular_type===t.id);return {...t,date:localDate(),reserved:!!r?.driver_id,prepared:!!r,mine:r?.driver_id===uid,tourId:(view==='office'||r?.driver_id===uid)?r?.id:null};});
  const specialTours=hasRole(p,'driver')?await all(db,"SELECT id,type,date FROM tours WHERE date=? AND regular_type IS NULL AND driver_id IS NULL AND status='open' LIMIT 101",localDate()):[];
  const totals={};for(const s of deliveries){const d=stop(s);if(s.status==='zugestellt')totals[d.origin]=(totals[d.origin]||0)+collected(d);}
- const tours=rows.map(tour);await addOrders(db,tours,stops);return {profile:p,tours,stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
+ const tours=rows.map(tour),settlements=rows.length?await all(db,"SELECT tour_id,collected_cents,json_extract(data,'$.signerName') signer_name,json_extract(data,'$.completedAt') completed_at FROM cash_settlements WHERE tour_id IN ("+rows.map(()=>'?').join(',')+")",...rows.map(t=>t.id)):[],cashMap=new Map(settlements.map(s=>[s.tour_id,s]));for(const t of tours){const settlement=cashMap.get(t.id);if(settlement)t.cashSettlement={collectedCents:settlement.collected_cents,signerName:settlement.signer_name,completedAt:settlement.completed_at};}await addOrders(db,tours,stops);return {profile:p,tours,stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
 }
 async function rpc(db,uid,p,action,input,env){
  if(action==='state')return state(db,uid,p,input);
+ if(['saveCashSettlement','downloadCashSettlement'].includes(action))return cashSettlement(db,uid,p,action,input,env);
  if(action==='updatePackage'||action==='deletePackage')return editPackage(db,uid,p,action,input);
  if(action==='prepareRegularTour'){
   requireRole(p,'office');fields(input,['date','typeId']);const option=regularTours(input.date).find(t=>t.id===input.typeId);if(!option)fail('invalid-argument','Reguläre Tour für diesen Tag auswählen.');
@@ -63,8 +65,8 @@ async function rpc(db,uid,p,action,input,env){
   return {tourId};
  }
  if(action==='createSpecialTour'){
-  requireRole(p,'office');if(!p.canCreateSpecialTour)fail('permission-denied','Zusätzliche Touren dürfen nur ausdrücklich berechtigte Bürokräfte anlegen.');fields(input,['date','type']);weekday(input.date);const label=text(input.type,90,true),tourId=crypto.randomUUID();
-  const result=await run(db,"INSERT INTO tours(id,date,type,created_by,status,created_at,workflow_version) SELECT ?,?,?,?,'open',?,2 WHERE EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND can_special=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",tourId,input.date,label,uid,iso(),uid);if(result.meta.changes!==1)fail('permission-denied','Berechtigung wurde geändert.');return {tourId};
+  requireRole(p,'office');fields(input,['date','type']);weekday(input.date);const label=text(input.type,90,true),tourId=crypto.randomUUID();
+  const result=await run(db,"INSERT INTO tours(id,date,type,created_by,status,created_at,workflow_version) SELECT ?,?,?,?,'open',?,2 WHERE EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",tourId,input.date,label,uid,iso(),uid);if(result.meta.changes!==1)fail('permission-denied','Berechtigung wurde geändert.');return {tourId};
  }
  if(action==='claimSpecialTour'){
   requireRole(p,'driver');fields(input,['tourId','workflowVersion']);id(input.tourId);const existing=await first(db,'SELECT driver_id,workflow_version FROM tours WHERE id=? AND date=? AND regular_type IS NULL',input.tourId,localDate());if(existing?.workflow_version>=2&&input.workflowVersion!==2)fail('failed-precondition','Vor neuer Tour aktuelle App im WLAN neu öffnen.');if(existing?.driver_id===uid)return {tourId:input.tourId};const result=await run(db,`UPDATE tours SET driver_id=? WHERE id=? AND date=? AND driver_id IS NULL AND regular_type IS NULL AND status='open' AND ${activeDriver}`,uid,input.tourId,localDate(),uid);if(result.meta.changes!==1)fail('already-exists','Zusatz-Tour nicht mehr verfügbar.');return {tourId:input.tourId};

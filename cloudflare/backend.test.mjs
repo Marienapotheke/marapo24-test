@@ -44,11 +44,11 @@ test('two drivers race for one daily tour: precisely one reservation succeeds',a
  assert.equal((await f.call(loser,'state')).body.data.tours.length,0);
  assert.equal((await f.call(loser,'createPackage',{...delivery('privat')})).status,403);
 });
-test('driver captures packages with pharmacy, address and optional fields; office special-tour capability is separate',async()=>{
+test('driver captures packages with pharmacy, address and optional fields; all office users can create additional tours',async()=>{
  const created=await f.call(winner,'createPackage',delivery('privat'));assert.equal(created.status,200);privateStop=created.body.data.stopId;
  const failed=await f.call(winner,'createPackage',{...delivery('privat'),origin:'Cusanus-Apotheke',cents:500});assert.equal(failed.status,200);failedStop=failed.body.data.stopId;
  assert.equal((await f.call(winner,'createPackage',{...delivery('privat'),signature:'forged'})).status,400);
- assert.equal((await f.call('office','createSpecialTour',{date:localDate(),type:'Fiktive Sondertour'})).status,403);
+ assert.equal((await f.call('office','createSpecialTour',{date:localDate(),type:'Fiktive Sondertour'})).status,200);
  assert.equal((await f.call('admin','createSpecialTour',{date:localDate(),type:'Fiktive Sondertour'})).status,200);
  const dual=await f.call('dual','state',{view:'office'});assert.equal(dual.status,200);assert.equal((await f.call('dual','state',{view:'driver'})).status,200);
 });
@@ -96,7 +96,7 @@ test('administrator manages existing roles; privilege flags and administrator ac
  assert.equal((await f.call('office','listUsers')).status,403);
  assert.equal((await f.call('admin','updateUser',{uid:loser,displayName:'Fiktiv geändert',roles:['driver','office'],active:true,isAdmin:true})).status,400);
  assert.equal((await f.call('admin','updateUser',{uid:loser,displayName:'Fiktiv geändert',roles:['driver','office'],active:true})).status,200);
- assert.equal((await f.call(loser,'createSpecialTour',{date:localDate(),type:'Nicht erlaubt'})).status,403);
+ assert.equal((await f.call(loser,'createSpecialTour',{date:localDate(),type:'Fiktive zusätzliche Tour'})).status,200);
  assert.equal((await f.call('admin','updateUser',{uid:'admin',displayName:'Fiktiver Admin',roles:['driver'],active:false})).status,400);
 });
 test('role revocation blocks completion retry and office archive access',async()=>{

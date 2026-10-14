@@ -24,6 +24,7 @@ export async function fixtureRuntime({bindings={},outbound}={}){
  await db.exec((await fs.readFile(path.join(base,'office-auth.sql'),'utf8')).replace(/\r?\n/g,' '));
  await db.exec((await fs.readFile(path.join(base,'customers-routes.sql'),'utf8')).replace(/\r?\n/g,' '));
  await db.exec((await fs.readFile(path.join(base,'workflow-schema.sql'),'utf8')).replace(/\r?\n/g,' '));
+ await db.exec((await fs.readFile(path.join(base,'cash-settlement.sql'),'utf8')).replace(/\r?\n/g,' '));
  for(const [uid,roles,isAdmin,special] of [['driver-a',['driver'],0,0],['driver-b',['driver'],0,0],['office',['office'],0,0],['dual',['office','driver'],0,0],['admin',['office'],1,1]])await db.prepare('INSERT INTO users VALUES (?,?,?,1,?,?)').bind(uid,'Fiktiv '+uid,JSON.stringify(roles),isAdmin,special).run();
  for(let i=4;i<=11;i++)await db.prepare('INSERT INTO users VALUES (?,?,?,1,0,0)').bind('driver-'+i,'Fiktiver Fahrer '+i,'["driver"]').run();
  for(let i=4;i<=20;i++)await db.prepare('INSERT INTO users VALUES (?,?,?,1,0,0)').bind('office-'+i,'Fiktives Büro '+i,'["office"]').run();
