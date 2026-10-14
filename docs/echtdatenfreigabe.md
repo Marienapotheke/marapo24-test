@@ -1,8 +1,22 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+## Betriebsupdate vom 14.10.2026
+
+Gesamtupdate und additive Speicherung der Kilometerstände ausdrücklich freigegeben und unter dem bestehenden Link veröffentlicht. Geprüfter Code `c018233565b0ca1327f9fc630435da5128c506a1`, beide Gesamtprüfungen `38532543644` und `38532536882` erfolgreich mit 106 Tests. Worker-Version `3902d3b5-4310-461d-a985-abf551aebcad`. Veröffentlichte Dateien gegen die geprüfte Fassung abgeglichen; unangemeldeter Datenzugriff bleibt gesperrt. Chrome-Installierbarkeit und App-Symbole geprüft. Betriebssicherung einschließlich isolierter Wiederherstellung vor und nach der Erweiterung erfolgreich.
+
+Bürokräfte können reguläre Tagestouren vor Fahrerankunft vorbereiten und Päckchen ausschließlich vor dem serverbestätigten Tourstart ergänzen. Der Fahrer übernimmt dieselbe Tour; konkurrierende Übernahmen erzeugen keine zweite Tagestour. Nach Start darf ausschließlich der zugewiesene Fahrer weitere Päckchen ergänzen, solange die Tour nicht abgeschlossen ist. Tourstart im WLAN übertragen und bestätigen lassen, bevor das Gerät offline geht.
+
+Kilometerstände werden beim Start und Ende erfasst, ein Endstand unter dem Start abgelehnt. Alte Touren und bereits ausstehende Offline-Vorgänge bleiben kompatibel; Kilometer werden nicht rückwirkend erfunden. Euroeingabe `5` entspricht 5 €, deutsches Komma und Dezimalpunkt werden unterstützt. Privatübergabe und Nachbar erfordern eine einmalige geschützte Unterschrift, Briefkasten und Ärzte/Pflegeeinrichtungen/Partnerapotheken keine. Übergabeart und Nichtzustellgrund erscheinen im Büro und Nachweis/PDF; Archive bleiben unveränderlich.
+
+Fahreransicht: Päckchenerfassung, Lieferstopps, Toursteuerung. Kundenvorschläge ausschließlich anhand des Kundennamens, keine Kundensuche über Straßenfelder. Büro zeigt Start und Ende getrennt mit deutschem Datum, Ortszeit, Kilometerstand und gefahrenen Kilometern; Sommer-/Winterzeit wird bei der Darstellung berücksichtigt, gespeicherte Zeitpunkte bleiben unverändert. Die Drei-Geräte-Grenze ist aufgehoben, administrative Gerätefreigabe und persönliche Fahrer-PIN bleiben erforderlich.
+
+Nach Übertragung ausstehender Vorgänge alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Vor Abfahrt die bestätigte Offline-Bereitschaft prüfen. Das Update erzwingt keinen Neustart während laufender Erfassung; neue Touren benötigen die aktuelle App-Version. `main`, laufende v3 und Firestore-Regeln bleiben unverändert, keine kostenpflichtige Variante aktiviert.
+
+## Historische Erstfreigabe vom 13.10.2026
+
 Am 13.10.2026 ausdrücklich vom Nutzer für echte Kundendaten freigegeben. Datenschutzprüfung durch die benannte Datenschutzbeauftragte, sichere getrennte Kennwortverwahrung für die Server-Schlüsselkopie und bisherige Funktionstests wurden vom Nutzer als erledigt bestätigt. Dies dokumentiert den Betreiberbeschluss; es ist keine eigenständige Rechtszertifizierung.
 
-Veröffentlicht unter dem bisherigen Worker-Link mit neuer EU-Betriebsdatenbank `marapo24-botendienst`. Übernommen wurden 31 freigegebene Mitarbeiter, elf PIN-Prüfwerte, 21 Büro-Passwortprüfwerte, ein freigegebenes Fahrergerät und drei aktive echte Fahrzeuge. Null Testkunden, Touren, Stopps, Nachweise oder fiktive Benutzer übertragen. Bestehende Mitarbeiterpasswörter/PINs und Administratoridentität bleiben erhalten; neue Anmeldung nach dem Wechsel. Zusätzliche echte Fahrergeräte wie bisher einzeln freigeben (höchstens drei).
+Veröffentlicht unter dem bisherigen Worker-Link mit neuer EU-Betriebsdatenbank `marapo24-botendienst`. Übernommen wurden 31 freigegebene Mitarbeiter, elf PIN-Prüfwerte, 21 Büro-Passwortprüfwerte, ein freigegebenes Fahrergerät und drei aktive echte Fahrzeuge. Null Testkunden, Touren, Stopps, Nachweise oder fiktive Benutzer übertragen. Bestehende Mitarbeiterpasswörter/PINs und Administratoridentität bleiben erhalten; neue Anmeldung nach dem Wechsel. Zusätzliche echte Fahrergeräte einzeln freigeben; die anfängliche Drei-Geräte-Grenze wurde am 14.10.2026 aufgehoben.
 
 Code `dd60cd27c0c7e886acf6bffb7c37f115d106094c`, beide GitHub-Prüfläufe `38417099955` und `38417091790` erfolgreich mit 98 Tests. Produktiv-Worker-Version `cfba5dbf-ef54-49b3-a655-fd338b5922c4`. Öffentlich ausgelieferte Produktionsdarstellung, Zahlungswahl, getrennter Offline-Speicher und 401-Sperre unangemeldeter Datenzugriffe geprüft. `main`, laufende v3 und aktive Firestore-Regeln unverändert. Keine kostenpflichtige Variante aktiviert.
 
