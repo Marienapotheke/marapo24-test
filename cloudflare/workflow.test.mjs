@@ -4,13 +4,14 @@ import crypto from 'node:crypto';
 import {createRequire} from 'node:module';
 import {fixtureRuntime} from './fixture-runtime.mjs';
 import {regularTours,localDate} from './domain.mjs';
-import {euroCents,localTimestamp,odometer,needsSignature,handover} from './tour-workflow.mjs';
+import {euroCents,localTimestamp,localDateTime,odometer,needsSignature,handover} from './tour-workflow.mjs';
 import {sealSignature} from '../offline-store.mjs';
 const require=createRequire(import.meta.url),{PNG}=require('../functions/node_modules/pngjs');
 const capture=()=>({completionId:crypto.randomUUID(),capturedAt:new Date().toISOString()});
 const parcel=(tourId,type='privat')=>({tourId,type,origin:'Marienapotheke',name:'Fiktive Musterperson',street:'Musterweg 1',postalCode:'54321',city:'Musterstadt',cents:0});
 test('whole euro entry, German decimals and kilometer validation are unambiguous',()=>{
  assert.match(localTimestamp('2026-10-14T08:30:00Z'),/10:30:00/);assert.match(localTimestamp('2026-12-14T08:30:00Z'),/09:30:00/);assert.equal(localTimestamp(null),'offen');
+ assert.deepEqual(localDateTime('2026-10-13T23:30:00Z'),{date:'14.10.2026',time:'01:30'});assert.deepEqual(localDateTime(null),{date:'Noch nicht erfasst',time:'—'});
  for(const [text,expected] of [['5',500],['5,50',550],['5.5',550],['0,05',5],['0',0],['9999',999900]])assert.equal(euroCents(text),expected);
  for(const invalid of ['','-5','5,555','1.000,50','1e2','10000','9999,01'])assert.throws(()=>euroCents(invalid));
  for(const invalid of [-1,NaN,1.5,'100',10000000])assert.throws(()=>odometer(invalid));assert.equal(odometer(0),0);
