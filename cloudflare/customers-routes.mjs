@@ -34,7 +34,7 @@ export async function customerRouteAction(action,input,uid,p,env){
  const db=env.DB;
  if(action==='searchCustomers'){
   if(!hasRole(p,'driver')&&!hasRole(p,'office'))fail('permission-denied','Keine Kundensuche freigegeben.');fields(input,['query']);const query=normalize(text(input.query,80));if(query.length<3)return {customers:[]};
-  const rows=(await db.prepare('SELECT id,data,last_delivered_at FROM customers WHERE instr(search_name,?)>0 ORDER BY last_delivered_at DESC LIMIT 10').bind(query).all()).results;return {customers:rows.map(row=>({id:row.id,...JSON.parse(row.data),lastDeliveredAt:row.last_delivered_at}))};
+  const rows=(await db.prepare('SELECT id,data,last_delivered_at FROM customers WHERE instr(search_name,?)>0 ORDER BY last_delivered_at DESC LIMIT 10').bind(query).all()).results;return {customers:rows.map(row=>{const saved=JSON.parse(row.data);return {id:row.id,type:saved.type,name:saved.name,street:saved.street,postalCode:saved.postalCode,city:saved.city,phone:saved.phone,lastDeliveredAt:row.last_delivered_at};})};
  }
  if(action==='reorderStops')return saveOrder(db,uid,p,input);
  if(action==='prepareRouteAddress'){

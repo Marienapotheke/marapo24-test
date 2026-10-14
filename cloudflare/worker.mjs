@@ -4,6 +4,7 @@ import {payment,collected} from './payment.mjs';
 import policy from '../functions/policy.cjs';
 import {odometer,handover} from './tour-workflow.mjs';
 import {validateCompletion} from './completion-policy.mjs';
+import {editPackage} from './package-edit.mjs';
 import {openWebEnvelope,deliveryKey} from './web-envelope.mjs';
 import {validatePng} from './png.mjs';
 import {authenticateIdentity,authenticateApp} from './auth.mjs';
@@ -18,7 +19,7 @@ const iso=()=>new Date().toISOString();
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value))))).map(x=>x.toString(16).padStart(2,'0')).join('');
 function profile(row){return row?{uid:row.uid,displayName:row.display_name,roles:JSON.parse(row.roles),active:row.active===1,isAdmin:row.is_admin===1,canCreateSpecialTour:row.can_special===1}:null;}
 function tour(row){return row?{id:row.id,type:row.type,date:row.date,regularType:row.regular_type,driverId:row.driver_id,createdBy:row.created_by,status:row.status,schemaVersion:2,createdAt:row.created_at,vehicleId:row.vehicle_id,vehicleLabel:row.vehicle_label,startedAt:row.started_at,endedAt:row.ended_at,startCapturedAtClient:row.start_captured,endCapturedAtClient:row.end_captured,startOdometerKm:row.start_odometer,endOdometerKm:row.end_odometer,workflowVersion:row.workflow_version}:null;}
-function stop(row){return row?{id:row.id,...JSON.parse(row.data),...(row.payment_data?JSON.parse(row.payment_data):{}),schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at}:null;}
+function stop(row){if(!row)return null;const {_editVersion=0,...data}=JSON.parse(row.data);return {id:row.id,...data,...(row.payment_data?JSON.parse(row.payment_data):{}),editVersion:_editVersion,schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at};}
 async function ownTour(db,uid,input,p){requireRole(p,'driver');const row=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!row)fail('not-found','Tour fehlt.');if(row.driver_id!==uid)fail('permission-denied','Tour ist einem anderen Fahrer zugewiesen.');return row;}
 const activeDriver="EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='driver'))";
 async function state(db,uid,p,input){
@@ -43,6 +44,7 @@ async function state(db,uid,p,input){
 }
 async function rpc(db,uid,p,action,input,env){
  if(action==='state')return state(db,uid,p,input);
+ if(action==='updatePackage'||action==='deletePackage')return editPackage(db,uid,p,action,input);
  if(action==='prepareRegularTour'){
   requireRole(p,'office');fields(input,['date','typeId']);const option=regularTours(input.date).find(t=>t.id===input.typeId);if(!option)fail('invalid-argument','Reguläre Tour für diesen Tag auswählen.');
   const old=await first(db,'SELECT id FROM tours WHERE date=? AND regular_type=?',input.date,input.typeId);if(old)return {tourId:old.id};const tourId=crypto.randomUUID();
