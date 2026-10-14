@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {fixtureRuntime} from './fixture-runtime.mjs';
 import {regularTours,localDate,packageData} from './domain.mjs';
 import {sealSignature} from '../offline-store.mjs';
-import {payment} from './payment.mjs';
+import {payment,cashByPharmacy} from './payment.mjs';
 const require=createRequire(import.meta.url),{PNG}=require('../functions/node_modules/pngjs');
 let f,winner,loser,tourId,privateStop,failedStop,signature,winInput;
 const capture=()=>({completionId:crypto.randomUUID(),capturedAt:new Date().toISOString()});
@@ -63,6 +63,13 @@ test('payment rejects impossible amounts and requires a reason for unpaid delive
  assert.throws(()=>payment({collectedCents:50,collectionReason:''},150,'nicht zugestellt'));
  assert.deepEqual(payment({collectedCents:0,collectionReason:'Kein Geld vorhanden'},150,'zugestellt'),{collectedCents:0,collectionReason:'Kein Geld vorhanden',collectionConfirmed:true});
  assert.equal(payment({},150,'zugestellt').collectionConfirmed,false);
+});
+test('cash summaries keep separate tours and pharmacies, including partial, unpaid and failed deliveries',()=>{
+ const first=[{origin:'Marienapotheke',status:'zugestellt',cents:1000,collectedCents:500},{origin:'Cusanus-Apotheke',status:'zugestellt',cents:750,collectedCents:0},{origin:'Marienapotheke',status:'nicht zugestellt',cents:2000},{origin:'Cusanus-Apotheke',status:'offen',cents:3000}];
+ const second=[{origin:'Cusanus-Apotheke',status:'zugestellt',cents:300,collectedCents:300},{origin:'Marienapotheke',status:'zugestellt',cents:200}];
+ assert.deepEqual(cashByPharmacy(first),[{origin:'Marienapotheke',cents:500},{origin:'Cusanus-Apotheke',cents:0}]);
+ assert.deepEqual(cashByPharmacy(second),[{origin:'Marienapotheke',cents:200},{origin:'Cusanus-Apotheke',cents:300}]);
+ assert.deepEqual(cashByPharmacy([]),[{origin:'Marienapotheke',cents:0},{origin:'Cusanus-Apotheke',cents:0}]);
 });
 test('backend rejects cash on a failed delivery without archiving it',async()=>{
  const input={tourId,stopId:failedStop,status:'nicht zugestellt',sealedSignature:null,...capture(),collectedCents:100,collectionReason:''};
