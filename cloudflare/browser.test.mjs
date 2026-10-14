@@ -14,7 +14,7 @@ test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, rest
  for(const [uid,pin] of [['driver-a','642893'],['driver-b','819264']])assert.equal((await f.call('admin','setDriverPin',{uid,pin})).status,200);
  const paired=await f.runtime.dispatchFetch('https://fictional.invalid/api/authorizeDriverDevice',{method:'POST',headers:{Authorization:'Bearer '+f.authToken('admin'),'X-Firebase-AppCheck':f.appToken(),'Content-Type':'application/json'},body:JSON.stringify({label:'Fiktives Testtablet'})});assert.equal(paired.status,200);const deviceToken=paired.headers.get('set-cookie').split(';')[0].split('=')[1];
  if(!regularTours(localDate()).length)await f.call('admin','createSpecialTour',{date:localDate(),type:'Fiktive Sonntags-Sondertour'});
- const files=new Set(['index.html','payment.mjs','password-proof.mjs','app.mjs','app-config.js','offline-store.mjs','office-pdf.mjs','sw.js','manifest.webmanifest']);
+ const files=new Set(['index.html','install-app.mjs','payment.mjs','password-proof.mjs','app.mjs','app-config.js','offline-store.mjs','office-pdf.mjs','sw.js','manifest.webmanifest','icons/app-192.png','icons/app-512.png']);
  let loseStartReceipt=true,notifyLostReceipt;const lostReceipt=new Promise(resolve=>notifyLostReceipt=resolve);
  const server=http.createServer(async(req,res)=>{
   try{
@@ -29,7 +29,7 @@ test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, rest
     const cookies=response.headers.getSetCookie().map(s=>s.replaceAll('__Host-marapo24-','local-marapo24-').replace('; Secure',''));res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store',...(cookies.length?{'Set-Cookie':cookies}:{})});res.end(Buffer.from(await response.arrayBuffer()));return;
    }
    const file=url.pathname.slice(1)||'index.html';if(!files.has(file)){res.writeHead(404);res.end();return;}
-   res.setHeader('Content-Type',file.endsWith('.html')?'text/html':file.endsWith('webmanifest')?'application/manifest+json':'text/javascript');
+   res.setHeader('Content-Type',file.endsWith('.png')?'image/png':file.endsWith('.html')?'text/html':file.endsWith('webmanifest')?'application/manifest+json':'text/javascript');
    if(file==='app-config.js')res.end('export const appConfig='+JSON.stringify({mode:'test',backend:'cloudflare',emulators:true,testAppCheckToken:f.appToken(),appCheckSiteKey:'',firebase:{projectId:'demo-marapo24',apiKey:'fake-api-key',authDomain:'demo-marapo24.firebaseapp.com'}})+';');
    else res.end(fs.readFileSync(path.join('dist-cloudflare',file)));
   }catch{res.writeHead(401,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{code:'unauthenticated',message:'Fictional bridge identity rejected'}}));}
@@ -47,6 +47,11 @@ test('free pilot tablet: claim, capture pharmacies, offline start/sign/end, rest
   await parcel('Erika Muster','Marienapotheke','2.50');await parcel('Theo Muster','Cusanus-Apotheke','7.50');
   await page.waitForFunction(()=>document.querySelector('#offlineReady').textContent.startsWith('Für Funklöcher vorbereitet.'));
   await page.evaluate(()=>navigator.serviceWorker.ready);await page.reload();await page.locator('#app:not(.hidden)').waitFor();await page.waitForFunction(()=>navigator.serviceWorker.controller&&document.querySelector('#offlineReady').textContent.startsWith('Für Funklöcher vorbereitet.'));
+  const cdp=await tabletContext.newCDPSession(page);await cdp.send('Page.enable');
+  const manifest=await cdp.send('Page.getAppManifest');assert.equal(manifest.errors.length,0);assert.equal(JSON.parse(manifest.data).display,'standalone');
+  const installability=await cdp.send('Page.getInstallabilityErrors');assert.deepEqual(installability.installabilityErrors,[]);
+  for(const size of [192,512]){const icon=await page.request.get('http://127.0.0.1:4174/icons/app-'+size+'.png');assert.equal(icon.status(),200);assert.match(icon.headers()['content-type'],/image\/png/);const bytes=await icon.body();assert.equal(bytes.readUInt32BE(16),size);assert.equal(bytes.readUInt32BE(20),size);}
+  await cdp.detach();
   await page.locator('#vehicle').selectOption('car1');await tabletContext.setOffline(true);await page.locator('#start').click();await page.locator('[data-done]').first().waitFor();await page.locator('[data-done]').first().click();
   const box=await page.locator('#signature').boundingBox();await page.mouse.move(box.x+20,box.y+30);await page.mouse.down();await page.mouse.move(box.x+160,box.y+80,{steps:20});await page.mouse.up();await page.locator('#saveSig').click();assert.match(await page.locator('#sigStatus').textContent(),/Bitte angeben/);await page.locator('#collectionMode').selectOption('none');await page.locator('#collectionReason').selectOption('Kein Geld vorhanden');fs.mkdirSync('artifacts',{recursive:true});await page.screenshot({path:'artifacts/zahlungsabschluss-test.png',fullPage:true});await page.locator('#saveSig').click();await page.waitForFunction(()=>!document.querySelector('#sigDialog').open);
   await page.locator('[data-fail]').click();await page.locator('#finish').click();await page.waitForFunction(()=>document.querySelector('#pendingStatus').textContent.startsWith('4 '));

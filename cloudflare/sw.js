@@ -1,5 +1,5 @@
 const CACHE='marapo24-free-pilot-v4';
-const ASSETS=['./','./index.html','./app.mjs','./payment.mjs','./password-proof.mjs','./app-config.js','./offline-store.mjs','./office-pdf.mjs','./manifest.webmanifest'];
+const ASSETS=['./','./index.html','./app.mjs','./install-app.mjs','./payment.mjs','./password-proof.mjs','./app-config.js','./offline-store.mjs','./office-pdf.mjs','./manifest.webmanifest','./icons/app-192.png','./icons/app-512.png'];
 const SDK=['app','auth','app-check'].map(name=>'https://www.gstatic.com/firebasejs/11.10.0/firebase-'+name+'.js');
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll([...ASSETS,...SDK]))));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
