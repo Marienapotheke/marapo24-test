@@ -1,6 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Betriebsupdate vom 14.10.2026
+## Ergänzungsupdate vom 14.10.2026 – aktueller Betriebsstand
+
+Nach ausdrücklicher Freigabe veröffentlicht: geprüfter Code `0ccc7a41f6ed12c275d735645180275b8468f78c`, beide Gesamtprüfungen `38547069768` und `38547061591` erfolgreich mit 111 Tests. Worker-Version `afa540a0-3b29-49f7-9302-09c69ee092a6`. Öffentliche Dateien gegen das geprüfte Veröffentlichungspaket abgeglichen, unangemeldeter Datenzugriff gesperrt und Chrome-Installierbarkeit erneut geprüft. Verschlüsselte Betriebssicherung auf S1 mit isolierter Wiederherstellungsprüfung vor und nach der Veröffentlichung erfolgreich.
+
+Büro und zugewiesene Fahrer können Päckchen vor Tourstart bearbeiten oder löschen. Der Server schützt gegen parallele Korrekturen und gegen Änderungen nach dem Start; fertige Nachweise bleiben unveränderlich. Nach Tourstart darf weiterhin nur der zugewiesene Fahrer zusätzliche Päckchen ergänzen. Lieferhinweise werden nicht mit Kunden gemerkt und das Feld bei Kundenauswahl geleert. Die freigegebene Migration `cloudflare/customer-notes.sql` wurde angewendet: null gemerkte Kundenhinweise und aktiver Speichertrigger ohne Hinweisfeld bestätigt. Lieferbezogene Hinweise in Stopps und Nachweisen bleiben erhalten. Bei Wiederherstellung älterer Sicherungen die Migration erneut anwenden.
+
+Passwörter und PINs lassen sich mit einem Augensymbol anzeigen oder verbergen. Abmeldung leert auch sichtbar geschaltete Eingaben. Im Büro zeigt jede Tour ihre eigene Kasse getrennt nach Marienapotheke und Cusanus-Apotheke; Fahrer sehen die Kasse ihrer ausgewählten Tour. Teilzahlungen werden mit dem tatsächlich kassierten Betrag berücksichtigt. Kopfzeile, Akzente und App-Symbole verwenden das Marienapotheken-Logo-Grün. Bestehende Touren, Nachweise, Zugänge, Kundennamen/Adressen/Telefonnummern und ausstehende Offline-Abschlüsse bleiben erhalten. `main`, v3 und Firestore-Regeln bleiben unverändert.
+
+Nach Übertragung ausstehender Vorgänge alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Vor Abfahrt bestätigte Offline-Bereitschaft prüfen. Bestehende bereits geöffnete Fenster können bis zum Neuladen noch die vorherige Oberfläche zeigen.
+
+## Vorheriges Betriebsupdate vom 14.10.2026
 
 Gesamtupdate und additive Speicherung der Kilometerstände ausdrücklich freigegeben und unter dem bestehenden Link veröffentlicht. Geprüfter Code `c018233565b0ca1327f9fc630435da5128c506a1`, beide Gesamtprüfungen `38532543644` und `38532536882` erfolgreich mit 106 Tests. Worker-Version `3902d3b5-4310-461d-a985-abf551aebcad`. Veröffentlichte Dateien gegen die geprüfte Fassung abgeglichen; unangemeldeter Datenzugriff bleibt gesperrt. Chrome-Installierbarkeit und App-Symbole geprüft. Betriebssicherung einschließlich isolierter Wiederherstellung vor und nach der Erweiterung erfolgreich.
 

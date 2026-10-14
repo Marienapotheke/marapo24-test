@@ -1,6 +1,10 @@
-# Vorbereitetes Update – noch nicht veröffentlicht
+# Ergänzungsupdate – veröffentlicht am 14.10.2026
 
-Die Betreiberin hat die Veröffentlichung zurückgestellt und weitere Ergänzungen angefordert. Dieses Dokument beschreibt die vorbereiteten Änderungen, nicht den Stand der laufenden App. Der bisherige Echtbetrieb, main und v3 bleiben unverändert.
+Nach erneuter ausdrücklicher Freigabe wurde dieses Update veröffentlicht. Geprüfter Code: 0ccc7a41f6ed12c275d735645180275b8468f78c; Worker-Version: afa540a0-3b29-49f7-9302-09c69ee092a6. Beide Gesamtprüfungen mit 111 Tests bestanden; öffentliche App und Installierbarkeit geprüft. Kundenhinweis-Migration angewendet; Betriebssicherung und isolierte Wiederherstellung vor und nach Veröffentlichung erfolgreich. Der aktuelle Betriebsstand steht in docs/echtdatenfreigabe.md.
+
+## Historischer Vorbereitungsstand vor der erneuten Freigabe
+
+Die Betreiberin hatte die Veröffentlichung zurückgestellt und weitere Ergänzungen angefordert. Dieses Dokument beschreibt die vorbereiteten Änderungen, nicht den Stand der laufenden App. Der bisherige Echtbetrieb, main und v3 bleiben unverändert.
 
 - Büro und zugewiesener Fahrer dürfen Päckchen vor Tourstart korrigieren oder entfernen. Der Server prüft Tourstatus, Rollen und Bearbeitungsversion auch bei gleichzeitigem Start oder konkurrierender Änderung. Nach Tourstart darf weiterhin nur der zugewiesene Fahrer zusätzliche Päckchen ergänzen; bestehende Päckchen lassen sich dann nicht bearbeiten oder löschen.
 - Kundenvorschläge enthalten Namen, Adresse, Empfängerart und Telefonnummer, aber keine Lieferhinweise. Kundenauswahl leert das Hinweisfeld. Lieferbezogene Hinweise in bestehenden Stopps und Nachweisen bleiben erhalten. Die vorbereitete Migration `cloudflare/customer-notes.sql` entfernt ausschließlich Hinweise aus der Kundenmerkliste und aktualisiert deren Speicherfunktion; sie wurde im Echtbetrieb noch nicht ausgeführt.
