@@ -22,12 +22,13 @@ function stop(row){return row?{id:row.id,...JSON.parse(row.data),...(row.payment
 async function ownTour(db,uid,input,p){requireRole(p,'driver');const row=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!row)fail('not-found','Tour fehlt.');if(row.driver_id!==uid)fail('permission-denied','Tour ist einem anderen Fahrer zugewiesen.');return row;}
 const activeDriver="EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='driver'))";
 async function state(db,uid,p,input){
- fields(input,['view','date']);const date=input.date||localDate();weekday(date);
+ fields(input,['view','date','workflowVersion']);if(input.workflowVersion!==undefined&&input.workflowVersion!==2)fail('invalid-argument','App-Version prüfen.');const date=input.date||localDate();weekday(date);
  const view=input.view||((hasRole(p,'office'))?'office':'driver');
  if(p?.active!==true)return {profile:p,tours:[],stops:{},vehicles:[],employees:[],catalog:[],specialTours:[],cash:[]};
  requireRole(p,view);
  const rows=view==='office'?await all(db,'SELECT * FROM tours WHERE date=? ORDER BY created_at LIMIT 101',date):await all(db,"SELECT * FROM tours WHERE driver_id=? AND (status!='finished' OR date=?) ORDER BY created_at LIMIT 101",uid,date);
  if(rows.length>100)fail('resource-exhausted','Zu viele Touren für den Testlauf. Bitte Büro informieren.');
+ if(input.workflowVersion!==2&&rows.some(t=>t.workflow_version>=2&&t.status!=='finished'))fail('failed-precondition','Die App wurde aktualisiert. Nach Übertragung ausstehender Vorgänge alle MARAPO24-Fenster schließen und im WLAN neu öffnen.');
  const projection="SELECT s.*,json_object('collectedCents',json_extract(p.data,'$.collectedCents'),'collectionReason',json_extract(p.data,'$.collectionReason'),'collectionConfirmed',json_extract(p.data,'$.collectionConfirmed'),'deliveryMethod',json_extract(p.data,'$.deliveryMethod'),'nonDeliveryReason',json_extract(p.data,'$.nonDeliveryReason'),'neighborName',json_extract(p.data,'$.neighborName')) AS payment_data FROM stops s JOIN tours t ON t.id=s.tour_id LEFT JOIN proofs p ON p.id=s.proof_id ";
  const deliveries=view==='office'?await all(db,projection+'WHERE t.date=? ORDER BY s.created_at LIMIT 3001',date):await all(db,projection+"WHERE t.driver_id=? AND (t.status!='finished' OR t.date=?) ORDER BY s.created_at LIMIT 3001",uid,date);
  if(deliveries.length>3000)fail('resource-exhausted','Zu viele Päckchen für den Testlauf. Bitte Büro informieren.');
@@ -49,9 +50,10 @@ async function rpc(db,uid,p,action,input,env){
   catch(e){const existing=await first(db,'SELECT id FROM tours WHERE date=? AND regular_type=?',input.date,input.typeId);if(existing)return {tourId:existing.id};throw e;}return {tourId};
  }
  if(action==='claimRegularTour'){
-  requireRole(p,'driver');fields(input,['date','typeId']);if(input.date!==localDate())fail('failed-precondition','Touren können nur für den heutigen Tag übernommen werden.');
+  requireRole(p,'driver');fields(input,['date','typeId','workflowVersion']);if(input.date!==localDate())fail('failed-precondition','Touren können nur für den heutigen Tag übernommen werden.');
   const option=regularTours(input.date).find(t=>t.id===input.typeId);if(!option)fail('invalid-argument','Diese Tour findet heute nicht statt.');
   const existing=await first(db,'SELECT * FROM tours WHERE date=? AND regular_type=?',input.date,input.typeId);
+  if((!existing||existing.workflow_version>=2)&&input.workflowVersion!==2)fail('failed-precondition','Vor neuer Tour aktuelle App im WLAN neu öffnen.');
   if(existing){if(existing.driver_id===uid)return {tourId:existing.id};if(!existing.driver_id){const r=await run(db,`UPDATE tours SET driver_id=? WHERE id=? AND driver_id IS NULL AND status='open' AND ${activeDriver}`,uid,existing.id,uid);if(r.meta.changes===1)return {tourId:existing.id};}fail('already-exists','Diese Tour ist bereits übernommen.');}
   const tourId=crypto.randomUUID();
   try{const result=await run(db,`INSERT INTO tours(id,date,type,regular_type,driver_id,created_by,status,created_at,workflow_version) SELECT ?,?,?,?,?,?,'open',?,2 WHERE ${activeDriver}`,tourId,input.date,option.label,input.typeId,uid,uid,iso(),uid);if(result.meta.changes!==1)fail('permission-denied','Konto nicht freigegeben.');}
@@ -63,7 +65,7 @@ async function rpc(db,uid,p,action,input,env){
   const result=await run(db,"INSERT INTO tours(id,date,type,created_by,status,created_at,workflow_version) SELECT ?,?,?,?,'open',?,2 WHERE EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND can_special=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",tourId,input.date,label,uid,iso(),uid);if(result.meta.changes!==1)fail('permission-denied','Berechtigung wurde geändert.');return {tourId};
  }
  if(action==='claimSpecialTour'){
-  requireRole(p,'driver');fields(input,['tourId']);id(input.tourId);const existing=await first(db,'SELECT driver_id FROM tours WHERE id=? AND date=? AND regular_type IS NULL',input.tourId,localDate());if(existing?.driver_id===uid)return {tourId:input.tourId};const result=await run(db,`UPDATE tours SET driver_id=? WHERE id=? AND date=? AND driver_id IS NULL AND regular_type IS NULL AND status='open' AND ${activeDriver}`,uid,input.tourId,localDate(),uid);if(result.meta.changes!==1)fail('already-exists','Zusatz-Tour nicht mehr verfügbar.');return {tourId:input.tourId};
+  requireRole(p,'driver');fields(input,['tourId','workflowVersion']);id(input.tourId);const existing=await first(db,'SELECT driver_id,workflow_version FROM tours WHERE id=? AND date=? AND regular_type IS NULL',input.tourId,localDate());if(existing?.workflow_version>=2&&input.workflowVersion!==2)fail('failed-precondition','Vor neuer Tour aktuelle App im WLAN neu öffnen.');if(existing?.driver_id===uid)return {tourId:input.tourId};const result=await run(db,`UPDATE tours SET driver_id=? WHERE id=? AND date=? AND driver_id IS NULL AND regular_type IS NULL AND status='open' AND ${activeDriver}`,uid,input.tourId,localDate(),uid);if(result.meta.changes!==1)fail('already-exists','Zusatz-Tour nicht mehr verfügbar.');return {tourId:input.tourId};
  }
  if(action==='createPackage'){
   const office=hasRole(p,'office');let t;if(office){t=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!t)fail('not-found','Tour fehlt.');}else t=await ownTour(db,uid,input,p);if(!['open','running'].includes(t.status)||(office&&t.status!=='open'))fail('failed-precondition',office?'Das Büro darf Päckchen nur vor Tourstart ergänzen.':'Beendete Touren können nicht ergänzt werden.');const data=packageData(input,tour(t)),stopId=crypto.randomUUID();
