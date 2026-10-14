@@ -1,4 +1,8 @@
-# Abrechnungsnachweis und zusätzliche Bürotouren – noch nicht veröffentlicht
+# Abrechnungsnachweis und zusätzliche Bürotouren – veröffentlicht am 14.10.2026
+
+Nach ausdrücklicher Freigabe veröffentlicht: App-Code 50eb1465343af02dfbf796d590f04c920e5abda6, Worker 7529d4da-30db-4f8c-8eb3-84eb8dcdc123. Alle 116 Tests bestanden, additive Migration angewendet, öffentliche Dateien und Zugriffsschutz geprüft; verschlüsselte Sicherung mit isolierter Wiederherstellung vor und nach Veröffentlichung erfolgreich. Aktueller Betriebsstand: docs/echtdatenfreigabe.md.
+
+## Historische Vorbereitung vor der Freigabe
 
 Die Betreiberin hat die Erfassung auf dem Fahrergerät mit zusätzlicher Namensangabe gewählt. Das Update ist separat vorbereitet; die vorherige Veröffentlichung ist keine Freigabe für diese neue Backend-Erweiterung.
 

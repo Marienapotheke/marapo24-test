@@ -1,6 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Ergänzungsupdate vom 14.10.2026 – aktueller Betriebsstand
+## Abrechnungsupdate vom 14.10.2026 – aktueller Betriebsstand
+
+Nach ausdrücklicher Freigabe veröffentlicht: geprüfter Code `50eb1465343af02dfbf796d590f04c920e5abda6`, beide Gesamtprüfungen `38568292482` und `38568286309` erfolgreich mit 116 Tests. Worker-Version `7529d4da-30db-4f8c-8eb3-84eb8dcdc123`. Additive Migration `cloudflare/cash-settlement.sql` angewendet; neue Tabelle, alle drei Abrechnungsschutztrigger und vier bestehende Zustellschutztrigger bestätigt. Öffentliche App-/PDF-Dateien gegen das geprüfte Paket abgeglichen, unangemeldete Zugriffe auf Zustand, Abrechnung und Zusatz-Touren gesperrt, Chrome-Installierbarkeit geprüft. Betriebssicherung auf S1 und isolierte Wiederherstellungsprüfung einschließlich Abrechnungsschutztrigger vor/nach Veröffentlichung erfolgreich. Keine fiktiven Nachweise in den Echtbetrieb eingefügt.
+
+Nach bestätigt übertragenem Tourende erfasst die abrechnende Person auf dem Fahrergerät Namen und einmalige Unterschrift für den Marienapotheken-Betrag. Der Betrag wird serverseitig aus archivierten Zustellungen berechnet; Cusanus-Zahlungen gehören nicht zu diesem Nachweis. Name wird manuell eingegeben, ohne eigenen Büro-Login, und entsprechend dokumentiert. Fahrer sehen nur die Bestätigung; aktive Bürozugänge können den vollständigen unveränderlichen Nachweis als PDF herunterladen. Die Erfassung benötigt Internet und vollständig bestätigte Tourabschlüsse. Bei unbestätigter Übertragung das Unterschriftsfenster offen lassen und denselben Vorgang erneut speichern. Bestehende Offline-Zustellabschlüsse bleiben erhalten.
+
+Alle aktiven Bürozugänge können zusätzliche Touren erstellen. Konto-, Passwort- und PIN-Verwaltung behalten ihre bisherigen Beschränkungen; Fahrer-PIN-Sitzungen erhalten keine Bürorechte. Aufbewahrung für Abrechnungsnachweise höchstens 364 Tage, verankert an der ursprünglichen Tourerfassung; Sicherungen weiterhin höchstens 30 Tage und gegebenenfalls kürzer. Bei Wiederherstellung einer älteren Sicherung ohne Abrechnungsarchiv die freigegebene Migration erneut anwenden. `main`, v3, Firestore-Regeln und bestehende Zugänge unverändert.
+
+Für die aktuelle Oberfläche ausstehende Offline-Vorgänge zuerst übertragen, dann alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen; vor Abfahrt die bestätigte Offline-Bereitschaft prüfen.
+
+## Vorheriges Ergänzungsupdate vom 14.10.2026
 
 Nach ausdrücklicher Freigabe veröffentlicht: geprüfter Code `0ccc7a41f6ed12c275d735645180275b8468f78c`, beide Gesamtprüfungen `38547069768` und `38547061591` erfolgreich mit 111 Tests. Worker-Version `afa540a0-3b29-49f7-9302-09c69ee092a6`. Öffentliche Dateien gegen das geprüfte Veröffentlichungspaket abgeglichen, unangemeldeter Datenzugriff gesperrt und Chrome-Installierbarkeit erneut geprüft. Verschlüsselte Betriebssicherung auf S1 mit isolierter Wiederherstellungsprüfung vor und nach der Veröffentlichung erfolgreich.
 
