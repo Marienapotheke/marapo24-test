@@ -6,7 +6,7 @@
     "build": "node scripts/build.cjs",
     "build:free": "node scripts/cloudflare-build.mjs",
     "test:backup": "node --test tests/backup.test.mjs tests/retention.test.mjs tests/retention-runtime.test.mjs tests/backup-retention.test.mjs tests/key-vault.test.mjs tests/production-view.test.mjs tests/install-app.test.mjs",
-    "test:free": "node --test cloudflare-probe/probe.test.mjs cloudflare/backend.test.mjs cloudflare/png.test.mjs cloudflare/driver-auth.test.mjs cloudflare/office-auth.test.mjs cloudflare/customers-routes.test.mjs",
+    "test:free": "node --test cloudflare-probe/probe.test.mjs cloudflare/backend.test.mjs cloudflare/png.test.mjs cloudflare/driver-auth.test.mjs cloudflare/office-auth.test.mjs cloudflare/customers-routes.test.mjs cloudflare/workflow.test.mjs",
     "test:free:browser": "firebase emulators:exec --config firebase.emulators.json --only auth --project demo-marapo24 \"node --test cloudflare/browser.test.mjs\"",
     "test:browser": "node scripts/emulator-key.cjs && firebase emulators:exec --config firebase.emulators.json --only firestore,auth,functions --project demo-marapo24 \"node --test tests/browser.test.cjs\"",
     "test:emulator": "node scripts/emulator-key.cjs && firebase emulators:exec --config firebase.emulators.json --only firestore,auth,functions --project demo-marapo24 \"node --test --test-concurrency=1 tests/emulator.test.cjs\""

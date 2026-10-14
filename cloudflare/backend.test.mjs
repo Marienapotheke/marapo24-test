@@ -52,10 +52,10 @@ test('driver captures packages with pharmacy, address and optional fields; offic
  assert.equal((await f.call('admin','createSpecialTour',{date:localDate(),type:'Fiktive Sondertour'})).status,200);
  const dual=await f.call('dual','state',{view:'office'});assert.equal(dual.status,200);assert.equal((await f.call('dual','state',{view:'driver'})).status,200);
 });
-test('tour start documents vehicle and device/server time; late packages and premature finish denied',async()=>{
- const input={tourId,vehicleId:'car1',...capture()};assert.deepEqual((await Promise.all([1,2].map(()=>f.call(winner,'startProtectedTour',input)))).map(r=>r.status),[200,200]);
- assert.equal((await f.call(winner,'createPackage',delivery('privat'))).status,400);
- assert.equal((await f.call(winner,'finishProtectedTour',{tourId,...capture()})).status,400);
+test('tour start documents vehicle and device/server time; late packages permitted while premature finish denied',async()=>{
+ const input={tourId,vehicleId:'car1',odometerKm:1000,...capture()};assert.deepEqual((await Promise.all([1,2].map(()=>f.call(winner,'startProtectedTour',input)))).map(r=>r.status),[200,200]);
+ const late=await f.call(winner,'createPackage',delivery('privat'));assert.equal(late.status,200);assert.equal((await f.call(winner,'completeProtectedDelivery',{tourId,stopId:late.body.data.stopId,status:'nicht zugestellt',...capture()})).status,200);
+ assert.equal((await f.call(winner,'finishProtectedTour',{tourId,odometerKm:1010,...capture()})).status,400);
  const t=(await f.call(winner,'state')).body.data.tours[0];assert.equal(t.vehicleLabel,'Fiktives Testauto');assert.ok(t.startedAt);assert.equal(t.startCapturedAtClient,input.capturedAt);
 });
 test('payment rejects impossible amounts and requires a reason for unpaid delivery',()=>{
@@ -82,7 +82,7 @@ test('only office sees archived proof; failed delivery needs no explanation and 
  assert.equal((await f.call(winner,'downloadProtectedProof',{tourId,stopId:privateStop})).status,403);
  const proof=await f.call('office','downloadProtectedProof',{tourId,stopId:privateStop});assert.equal(proof.status,200);assert.equal(proof.body.data.proof.signature,signature);assert.match(proof.body.data.filename,/\.pdf$/);
  const input={tourId,stopId:failedStop,status:'nicht zugestellt',sealedSignature:null,...capture()};assert.equal((await f.call(winner,'completeProtectedDelivery',input)).status,200);
- const end={tourId,...capture()};assert.deepEqual((await Promise.all([1,2].map(()=>f.call(winner,'finishProtectedTour',end)))).map(r=>r.status),[200,200]);
+ const end={tourId,odometerKm:1010,...capture()};assert.deepEqual((await Promise.all([1,2].map(()=>f.call(winner,'finishProtectedTour',end)))).map(r=>r.status),[200,200]);
  const state=(await f.call('office','state')).body.data;assert.deepEqual(state.cash,[{origin:'Marienapotheke',cents:50}]);const paid=state.stops[tourId].find(s=>s.id===privateStop);assert.equal(paid.collectedCents,50);assert.equal(paid.collectionReason,'Nur Teilbetrag vorhanden');assert.equal(proof.body.data.proof.collectedCents,50);
 });
 test('administrator manages existing roles; privilege flags and administrator access cannot be self-assigned',async()=>{

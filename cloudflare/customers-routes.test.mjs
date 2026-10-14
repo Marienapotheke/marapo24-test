@@ -25,12 +25,12 @@ test('street planning sends only addresses and coordinates, preserves manual con
 });
 test('successful deliveries remember customer fields without money or signatures and merge repeat customers',async()=>{
  assert.deepEqual((await f.call('driver-a','searchCustomers',{query:'Erika'})).body.data.customers,[]);
- await f.call('driver-a','startProtectedTour',{tourId,vehicleId:'car1',...capture()});
- await f.call('driver-a','completeProtectedDelivery',{tourId,stopId:stops[0],status:'zugestellt',...capture()});await f.call('driver-a','completeProtectedDelivery',{tourId,stopId:stops[1],status:'nicht_zugestellt',...capture()});await f.call('driver-a','completeProtectedDelivery',{tourId,stopId:stops[2],status:'zugestellt',...capture()});
+ await f.call('driver-a','startProtectedTour',{tourId,vehicleId:'car1',odometerKm:1000,...capture()});
+ await f.call('driver-a','completeProtectedDelivery',{tourId,stopId:stops[0],status:'zugestellt',...capture()});await f.call('driver-a','completeProtectedDelivery',{tourId,stopId:stops[1],status:'nicht zugestellt',...capture()});await f.call('driver-a','completeProtectedDelivery',{tourId,stopId:stops[2],status:'zugestellt',...capture()});
  const r=await f.call('office','searchCustomers',{query:'ERIKA'});assert.equal(r.status,200);assert.equal(r.body.data.customers.length,1);const c=r.body.data.customers[0];assert.equal(c.phone,'01234567');assert.equal(c.street,'Musterweg 1');for(const secret of ['signature','cents','proofId','driverId'])assert.equal(Object.hasOwn(c,secret),false);
- assert.deepEqual((await f.call('driver-a','searchCustomers',{query:'Theo'})).body.data.customers,[]);assert.deepEqual((await f.call('driver-a','searchCustomers',{query:'Er'})).body.data.customers,[]);
+ assert.deepEqual((await f.call('office','searchCustomers',{query:'Musterweg'})).body.data.customers,[]);assert.deepEqual((await f.call('driver-a','searchCustomers',{query:'Theo'})).body.data.customers,[]);assert.deepEqual((await f.call('driver-a','searchCustomers',{query:'Er'})).body.data.customers,[]);
  await f.db.prepare("UPDATE users SET active=0 WHERE uid='driver-b'").run();assert.equal((await f.call('driver-b','searchCustomers',{query:'Erika'})).status,403);
 });
 test('finished tours cannot be reordered and address lookup cannot access another driver tour',async()=>{
- await f.call('driver-a','finishProtectedTour',{tourId,...capture()});assert.equal((await f.call('driver-a','reorderStops',{tourId,stopIds:[],baseRevision:1})).status,400);assert.equal((await f.call('driver-b','prepareRouteAddress',{tourId,stopId:stops[0]})).status,403);
+ await f.call('driver-a','finishProtectedTour',{tourId,odometerKm:1010,...capture()});assert.equal((await f.call('driver-a','reorderStops',{tourId,stopIds:[],baseRevision:1})).status,400);assert.equal((await f.call('driver-b','prepareRouteAddress',{tourId,stopId:stops[0]})).status,403);
 });
