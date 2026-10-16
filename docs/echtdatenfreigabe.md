@@ -1,6 +1,19 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Automatische Übertragung vom 16.10.2026 – aktueller Betriebsstand
+## Hochkant-Belegerkennung vom 16.10.2026 – aktueller Betriebsstand
+
+Nach konkreter Betreiberfreigabe „ja“ veröffentlicht: geprüfter Code `1038d1fb8db5df842ed310b7ddbab995a95e51b0`, [GitHub-Prüfung 38913535246](https://github.com/Marienapotheke/marapo24-test/actions/runs/38913535246) erfolgreich mit 162 Tests, darunter vier Cloudflare-Browserabläufe. Worker-Version `dc21ea18-6b80-4b89-ae01-ab33fbeadc16`. Keine Migration; Serverquellbundle und Offline-Speichermodul unverändert gegenüber dem vorherigen geprüften Paket.
+
+Botendienstbelege werden aufrecht hochkant fotografiert und mit genau einem OCR-Durchlauf gelesen, ohne Drehversuche. Eine dominante zusammenhängende helle Papierfläche wird vom dunklen Hintergrund abgegrenzt; unsichere Abgrenzung bleibt beim vollständigen Bild. Erkennung als Textblock, begrenzte OCR-Variante des stilisierten Marienlogos ergänzt. Die optional unter dem Ort stehende Kundentelefonnummer darf fehlen und bleibt dann leer; keine Übernahme der Apotheken-Telefonnummer. Ausschließlich „Offen“ bleibt Fahrer-Sollbetrag, Bar/Faktura/EC sind vorhandene Apothekenbuchungen. Bestätigung nach Sichtprüfung aller Angaben bleibt erforderlich.
+
+Öffentliche deutsche Sprachmodelldaten werden unter eigener Cachekennung wiederverwendet, damit spätere Scans das Modell nicht erneut herunterladen. Foto und OCR-Rohtext werden dadurch nicht gespeichert oder hochgeladen; Worker wird nach jedem Scan beendet und Felder/Foto bei Übernahme, Abbruch und Abmeldung geleert. Das tatsächlich bereitgestellte Handyfoto wurde nur lokal geprüft: alle vorhandenen benötigten Felder stimmen mit dem sichtbaren Beleg überein, Telefon und Zahlungsgrund korrekt leer. Gleiche Pipeline auch im isolierten mobilen Browser erfolgreich, genau ein Durchlauf und keine externen Foto-/OCR-Anfragen. Keine allgemeine Geschwindigkeits-/Qualitätszusage für andere Geräte oder Aufnahmebedingungen. Hilfskopien und Rohtext nach Analyse entfernt; keine echten Belegdaten in Git, Tests oder Veröffentlichungspaket.
+
+Frische verschlüsselte Betriebssicherung auf S1 um 16:19 Uhr und Nachher-Sicherung um 16:21 Uhr (Europe/Berlin), beide isoliert mit Integrität, Fremdschlüsseln und Archivschutz erfolgreich wiederhergestellt. Ein zunächst fehlgeschlagener Export hatte keine fertige Sicherung erzeugt; erfolgreicher erneuter Export und Restore wurden vor Veröffentlichung abgewartet. Alle 142 vorherigen Zustellnachweise und acht Abrechnungen exakt unverändert. 35 öffentliche Dateien bytegenau mit dem Paket abgeglichen; zehn unangemeldete API-Zugriffe mit HTTP 401 gesperrt. Bindings/Schlüssel, D1-EU, stündliche Aufbewahrung und Offline-Warteschlange erhalten; main/v3 unverändert.
+
+Für die neue Fassung nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Beleg aufrecht, möglichst bildfüllend und scharf fotografieren; alle Scanvorschläge vor Übernahme prüfen. Vor Fahrt Offline-Bereitschaft kontrollieren. Details und Grenzen: `docs/hochkant-scan-2026-10-16.md`.
+
+
+## Vorherige automatische Übertragung vom 16.10.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ auf die konkrete Veröffentlichung der Synchronisationskorrektur veröffentlicht. Geprüfter Code `e20e79d689dfd5c32aec17d2ed4f1998646073ac`; [GitHub-Gesamtprüfung 38904424865](https://github.com/Marienapotheke/marapo24-test/actions/runs/38904424865) erfolgreich mit 156 Tests, darunter vier Cloudflare-Browserabläufe. Worker-Version `e20a66fb-1d34-4e5f-939f-f8af71f1abfb`. Keine Datenmigration; Serverquellbundle und Offline-Speichermodul bytegleich mit dem vorherigen geprüften Veröffentlichungspaket. Neue Oberfläche und Serviceworker behalten die bestehende Warteschlange und deren Datenbankkennung.
 

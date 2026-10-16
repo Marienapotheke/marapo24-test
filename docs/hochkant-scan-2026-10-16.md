@@ -1,6 +1,6 @@
-# Hochkant-Scan: Beschleunigung und Kamera-Erkennung vorbereitet
+# Hochkant-Scan: freigegebene Beschleunigung und Kamera-Erkennung
 
-Noch nicht veröffentlicht. Grundlage ist die freigegebene Synchronisationsversion `e20e79d689dfd5c32aec17d2ed4f1998646073ac` beziehungsweise deren Dokumentationsstand. Kein Deployment und keine Änderung produktiver Daten.
+Auf Grundlage der freigegebenen Synchronisationsversion `e20e79d689dfd5c32aec17d2ed4f1998646073ac` zunächst vorbereitet und geprüft, anschließend konkret vom Betreiber freigegeben und veröffentlicht. Keine Datenmigration und keine Veränderung bestehender Kundendaten/Nachweise; Nachweise der Veröffentlichung am Ende.
 
 Betreiber berichtet: Scannen dauert wegen der verschiedenen Ausrichtungen zu lange; fotografiert wird ausschließlich aufrecht hochkant. Beim zuletzt versuchten Beleg wurde nur ein Teil des Namens erkannt, sonst keine Angaben. Danach wurde ein tatsächlich aufgenommenes Handyfoto bereitgestellt und ausschließlich lokal analysiert. Eine Kundentelefonnummer ist optional und steht gegebenenfalls unter dem Ort; fehlt sie, bleibt das Feld leer.
 
@@ -17,3 +17,9 @@ Zusätzlich geprüft: drei fiktive Tests für Erkennung der Papierfläche, konse
 Alle vier lokalen Browserabläufe erfolgreich. Breitere Zuverlässigkeit auf anderen Geräten und mit anderen Aufnahmebedingungen ist damit nicht belegt; Sichtprüfung bleibt zwingend. Technischer Hintergrund zum Wiederverwenden der öffentlichen Sprachdaten: [Tesseract.js Performance](https://github.com/naptha/tesseract.js/blob/master/docs/performance.md).
 
 Vor Veröffentlichung nach vollständiger Prüfung konkrete Betreiberfreigabe sowie frische verschlüsselte Sicherung mit isoliertem Restore erforderlich. Backend, D1-EU, Schlüssel, Offline-Warteschlange und unveränderliche Nachweise bleiben unberührt.
+
+## Abgeschlossene Veröffentlichung nach Betreiberfreigabe
+
+Am 16.10.2026 ausdrücklich mit „ja“ freigegeben und veröffentlicht: Code `1038d1fb8db5df842ed310b7ddbab995a95e51b0`, GitHub-Prüflauf `38913535246` mit 162 Tests erfolgreich. Worker-Version `dc21ea18-6b80-4b89-ae01-ab33fbeadc16`. Keine Migration; Serverquellbundle und Offline-Speichermodul unverändert.
+
+Verschlüsselte Betriebssicherungen auf S1 um 16:19 Uhr und 16:21 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt. Alle 142 vorherigen Zustellnachweise und acht Abrechnungen exakt unverändert. 35 öffentliche Dateien bytegenau geprüft, zehn unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU und Aufbewahrungszeitplan erhalten. Vorherige Angaben zur Vorbereitung dokumentieren den Arbeitsverlauf; verbindlicher Betriebsstand ist `docs/echtdatenfreigabe.md`.
