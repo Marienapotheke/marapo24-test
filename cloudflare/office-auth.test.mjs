@@ -23,7 +23,7 @@ test('temporary office passwords permit only personal password change before dat
  assert.equal((await call('changeOfficePassword',{password:'Personal-test-passphrase-456!'},null,session)).status,200);
  assert.equal((await call('session',{},null,session)).status,401);
  const login=await call('officePasswordLogin',{username:'erika.muster',password:'Personal-test-passphrase-456!'});assert.equal(login.status,200);session=login.cookie;
- assert.equal((await call('state',{view:'office'},null,session)).status,200);assert.equal((await call('state',{view:'driver'},null,session)).status,403);
+ assert.equal((await call('state',{view:'office'},null,session)).status,200);const own=(await call('state',{view:'driver'},null,session));assert.equal(own.status,200);assert.deepEqual(own.body.data.tours,[]);assert.deepEqual(own.body.data.catalog,[]);
  assert.equal((await call('listPasswordRequests',{},null,session)).status,403);
 });
 test('forgotten password requests are private, bounded and invalidate sessions on administrator reset',async()=>{

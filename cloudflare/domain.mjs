@@ -1,4 +1,5 @@
 import policy from '../functions/policy.cjs';
+import {parcelCount,cashExemptType} from './stop-details.mjs';
 export const fail=policy.reject;
 export function hasRole(p,role){return p?.active===true&&(p.role===role||p.roles?.includes(role));}
 export function requireRole(p,role){if(!hasRole(p,role))fail('permission-denied','Keine Berechtigung für diesen Vorgang.');}
@@ -11,10 +12,12 @@ export function text(value,max,required=false){if(typeof value!=='string'||value
 export function id(value){if(typeof value!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(value))fail('invalid-argument','Ungültige Vorgangsnummer.');return value;}
 export function capture(input){if(typeof input.completionId!=='string'||!/^[0-9a-f-]{36}$/i.test(input.completionId)||typeof input.capturedAt!=='string'||input.capturedAt.length>40)fail('invalid-argument','Ungültiger Abschluss.');const t=Date.parse(input.capturedAt);if(!Number.isFinite(t)||t>Date.now()+300000||Date.now()-t>172800000)fail('failed-precondition','Gerätezeit oder ausstehenden Offline-Abschluss prüfen.');}
 export function packageData(input,tour){
- fields(input,['tourId','type','origin','name','street','postalCode','city','phone','note','cents','paymentReason']);id(input.tourId);
+ fields(input,['tourId','type','origin','name','street','postalCode','city','phone','note','cents','paymentReason','parcelCount']);id(input.tourId);
  if(!['privat','arzt','pflege','partner'].includes(input.type)||!['Marienapotheke','Cusanus-Apotheke'].includes(input.origin))fail('invalid-argument','Lieferart oder Herkunft prüfen.');
  if(tour.regularType==='saturday'&&input.type!=='privat')fail('failed-precondition','Samstagstouren sind ausschließlich für Privatkunden.');
- const result={type:input.type,origin:input.origin,name:text(input.name,90,true),street:text(input.street,100,true),postalCode:text(input.postalCode,10,true),city:text(input.city,90,true),phone:text(input.phone??'',40),note:text(input.note??'',240),cents:input.cents,paymentReason:text(input.paymentReason??'',80)};
+ const result={type:input.type,origin:input.origin,name:text(input.name,90,true),street:text(input.street,100,true),postalCode:text(input.postalCode,10,true),city:text(input.city,90,true),phone:text(input.phone??'',40),note:text(input.note??'',240),cents:cashExemptType(input.type)?0:input.cents,paymentReason:text(input.paymentReason??'',80)};
  if(!/^[0-9]{5}$/.test(result.postalCode)||!Number.isSafeInteger(result.cents)||result.cents<0||result.cents>999900)fail('invalid-argument','Postleitzahl oder Barzahlbetrag prüfen.');
+ try{result.parcelCount=parcelCount(input.parcelCount);}catch(e){fail('invalid-argument',e.message);}
+ if(cashExemptType(result.type)){result.cents=0;result.paymentReason='';result.cashExempt=true;}
  result.address=result.street+', '+result.postalCode+' '+result.city;return result;
 }

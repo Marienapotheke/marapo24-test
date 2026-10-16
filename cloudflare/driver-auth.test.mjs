@@ -8,8 +8,8 @@ async function call(action,input={},identity=null,cookies=''){
  return {status:r.status,body:await r.json(),setCookie:r.headers.get('set-cookie')};
 }
 before(async()=>{f=await fixtureRuntime();});after(async()=>{if(f)await f.runtime.dispose();});
-test('driver names and PIN login are inaccessible until an administrator authorizes this device',async()=>{
- assert.equal((await call('driverLoginOptions')).status,401);assert.equal((await call('authorizeDriverDevice',{label:'Testtablet'},'office')).status,403);
+test('driver names and PIN login are available without prior device approval',async()=>{
+ assert.equal((await call('driverLoginOptions')).status,200);assert.equal((await call('authorizeDriverDevice',{label:'Testtablet'},'office')).status,403);
  const r=await call('authorizeDriverDevice',{label:'Fiktives Testtablet'},'admin');assert.equal(r.status,200);assert.match(r.setCookie,/Secure/);assert.match(r.setCookie,/HttpOnly/);assert.match(r.setCookie,/SameSite=Strict/);deviceCookie=cookie(r.setCookie);
  for(const [uid,pin] of [['driver-a','642893'],['driver-b','819264'],['dual','463892']])assert.equal((await call('setDriverPin',{uid,pin},'admin')).status,200);
  const options=await call('driverLoginOptions',{},null,deviceCookie);assert.equal(options.status,200);assert.equal(options.body.data.drivers.length,3);assert.equal(JSON.stringify(options.body).includes('pin_hash'),false);
@@ -31,6 +31,12 @@ test('PIN changes, logout, account suspension and device revocation invalidate o
  await call('setDriverPin',{uid:'driver-a',pin:'642893'},'admin');assert.equal((await call('state',{view:'driver'},null,both)).status,401);
  r=await login();both=deviceCookie+'; '+cookie(r.setCookie);assert.equal((await call('driverPinLogout',{},null,both)).status,200);assert.equal((await call('state',{view:'driver'},null,both)).status,401);
  r=await login();both=deviceCookie+'; '+cookie(r.setCookie);await f.db.prepare("UPDATE users SET active=0 WHERE uid='driver-a'").run();assert.equal((await call('state',{view:'driver'},null,both)).status,401);await f.db.prepare("UPDATE users SET active=1 WHERE uid='driver-a'").run();
- const devices=await call('listDriverDevices',{},'admin');await call('revokeDriverDevice',{deviceId:devices.body.data.devices[0].id},'admin');assert.equal((await call('state',{view:'driver'},null,both)).status,401);assert.equal((await call('driverLoginOptions',{},null,deviceCookie)).status,401);
+ const devices=await call('listDriverDevices',{},'admin');await call('revokeDriverDevice',{deviceId:devices.body.data.devices[0].id},'admin');assert.equal((await call('state',{view:'driver'},null,both)).status,401);assert.equal((await call('driverLoginOptions',{},null,deviceCookie)).status,200);
 });
 test('administrator can authorize more than three distinct driver devices',async()=>{const ids=[];for(let i=0;i<5;i++){const r=await call('authorizeDriverDevice',{label:'Fiktives Zusatzgerät '+i},'admin');assert.equal(r.status,200);assert.ok(r.setCookie);ids.push(r.body.data.deviceId);}assert.equal(new Set(ids).size,5);});
+
+test('fresh browsers log in directly with PIN, keep separate sessions and require the automatic browser binding',async()=>{
+ await call('setDriverPin',{uid:'driver-a',pin:'642893'},'admin');const sessions=[];
+ for(let i=0;i<2;i++){const r=await f.runtime.dispatchFetch('https://fictional.invalid/api/driverPinLogin',{method:'POST',headers:{'Content-Type':'application/json','X-Firebase-AppCheck':f.appToken()},body:JSON.stringify({uid:'driver-a',pin:'642893'})});assert.equal(r.status,200);const cookies=r.headers.getSetCookie().map(cookie);assert.equal(cookies.length,2);sessions.push(cookies.join('; '));assert.equal((await call('state',{view:'driver'},null,cookies[0])).status,401);}
+ for(const cookies of sessions)assert.equal((await call('state',{view:'driver'},null,cookies)).status,200);
+});

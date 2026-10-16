@@ -20,7 +20,7 @@ export async function openWebEnvelope(box,identity,pem,now=Date.now()){
   const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv,additionalData:new TextEncoder().encode(JSON.stringify(identity))},aes,ciphertext);
   payload=JSON.parse(new TextDecoder().decode(plain));
  }catch{policy.reject('invalid-argument','Envelope changed');}
- if(!payload||Object.keys(payload).some(k=>!['signature','capturedAt'].includes(k))||typeof payload.signature!=='string'||payload.signature.length>180000||typeof payload.capturedAt!=='string')policy.reject('invalid-argument','Invalid payload');
+ if(!payload||Object.keys(payload).some(k=>!['signature','capturedAt','driverComment'].includes(k))||!(typeof payload.signature==='string'&&payload.signature.length<=180000||payload.signature===null&&typeof payload.driverComment==='string')||typeof payload.capturedAt!=='string')policy.reject('invalid-argument','Invalid payload');
  const captured=Date.parse(payload.capturedAt);
  if(!Number.isFinite(captured)||captured>now+300000||now-captured>172800000)policy.reject('failed-precondition','Capture age');
  return payload;
