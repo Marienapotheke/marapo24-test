@@ -1,4 +1,6 @@
-# Praxistest-Update vom 16.10.2026 – lokal vorbereitet, nicht veröffentlicht
+# Praxistest-Update vom 16.10.2026 – Vorbereitung und veröffentlichter Stand
+
+**Aktualisierung 16.10.2026:** Das Gesamtupdate wurde nach späterer ausdrücklicher Betreiberfreigabe veröffentlicht: App-Code `5b3518e7e7dbce813ac36d0ade55dec86cb6fadd`, Gesamtprüflauf `38878782531` erfolgreich, Worker `0bd3768e-846c-4cde-957c-17e2b21ed2f2`. Frische verschlüsselte S1-Sicherungen mit getrenntem Restore vor/nach Veröffentlichung erfolgreich; 134 bisherige Archivnachweise unverändert bestätigt. Verbindlicher aktueller Ablauf in `docs/echtdatenfreigabe.md`. Die folgenden Abschnitte dokumentieren die vorangegangene Vorbereitung und deren damalige Grenzen. Die ergänzende Büromigration ist separat dokumentiert. Konkrete reale Fehlerfahrten/aktuelle Anbieter-Fahrzeiten wurden nicht unabhängig nachgestellt; geografische Prüfungen verwenden kontrollierte Anbieterantworten und fiktive Daten.
 
 ## Ausgangslage und Grenzen
 
