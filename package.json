@@ -1,0 +1,23 @@
+{
+  "name": "marapo24-proof-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/policy.test.cjs tests/offline.test.cjs tests/frontend.test.cjs tests/staff.test.cjs tests/tour.test.cjs",
+    "build": "node scripts/build.cjs",
+    "build:free": "node scripts/cloudflare-build.mjs",
+    "test:backup": "node --test tests/backup.test.mjs tests/retention.test.mjs tests/retention-runtime.test.mjs tests/backup-retention.test.mjs tests/key-vault.test.mjs tests/production-view.test.mjs tests/install-app.test.mjs tests/cash-backup.test.mjs tests/office-backup.test.mjs tests/followup-backup.test.mjs",
+    "test:free": "node --test cloudflare-probe/probe.test.mjs cloudflare/backend.test.mjs cloudflare/png.test.mjs cloudflare/driver-auth.test.mjs cloudflare/office-auth.test.mjs cloudflare/customers-routes.test.mjs cloudflare/workflow.test.mjs cloudflare/package-edit.test.mjs cloudflare/cash-settlement.test.mjs cloudflare/practice-update.test.mjs cloudflare/office-workflow.test.mjs cloudflare/followup-workflow.test.mjs cloudflare/tour-selection.test.mjs cloudflare/doctor-deletion.test.mjs cloudflare/receipt-layout.test.mjs cloudflare/sync-recovery.test.mjs cloudflare/portrait-scan.test.mjs",
+    "test:free:browser": "firebase emulators:exec --config firebase.emulators.json --only auth --project demo-marapo24 \"node --test cloudflare/browser.test.mjs cloudflare/office-browser.test.mjs cloudflare/followup-browser.test.mjs cloudflare/sync-browser.test.mjs\"",
+    "test:browser": "node scripts/emulator-key.cjs && firebase emulators:exec --config firebase.emulators.json --only firestore,auth,functions --project demo-marapo24 \"node --test tests/browser.test.cjs\"",
+    "test:emulator": "node scripts/emulator-key.cjs && firebase emulators:exec --config firebase.emulators.json --only firestore,auth,functions --project demo-marapo24 \"node --test --test-concurrency=1 tests/emulator.test.cjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.0",
+    "@tesseract.js-data/deu": "1.0.0",
+    "fake-indexeddb": "^6.0.0",
+    "firebase": "^11.10.0",
+    "firebase-tools": "15.33.0",
+    "playwright": "1.56.0",
+    "tesseract.js": "7.0.0"
+  }
+}
