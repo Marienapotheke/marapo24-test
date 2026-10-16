@@ -1,7 +1,19 @@
 import {parseLabel,isMobileCameraDevice} from './label-parser.mjs';
+// Locate a dominant, connected light paper region. Uncertain detections keep
+// the complete image; no OCR retries or fixed customer-field coordinates.
+export function receiptRectangle({data,width,height}){
+ const step=Math.max(2,Math.ceil(Math.max(width,height)/500)),cols=Math.ceil(width/step),rows=Math.ceil(height/step),size=cols*rows,light=new Uint8Array(size),values=[];
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const p=(Math.min(height-1,y*step)*width+Math.min(width-1,x*step))*4;values.push(Math.round((data[p]+data[p+1]+data[p+2])/3));}
+ const sorted=[...values].sort((a,b)=>a-b),threshold=Math.max(135,Math.min(210,sorted[Math.floor(size*.9)]-35));
+ for(let i=0;i<size;i++){const x=i%cols,y=Math.floor(i/cols),p=(Math.min(height-1,y*step)*width+Math.min(width-1,x*step))*4;light[i]=values[i]>=threshold&&Math.max(data[p],data[p+1],data[p+2])-Math.min(data[p],data[p+1],data[p+2])<=45?1:0;}
+ let best=null;const queue=new Int32Array(size);
+ for(let i=0;i<size;i++){if(!light[i])continue;let head=0,tail=1,count=0,minX=cols,minY=rows,maxX=0,maxY=0;queue[0]=i;light[i]=0;while(head<tail){const p=queue[head++],x=p%cols,y=Math.floor(p/cols);count++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);for(const n of [x?p-1:-1,x+1<cols?p+1:-1,y?p-cols:-1,y+1<rows?p+cols:-1])if(n>=0&&light[n]){light[n]=0;queue[tail++]=n;}}if(!best||count>best.count)best={count,minX,minY,maxX,maxY};}
+ if(!best||best.count<size*.12)return null;const boxW=(best.maxX-best.minX+1)*step,boxH=(best.maxY-best.minY+1)*step;if(boxW<width*.25||boxH<height*.25||boxW/boxH<.3||boxW/boxH>2||boxW*boxH>width*height*.95||best.count/((best.maxX-best.minX+1)*(best.maxY-best.minY+1))<.35)return null;
+ const pad=Math.max(4,Math.round(Math.max(boxW,boxH)*.015)),left=Math.max(0,best.minX*step-pad),top=Math.max(0,best.minY*step-pad);return {left,top,width:Math.min(width,best.maxX*step+step+pad)-left,height:Math.min(height,best.maxY*step+step+pad)-top};
+}
 // Operator workflow: upright portrait photos, exactly one local OCR pass.
 export async function recognizeLabel(worker,source,{current=()=>true,progress=()=>{}}={}){
- if(!current())return null;progress();const {data}=await worker.recognize(source,{rotateAuto:false});return current()?parseLabel(data.text):null;
+ if(!current())return null;progress();const pixels=source.getContext?.('2d').getImageData(0,0,source.width,source.height),rectangle=pixels?receiptRectangle(pixels):null;const {data}=await worker.recognize(source,{rotateAuto:false,tessedit_pageseg_mode:'6',...(rectangle?{rectangle}:{})});return current()?parseLabel(data.text):null;
 }
 const fieldLabels={name:'Name',street:'Straße und Hausnummer',postalCode:'Postleitzahl',city:'Ort',phone:'Telefonnummer',origin:'Herkunftsapotheke',amount:'Noch zu kassieren (€)',paymentReason:'Bei 0 €: Zahlungsgrund'};
 export function installLabelScanner({form,apply,enabled=()=>true}){
