@@ -1,8 +1,8 @@
-# Weitere Praxisänderungen: Vorbereitung, noch nicht veröffentlicht
+# Weitere Praxisänderungen: am 16.10.2026 freigegeben und veröffentlicht
 
 ## Abgestimmte Regeln
 
-Die Betreiberantworten vom 16.10.2026 legen diese Abläufe fest. Die frühere Veröffentlichung bleibt unverändert; diese Ergänzungen werden zunächst vorbereitet und mit fiktiven Daten geprüft. Keine produktive Migration, kein Deployment, keine Änderung an `main`, v3 oder Zugangsdaten.
+Die Betreiberantworten vom 16.10.2026 legen diese Abläufe fest. Diese Regeln wurden zunächst vorbereitet und ausschließlich mit fiktiven Daten geprüft. Nach erneuter ausdrücklicher Betreiberfreigabe wurde das Paket veröffentlicht; Ablauf und Nachweise stehen am Ende dieses Dokuments. `main`, v3 und Zugangsdaten bleiben unverändert.
 
 - Persönliche Büro-Mitnahme: keine Fahrzeugauswahl und keine Start-/End-Kilometer. Der Server kennzeichnet neue Starts als Privatfahrzeug, ohne einen Firmenwagen zu reservieren. Bereits gestartete ältere Mitnahme-Touren mit dokumentiertem Fahrzeug/Kilometerstand behalten ihre Werte und den dazu passenden Abschluss. Keine rückwirkende Löschung.
 - Fahrer drücken einmal pro Tag „Arbeit beginnen“, online vor Vorbereitung und Sortieren. Der erste bestätigte Serverzeitpunkt bleibt unveränderlich; Gerätezeit wird getrennt gespeichert. Weitere Klicks, auch auf einem anderen Gerät, überschreiben ihn nicht. Büro sieht den Arbeitsbeginn auch ohne Tour, sowie die Dauer bis zur ersten bestätigten Abfahrt. Eine zweite Tour zählt nicht die gesamte Zeit seit morgens erneut als Vorbereitung. Keine rückwirklich erfundenen Beginnzeiten, keine Pausen-/Arbeitsende-/Lohnabrechnungsfunktion.
@@ -64,3 +64,9 @@ Tests enthalten ausschließlich fiktive Namen, Anschriften, Telefonnummern und B
 Nach diesen Ergänzungen bestanden lokal 35 Grundprüfungen, 77 Cloudflare-Backendprüfungen und 16 Sicherungs-/Aufbewahrungsprüfungen. Auch alle drei Browserabläufe bestanden, einschließlich echter OCR für Hochkant- und Seitenlage: insgesamt 131 lokale Tests ohne Fehler. Die früheren 122 Tests oben dokumentieren den Zwischenstand vor den letzten Ergänzungen.
 
 Ein früherer Commit-/Push-Versuch wurde wegen eines Fehlers der automatischen Freigabeprüfung (Workspace-Guthaben) vor Ausführung gestoppt. Spätere freigegebene lokale Prüfungen konnten wieder ausgeführt werden; daraus folgt keine Betreiberfreigabe einer Veröffentlichung. Kein Deployment und keine produktive Migration dieses Pakets.
+
+## Abgeschlossene Veröffentlichung nach Betreiberfreigabe
+
+Am 16.10.2026 ausdrücklich freigegeben und nach frischer verschlüsselter Betriebssicherung um 14:35 Uhr veröffentlicht. Geprüfter Code `5898ebf4f45aa37ead397c2c29bdc7efa24a1576`, GitHub-Prüflauf `38901107108`: 149 Tests ohne Fehler. Alle vier Migrationen auf der isolierten Wiederherstellung zweimal erfolgreich geprüft, dabei sämtliche Bestandszeilen und ursprüngliche unveränderliche Archivschutztrigger erhalten. Danach Migrationen auf D1-EU angewendet und das unveränderte geprüfte Paket veröffentlicht. Worker-Version `4ed33a70-c505-477e-962a-69023785352f`.
+
+34 öffentliche Dateien stimmen bytegenau mit dem Paket überein; zehn unangemeldete API-Zugriffe gesperrt. Nachher-Sicherung um 14:38 Uhr mit isoliertem Restore erfolgreich. Vorherige 142 Zustellnachweise und sechs Abrechnungen exakt unverändert. Bestehende Bindings, Schlüssel und Aufbewahrungszeitplan erhalten. Zeiten Europe/Berlin. Frühere Abschnitte dokumentieren den vorbereitenden Prüfstand. Aktueller verbindlicher Betriebsstand: `docs/echtdatenfreigabe.md`.
