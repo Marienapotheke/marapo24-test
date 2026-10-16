@@ -1,6 +1,6 @@
-# Automatische Übertragung: vorbereitete Fehlerkorrektur
+# Automatische Übertragung: freigegebene Fehlerkorrektur
 
-Noch nicht veröffentlicht. Grundlage ist der am 16.10.2026 freigegebene Betriebsstand; keine Änderung an produktiven Daten, Migrationen, Schlüsseln, Nachweisen oder main/v3.
+Zunächst auf Grundlage des am 16.10.2026 freigegebenen Betriebsstands vorbereitet und ausschließlich mit fiktiven Daten getestet. Nach konkreter Betreiberfreigabe veröffentlicht; Abschlussnachweise am Ende dieses Dokuments. Keine Änderung an Kundendaten, Archivnachweisen, Schlüsseln oder main/v3, keine Datenmigration.
 
 ## Beobachtung und Grenzen der Diagnose
 
@@ -25,3 +25,9 @@ Sechs gezielte Tests: hängender Tokenabruf und nachfolgende Erholung; während 
 Zusätzlicher vollständiger Browserablauf mit fiktiven Konten und Daten in Android-Ansicht: vorhandenes Internet bei absichtlich fehlgeschlagenen Schreibversuchen, zwei sicher gespeicherte Vorgänge und deutliche ausstehende Anzeige; fehlerhafte Zustandsabfrage bei wieder möglichem Schreiben; verlorene erfolgreiche Tourendebestätigung; unmittelbare Wiederaufnahme ohne Neuladen; identischer Abschluss genau einmal; Büro aktualisiert bei Rückkehr. Der Test simuliert Browserereignisse und Verbindungsausfälle, nicht die konkrete damalige Android-Systemzustandsfolge.
 
 Alle 83 lokalen Backendtests und alle vier Browserabläufe erfolgreich. Vollständige GitHub-Prüfung folgt im bestehenden Testzweig. Keine Schemaänderung notwendig. Veröffentlichung erst nach konkreter Betreiberfreigabe und frischer verschlüsselter Sicherung mit isoliertem Restore; bestehende Warteschlange und ihre Datenbankkennung unverändert.
+
+## Veröffentlichung nach konkreter Freigabe
+
+Nach Betreiberantwort „ja“ am 16.10.2026 veröffentlicht: Code `e20e79d689dfd5c32aec17d2ed4f1998646073ac`, GitHub-Gesamtprüfung `38904424865` mit 156 Tests erfolgreich. Worker-Version `e20a66fb-1d34-4e5f-939f-f8af71f1abfb`. Keine Migration; unverändertes Serverquellbundle und Offline-Speicherformat vor Veröffentlichung geprüft.
+
+Verschlüsselte Betriebssicherungen auf S1 um 15:03 Uhr und 15:04 Uhr (Europe/Berlin), beide isoliert wiederhergestellt und auf Integrität/Fremdschlüssel/Archivschutz geprüft. Alle 142 vorherigen Zustellnachweise und acht Abrechnungen exakt unverändert. 35 öffentliche Dateien bytegenau abgeglichen, zehn unangemeldete API-Zugriffe gesperrt. Bindings, D1-EU und Aufbewahrungszeitplan erhalten. Frühere Aussagen zur Vorbereitung dokumentieren den damaligen Arbeitsstand; aktuell maßgeblich ist `docs/echtdatenfreigabe.md`.
