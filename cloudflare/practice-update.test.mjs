@@ -15,11 +15,11 @@ test('phone links accept formatted numbers and cannot inject a scheme or dial co
 });
 test('parcel defaults are compatible and invalid counts cannot enter package data',()=>{
  assert.equal(parcelCount(undefined),1);assert.equal(totalParcels([{}, {parcelCount:3}, {}]),5);
- for(const value of [0,-1,1.5,1000,null,'2',true])assert.throws(()=>packageData({...parcel('tour'),parcelCount:value},{}));
+ for(const value of [0,-1,1.5,1000,null,'2',true])assert.throws(()=>packageData({...parcel('tour'),type:'privat',parcelCount:value},{}));
  assert.equal(packageData(parcel('tour'),{}).parcelCount,1);
 });
 test('older clients preserve a recorded count when editing, while invalid API counts fail clearly',async()=>{const f=await setup();try{
- const data=parcel(f.tourId),stopId=(await f.call('office','createPackage',{...data,parcelCount:7})).body.data.stopId;
+ const data={...parcel(f.tourId),type:'pflege'},stopId=(await f.call('office','createPackage',{...data,parcelCount:7})).body.data.stopId;
  assert.equal((await f.call('office','updatePackage',{...data,stopId,baseRevision:0,name:'Fiktiv korrigiert'})).status,200);
  assert.equal(JSON.parse((await f.db.prepare('SELECT data FROM stops WHERE id=?').bind(stopId).first()).data).parcelCount,7);
  for(const value of [null,0,1.5,1000,'2']){const result=await f.call('office','createPackage',{...data,parcelCount:value});assert.equal(result.status,400);assert.equal(result.body.error.code,'invalid-argument');}
@@ -40,7 +40,7 @@ test('new care/partner stops and edits enforce no cash; existing open and archiv
  }finally{await f.runtime.dispose();}});
 test('encrypted optional comment binds to the immutable proof, never customer suggestions; old queue contract still works',async()=>{const f=await setup();try{
  await f.db.exec((await fs.readFile(new URL('./customer-notes.sql',import.meta.url),'utf8')).replace(/\r?\n/g,' '));
- const stopId=(await f.call('driver-a','createPackage',{...parcel(f.tourId),parcelCount:4})).body.data.stopId;
+ const stopId=(await f.call('driver-a','createPackage',{...parcel(f.tourId),type:'pflege',parcelCount:4})).body.data.stopId;
  await f.call('driver-a','startProtectedTour',{tourId:f.tourId,vehicleId:'car1',odometerKm:100,...capture()});const stamp=capture(),comment='<img src=x onerror=alert(1)>\nFiktiver Kommentar';const key=deliveryKey(f.pem);
  const input={tourId:f.tourId,stopId,status:'zugestellt',...stamp,sealedSignature:await sealCompletion(key,{uid:'driver-a',tourId:f.tourId,stopId,completionId:stamp.completionId},null,stamp.capturedAt,comment)};
  assert.equal(JSON.stringify(input).includes(comment),false);assert.equal((await f.call('driver-b','completeProtectedDelivery',input)).status,403);

@@ -14,5 +14,5 @@ export async function editPackage(db,uid,p,action,input){
  // Both statements share a D1 transaction. Only a successful preceding mutation advances the plan.
  const plan=action==='deletePackage'?"(SELECT json_group_array(value) FROM (SELECT value FROM json_each(tour_orders.stop_ids) WHERE value!=? ORDER BY key))":'tour_orders.stop_ids';
  const order=db.prepare("INSERT INTO tour_orders(tour_id,stop_ids,revision,updated_at) SELECT ?,COALESCE((SELECT json_group_array(id) FROM (SELECT id FROM stops WHERE tour_id=? AND status='offen' ORDER BY created_at,id)),'[]'),1,? WHERE changes()=1 ON CONFLICT(tour_id) DO UPDATE SET stop_ids="+plan+",revision=tour_orders.revision+1,updated_at=excluded.updated_at").bind(tourId,tourId,new Date().toISOString(),...(action==='deletePackage'?[stopId]:[]));
- const result=await db.batch([mutation,order]);if(result[0].meta.changes!==1)fail('failed-precondition','Päckchen oder Tour wurde inzwischen geändert. Bitte neu laden.');return action==='deletePackage'?{deleted:true}:{updated:true};
+ const result=await db.batch([mutation,order]);if(result[0].meta.changes<1)fail('failed-precondition','Päckchen oder Tour wurde inzwischen geändert. Bitte neu laden.');return action==='deletePackage'?{deleted:true}:{updated:true};
 }

@@ -17,7 +17,8 @@ export function packageData(input,tour){
  if(tour.regularType==='saturday'&&input.type!=='privat')fail('failed-precondition','Samstagstouren sind ausschließlich für Privatkunden.');
  const result={type:input.type,origin:input.origin,name:text(input.name,90,true),street:text(input.street,100,true),postalCode:text(input.postalCode,10,true),city:text(input.city,90,true),phone:text(input.phone??'',40),note:text(input.note??'',240),cents:cashExemptType(input.type)?0:input.cents,paymentReason:text(input.paymentReason??'',80)};
  if(!/^[0-9]{5}$/.test(result.postalCode)||!Number.isSafeInteger(result.cents)||result.cents<0||result.cents>999900)fail('invalid-argument','Postleitzahl oder Barzahlbetrag prüfen.');
- try{result.parcelCount=parcelCount(input.parcelCount);}catch(e){fail('invalid-argument',e.message);}
+ // Keep a compatible internal default; physician deliveries are never counted.
+ try{result.parcelCount=result.type==='arzt'?1:parcelCount(input.parcelCount);}catch(e){fail('invalid-argument',e.message);}
  if(cashExemptType(result.type)){result.cents=0;result.paymentReason='';result.cashExempt=true;}
  result.address=result.street+', '+result.postalCode+' '+result.city;return result;
 }

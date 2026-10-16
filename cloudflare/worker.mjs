@@ -1,3 +1,7 @@
+import {deleteOwnTour,deletionState} from './tour-deletion.mjs';
+import {startWork,workStartState} from './work-starts.mjs';
+import {amendDelivery,applyAmendments,proofAmendments} from './delivery-amendments.mjs';
+import {handoverTour,handoverState} from './tour-handover.mjs';
 import {requireDeliveryAccess,checkAssignedDelivery,deliveryActorSql} from './delivery-access.mjs';
 import {parcelCount,dueCents,driverComment} from './stop-details.mjs';
 import envelope from '../functions/envelope.cjs';
@@ -26,7 +30,7 @@ function stop(row){if(!row)return null;const {_editVersion=0,...data}=JSON.parse
 async function ownTour(db,uid,input,p){requireDeliveryAccess(p);const row=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!row)fail('not-found','Tour fehlt.');await checkAssignedDelivery(db,uid,p,row);return row;}
 const activeDriver="EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='driver'))";
 async function state(db,uid,p,input){
- fields(input,['view','date','workflowVersion']);if(input.workflowVersion!==undefined&&input.workflowVersion!==2)fail('invalid-argument','App-Version prüfen.');const date=input.date||localDate();weekday(date);
+ fields(input,['view','date','workflowVersion','correctionsVersion']);if(input.correctionsVersion!==undefined&&input.correctionsVersion!==1)fail('invalid-argument','Korrekturansicht prüfen.');if(input.workflowVersion!==undefined&&input.workflowVersion!==2)fail('invalid-argument','App-Version prüfen.');const date=input.date||localDate();weekday(date);
  const view=input.view||((hasRole(p,'office'))?'office':'driver');
  if(p?.active!==true)return {profile:p,tours:[],stops:{},vehicles:[],employees:[],catalog:[],specialTours:[],cash:[]};
  if(view==='driver')requireDeliveryAccess(p);else requireRole(p,view);
@@ -40,14 +44,18 @@ async function state(db,uid,p,input){
  const stops={};for(const t of rows)stops[t.id]=[];for(const s of deliveries)if(stops[s.tour_id])stops[s.tour_id].push(stop(s));
  const vehicles=await all(db,view==='office'?'SELECT * FROM vehicles LIMIT 101':'SELECT * FROM vehicles WHERE active=1 LIMIT 101');
  const employees=view==='office'?await all(db,"SELECT * FROM users WHERE active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value IN ('driver','office')) LIMIT 101"):[];
- const reserved=await all(db,'SELECT id,regular_type,driver_id FROM tours WHERE date=? AND regular_type IS NOT NULL',view==='office'?date:localDate());
- const catalog=(hasRole(p,'driver')||view==='office'?regularTours(view==='office'?date:localDate()):[]).map(t=>{const r=reserved.find(x=>x.regular_type===t.id);return {...t,date:localDate(),reserved:!!r?.driver_id,prepared:!!r,mine:r?.driver_id===uid,tourId:(view==='office'||r?.driver_id===uid)?r?.id:null};});
- const specialTours=hasRole(p,'driver')?await all(db,"SELECT id,type,date FROM tours WHERE date=? AND regular_type IS NULL AND driver_id IS NULL AND status='open' LIMIT 101",localDate()):[];
- const totals={};for(const s of deliveries){const d=stop(s);if(s.status==='zugestellt')totals[d.origin]=(totals[d.origin]||0)+collected(d);}
- const tours=rows.map(tour);const selfTours=rows.length?await all(db,'SELECT tour_id FROM self_delivery_tours WHERE tour_id IN(SELECT value FROM json_each(?))',JSON.stringify(rows.map(t=>t.id))):[];for(const t of tours)t.selfDelivery=selfTours.some(m=>m.tour_id===t.id);const settlements=rows.length?await all(db,"SELECT tour_id,collected_cents,json_extract(data,'$.signerName') signer_name,json_extract(data,'$.completedAt') completed_at FROM cash_settlements WHERE tour_id IN ("+rows.map(()=>'?').join(',')+")",...rows.map(t=>t.id)):[],cashMap=new Map(settlements.map(s=>[s.tour_id,s]));for(const t of tours){const settlement=cashMap.get(t.id);if(settlement)t.cashSettlement={collectedCents:settlement.collected_cents,signerName:settlement.signer_name,completedAt:settlement.completed_at};}await addOrders(db,tours,stops);return {profile:p,tours,stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
+ const reserved=await all(db,'SELECT t.id,t.regular_type,t.driver_id,t.status,u.display_name AS owner_name FROM tours t LEFT JOIN users u ON u.uid=t.driver_id WHERE t.date=? AND t.regular_type IS NOT NULL',view==='office'?date:localDate());
+ const catalog=(hasRole(p,'driver')||view==='office'?regularTours(view==='office'?date:localDate()):[]).map(t=>{const r=reserved.find(x=>x.regular_type===t.id);return {...t,date:localDate(),reserved:!!r?.driver_id,prepared:!!r,status:r?.status||'open',mine:r?.driver_id===uid,ownerId:r?.driver_id||null,ownerName:r?.owner_name||'',canTakeOver:!!r?.driver_id&&r.driver_id!==uid&&r.status==='open',tourId:r?.id||null};});
+ const specialTours=hasRole(p,'driver')?await all(db,"SELECT t.id,t.type,t.date,t.driver_id AS ownerId,u.display_name AS ownerName FROM tours t LEFT JOIN users u ON u.uid=t.driver_id WHERE t.date=? AND t.regular_type IS NULL AND (t.driver_id IS NULL OR t.driver_id!=?) AND t.status='open' AND NOT EXISTS(SELECT 1 FROM self_delivery_tours m WHERE m.tour_id=t.id) LIMIT 101",localDate(),uid):[];
+ await applyAmendments(db,rows.map(t=>t.id),stops);const totals={};for(const d of Object.values(stops).flat())if(!d.voided&&d.status==='zugestellt')totals[d.origin]=(totals[d.origin]||0)+collected(d);
+ const tours=rows.map(tour);const selfTours=rows.length?await all(db,'SELECT tour_id FROM self_delivery_tours WHERE tour_id IN(SELECT value FROM json_each(?))',JSON.stringify(rows.map(t=>t.id))):[];for(const t of tours)t.selfDelivery=selfTours.some(m=>m.tour_id===t.id);const settlements=rows.length?await all(db,"SELECT tour_id,collected_cents,json_extract(data,'$.signerName') signer_name,json_extract(data,'$.completedAt') completed_at FROM cash_settlements WHERE tour_id IN ("+rows.map(()=>'?').join(',')+")",...rows.map(t=>t.id)):[],cashMap=new Map(settlements.map(s=>[s.tour_id,s]));for(const t of tours){const settlement=cashMap.get(t.id);if(settlement)t.cashSettlement={collectedCents:settlement.collected_cents,signerName:settlement.signer_name,completedAt:settlement.completed_at};}await addOrders(db,tours,stops);await deletionState(db,tours);const handoverData=hasRole(p,'driver')||view==='office'?await handoverState(db,uid,view,tours):{incomingHandovers:[],handoverDrivers:[]},workStarts=await workStartState(db,uid,view,view==='office'?date:localDate(),tours);if(input.correctionsVersion!==1)for(const key of Object.keys(stops))stops[key]=stops[key].filter(s=>!s.voided);return {profile:p,workStarts,...handoverData,tours,stops,vehicles:vehicles.map(v=>({id:v.id,label:v.label,active:v.active===1,createdAt:v.created_at})),employees:employees.map(u=>({id:u.uid,...profile(u)})),catalog,specialTours,cash:Object.entries(totals).map(([origin,cents])=>({origin,cents}))};
 }
 async function rpc(db,uid,p,action,input,env){
  if(action==='state')return state(db,uid,p,input);
+ if(action==='deleteOwnTour')return deleteOwnTour(db,uid,p,input);
+ if(action==='startWork')return startWork(db,uid,p,input);
+ if(['correctDeliveryAmount','reopenDelivery'].includes(action))return amendDelivery(db,uid,p,action,input);
+ if(['takeOverOpenTour','offerTourHandover','acceptTourHandover'].includes(action))return handoverTour(db,uid,p,action,input);
  if(['saveCashSettlement','downloadCashSettlement'].includes(action))return cashSettlement(db,uid,p,action,input,env);
  if(action==='updatePackage'||action==='deletePackage')return editPackage(db,uid,p,action,input);
  if(action==='prepareRegularTour'){
@@ -81,7 +89,7 @@ async function rpc(db,uid,p,action,input,env){
  if(action==='createPackage'){
   let office=hasRole(p,'office');let t;if(office){t=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!t)fail('not-found','Tour fehlt.');}else t=await ownTour(db,uid,input,p);if(office&&t.status==='running'){await checkAssignedDelivery(db,uid,p,t);office=false;}if(!['open','running'].includes(t.status)||(office&&t.status!=='open'))fail('failed-precondition',office?'Das Büro darf Päckchen nur vor Tourstart ergänzen.':'Beendete Touren können nicht ergänzt werden.');const data=packageData(input,tour(t)),stopId=crypto.randomUUID();
   const result=await run(db,`INSERT INTO stops(id,tour_id,data,status,created_at) SELECT ?,?,?,'offen',? WHERE EXISTS(SELECT 1 FROM tours WHERE id=? AND (status='open' OR (status='running' AND ?=0)) AND (driver_id=? OR ?=1)) AND EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value=?)) AND (SELECT count(*) FROM stops WHERE tour_id=?)<1000`,stopId,t.id,JSON.stringify(data),iso(),t.id,office?1:0,uid,office?1:0,uid,office||!hasRole(p,'driver')?'office':'driver',t.id);
-  if(result.meta.changes!==1)fail('failed-precondition','Tour beendet, Konto gesperrt oder Päckchengrenze erreicht.');return {stopId};
+  if(result.meta.changes<1)fail('failed-precondition','Tour beendet, Konto gesperrt oder Päckchengrenze erreicht.');return {stopId};
  }
  if(action==='createVehicle'||action==='updateVehicle'){
   requireRole(p,'office');fields(input,action==='createVehicle'?['label']:['vehicleId','active']);
@@ -93,7 +101,10 @@ async function rpc(db,uid,p,action,input,env){
   fields(input,action==='startProtectedTour'?['tourId','vehicleId','completionId','capturedAt','odometerKm']:['tourId','completionId','capturedAt','odometerKm']);capture(input);const t=await ownTour(db,uid,input,p),fingerprint=await hash(input);
   const start=action==='startProtectedTour',savedId=start?t.start_id:t.end_id,savedHash=start?t.start_hash:t.end_hash;
   if(savedId===input.completionId&&savedHash===fingerprint)return start?{started:true}:{finished:true};
-  let km=null;try{if(t.workflow_version>=2||input.odometerKm!==undefined)km=odometer(input.odometerKm);}catch(e){fail('invalid-argument',e.message+' Bitte aktuelle App öffnen.');}if(!start&&km!==null&&t.start_odometer!==null&&km<t.start_odometer)fail('invalid-argument','End-Kilometerstand darf nicht unter dem Start liegen.');
+  const self=!!(await first(db,'SELECT 1 FROM self_delivery_tours WHERE tour_id=?',t.id)),privateVehicle=self&&(start||!t.vehicle_id);let km=null;try{if(!privateVehicle&&(t.workflow_version>=2||input.odometerKm!==undefined))km=odometer(input.odometerKm);}catch(e){fail('invalid-argument',e.message+' Bitte aktuelle App öffnen.');}if(!start&&km!==null&&t.start_odometer!==null&&km<t.start_odometer)fail('invalid-argument','End-Kilometerstand darf nicht unter dem Start liegen.');
+  if(start&&privateVehicle){
+   const result=await run(db,`UPDATE tours SET status='running',vehicle_label='Privatfahrzeug',started_at=?,start_captured=?,start_id=?,start_hash=? WHERE id=? AND driver_id=? AND status='open' AND ${deliveryActorSql} AND EXISTS(SELECT 1 FROM self_delivery_tours WHERE tour_id=tours.id AND office_uid=?) AND EXISTS(SELECT 1 FROM stops WHERE tour_id=tours.id)`,iso(),input.capturedAt,input.completionId,fingerprint,t.id,uid,uid,uid);if(!result.meta.changes)fail('failed-precondition','Vor Start Päckchen erfassen und Tour prüfen.');return {started:true};
+  }
   if(start){
    if(t.status!=='open')fail('already-exists','Tour wurde bereits gestartet.');const v=await first(db,'SELECT * FROM vehicles WHERE id=? AND active=1',id(input.vehicleId));if(!v)fail('failed-precondition','Fahrzeug nicht freigegeben.');
    const result=await run(db,`UPDATE tours SET status='running',vehicle_id=?,vehicle_label=(SELECT label FROM vehicles WHERE id=?),started_at=?,start_captured=?,start_id=?,start_hash=?,start_odometer=? WHERE id=? AND driver_id=? AND status='open' AND ${deliveryActorSql} AND EXISTS(SELECT 1 FROM vehicles WHERE id=? AND active=1) AND EXISTS(SELECT 1 FROM stops WHERE tour_id=?)`,v.id,v.id,iso(),input.capturedAt,input.completionId,fingerprint,km,t.id,uid,uid,v.id,t.id);if(!result.meta.changes){const fresh=await ownTour(db,uid,input,profile(await first(db,'SELECT * FROM users WHERE uid=?',uid)));if(fresh.start_id!==input.completionId||fresh.start_hash!==fingerprint)fail('failed-precondition','Vor Start Päckchen erfassen, Fahrzeug und Tour prüfen.');}return {started:true};
@@ -114,7 +125,7 @@ async function rpc(db,uid,p,action,input,env){
   return {completed:true};
  }
  if(action==='downloadProtectedProof'){
-  requireRole(p,'office');fields(input,['tourId','stopId']);const proofId=policy.identifiers(input),row=await first(db,"SELECT data FROM proofs WHERE id=? AND EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",proofId,uid);if(!row)fail('not-found','Nachweis fehlt oder Zugriff geändert.');return {proof:JSON.parse(row.data),filename:'Zustellnachweis-'+proofId+'.pdf'};
+  requireRole(p,'office');fields(input,['tourId','stopId','correctionsVersion']);const proofId=policy.identifiers(input),row=await first(db,"SELECT data FROM proofs WHERE id=? AND EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",proofId,uid);if(!row)fail('not-found','Nachweis fehlt oder Zugriff geändert.');const proof=await proofAmendments(db,JSON.parse(row.data));if(proof.corrections.length&&input.correctionsVersion!==1)fail('failed-precondition','Dieser Nachweis wurde korrigiert. Bitte App im WLAN neu öffnen, damit Original und Korrektur gemeinsam angezeigt werden.');return {proof,filename:'Zustellnachweis-'+proofId+'.pdf'};
  }
  if(action==='listUsers'||action==='updateUser'){
   requireRole(p,'office');if(!p.isAdmin)fail('permission-denied','Nur die Administratorin darf Konten verwalten.');

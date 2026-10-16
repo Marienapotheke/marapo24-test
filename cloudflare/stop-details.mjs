@@ -4,7 +4,9 @@ export function parcelCount(value){
  if(!Number.isSafeInteger(value)||value<1||value>999)throw Object.assign(Error('Anzahl Päckchen muss eine ganze Zahl von 1 bis 999 sein.'),{code:'invalid-argument'});
  return value;
 }
-export const totalParcels=stops=>stops.reduce((sum,s)=>sum+parcelCount(s.parcelCount),0);
+export const countedParcels=stop=>stop.type==='arzt'?0:parcelCount(stop.parcelCount);
+export const parcelDescription=stop=>stop.type==='arzt'?'Arztlieferung · nicht in der Päckchensumme':parcelCount(stop.parcelCount)+' Päckchen';
+export const totalParcels=stops=>stops.reduce((sum,s)=>sum+(s.voided?0:countedParcels(s)),0);
 export const dueCents=stop=>stop.cashExempt===true?0:stop.cents;
 export function phoneHref(phone){
  const number=String(phone||'').trim().replace(/^(\+\d{1,3})\s*\(0\)/,'$1').replace(/[\s()./-]/g,'');

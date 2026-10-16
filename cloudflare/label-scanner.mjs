@@ -1,4 +1,16 @@
-import {parseLabel,isMobileCameraDevice} from './label-parser.mjs';
+import {parseLabel,labelScore,isMobileCameraDevice} from './label-parser.mjs';
+// Try right-angle orientations locally. A sideways scan must not silently turn
+// the pharmacy's contact block into recipient data. Never combine fields across views.
+export async function recognizeLabel(worker,source,{current=()=>true,progress=()=>{}}={}){
+ let best=null,bestScore=-1;
+ for(let turn=0;turn<4;turn++){
+  if(!current())return null;progress(turn+1);let rotated=null;
+  try{let image=source;if(turn){rotated=document.createElement('canvas');rotated.width=turn%2?source.height:source.width;rotated.height=turn%2?source.width:source.height;const context=rotated.getContext('2d');context.translate(rotated.width/2,rotated.height/2);context.rotate(turn*Math.PI/2);context.drawImage(source,-source.width/2,-source.height/2);image=rotated;}
+   const {data}=await worker.recognize(image,{rotateAuto:true});if(!current())return null;const parsed=parseLabel(data.text),score=labelScore(parsed);if(score>bestScore){best=parsed;bestScore=score;}if(score>=17)break;
+  }finally{if(rotated){rotated.width=rotated.height=0;}}
+ }
+ return best;
+}
 const fieldLabels={name:'Name',street:'Straße und Hausnummer',postalCode:'Postleitzahl',city:'Ort',phone:'Telefonnummer',origin:'Herkunftsapotheke',amount:'Noch zu kassieren (€)',paymentReason:'Bei 0 €: Zahlungsgrund'};
 export function installLabelScanner({form,apply,enabled=()=>true}){
  if(!isMobileCameraDevice(navigator))return;
@@ -12,7 +24,7 @@ export function installLabelScanner({form,apply,enabled=()=>true}){
  button.onclick=()=>{if(!enabled())return;clear();input.click();};
  input.onchange=async()=>{const file=input.files?.[0];if(!file||!enabled())return;if(!file.type.startsWith('image/')||file.size>20*1024*1024){clear();return alert('Bitte ein Foto bis 20 MB verwenden.');}const run=++generation;busy=true;reviewed.checked=false;reviewed.disabled=true;confirm.disabled=true;dialog.showModal();status.textContent='Texterkennung wird auf diesem Gerät geladen …';
   try{const {default:{createWorker}}=await import('./ocr/tesseract.esm.min.js');if(run!==generation)return;const localWorker=await createWorker('deu',1,{workerPath:new URL('./ocr/worker.min.js',import.meta.url).href,corePath:new URL('./ocr/core',import.meta.url).href,langPath:new URL('./ocr/lang',import.meta.url).href,cacheMethod:'none',workerBlobURL:false,logger:message=>{if(run===generation)status.textContent=message.status==='recognizing text'?'Zettel wird gelesen: '+Math.round(message.progress*100)+' %':'Texterkennung wird vorbereitet …';},errorHandler:()=>{}});if(run!==generation){await localWorker.terminate();return;}worker=localWorker;
-   const bitmap=await createImageBitmap(file);if(run!==generation){bitmap.close();return;}if(bitmap.width*bitmap.height>50000000){bitmap.close();throw Error('Foto ist zu groß. Bitte einen kleineren Bildausschnitt aufnehmen.');}canvas=document.createElement('canvas');const scale=Math.min(1,2200/Math.max(bitmap.width,bitmap.height));canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();const {data}=await worker.recognize(canvas);if(run!==generation)return;const parsed=parseLabel(data.text);for(const [key,control] of controls)control.value=parsed.fields[key]||'';status.textContent=(parsed.warnings.length?parsed.warnings.join(' '):'Text erkannt.')+' Bitte mit dem Zettel vergleichen.';busy=false;reviewed.disabled=false;reviewed.checked=false;confirm.disabled=true;
+   const bitmap=await createImageBitmap(file);if(run!==generation){bitmap.close();return;}if(bitmap.width*bitmap.height>50000000){bitmap.close();throw Error('Foto ist zu groß. Bitte einen kleineren Bildausschnitt aufnehmen.');}canvas=document.createElement('canvas');const scale=Math.min(1,2200/Math.max(bitmap.width,bitmap.height));canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();const parsed=await recognizeLabel(worker,canvas,{current:()=>run===generation,progress:n=>status.textContent='Bildausrichtung '+n+' von höchstens 4 wird geprüft …'});if(run!==generation||!parsed)return;for(const [key,control] of controls)control.value=parsed.fields[key]||'';const booked=parsed.paymentBreakdown?.length?' In der Apotheke bereits gebucht: '+parsed.paymentBreakdown.map(p=>p.label+' '+(p.cents/100).toFixed(2).replace('.',',')+' €').join(', ')+'. Für den Fahrer zählt nur „Offen“.':'';status.textContent=(parsed.warnings.length?parsed.warnings.join(' '):'Text erkannt.')+booked+' Bitte mit dem Zettel vergleichen.';busy=false;reviewed.disabled=false;reviewed.checked=false;confirm.disabled=true;
   }catch{if(run===generation){status.textContent='Scan nicht vollständig lesbar oder Texterkennung nicht geladen. Bitte erneut fotografieren oder Angaben von Hand eintragen.';busy=false;confirm.disabled=true;}}
   finally{if(run===generation){input.value='';if(canvas){canvas.width=canvas.height=0;canvas=null;}const old=worker;worker=null;await old?.terminate().catch(()=>{});}}
  };

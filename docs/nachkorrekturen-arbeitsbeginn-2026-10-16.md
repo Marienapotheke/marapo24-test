@@ -1,0 +1,66 @@
+# Weitere Praxisänderungen: Vorbereitung, noch nicht veröffentlicht
+
+## Abgestimmte Regeln
+
+Die Betreiberantworten vom 16.10.2026 legen diese Abläufe fest. Die frühere Veröffentlichung bleibt unverändert; diese Ergänzungen werden zunächst vorbereitet und mit fiktiven Daten geprüft. Keine produktive Migration, kein Deployment, keine Änderung an `main`, v3 oder Zugangsdaten.
+
+- Persönliche Büro-Mitnahme: keine Fahrzeugauswahl und keine Start-/End-Kilometer. Der Server kennzeichnet neue Starts als Privatfahrzeug, ohne einen Firmenwagen zu reservieren. Bereits gestartete ältere Mitnahme-Touren mit dokumentiertem Fahrzeug/Kilometerstand behalten ihre Werte und den dazu passenden Abschluss. Keine rückwirkende Löschung.
+- Fahrer drücken einmal pro Tag „Arbeit beginnen“, online vor Vorbereitung und Sortieren. Der erste bestätigte Serverzeitpunkt bleibt unveränderlich; Gerätezeit wird getrennt gespeichert. Weitere Klicks, auch auf einem anderen Gerät, überschreiben ihn nicht. Büro sieht den Arbeitsbeginn auch ohne Tour, sowie die Dauer bis zur ersten bestätigten Abfahrt. Eine zweite Tour zählt nicht die gesamte Zeit seit morgens erneut als Vorbereitung. Keine rückwirklich erfundenen Beginnzeiten, keine Pausen-/Arbeitsende-/Lohnabrechnungsfunktion.
+- Betragskorrektur durch die aktuell zuständige ausliefernde Person: zu kassierender und tatsächlich kassierter Betrag getrennt, Pflichtgrund, persönliche Bestätigung. Auf offenen Stopps während der Fahrt und nach Zustellabschluss, auch nach Tourende, bis zur ersten Abrechnung. Pflege-/Partner-Korrekturen bleiben bei 0 Euro. Tatsächlicher Eingang höchstens Sollbetrag; bei Teil-/Nichtzahlung nach erfolgreicher Übergabe bleibt der bestehende Zahlungsgrund erforderlich. Nach Abrechnung gesperrt.
+- Wiederöffnen nur während laufender Tour und vor Abrechnung, mit Pflichtgrund sowie ausdrücklicher Bestätigung: tatsächlich kein Geld kassiert oder vollständig zurückgegeben. Der bisherige Zahlungseingang wird nachvollziehbar zurückgenommen. Kein stilles Entfernen noch vorhandenen Bargelds.
+- Direkte Übernahme einer noch nicht gestarteten regulären oder zusätzlichen Botendienst-Tour durch einen anderen Fahrer, mit Bestätigung und atomarer Prüfung des bisherigen Besitzers. Päckchen und manuelle Reihenfolge bleiben erhalten. Persönliche Büro-Mitnahme-Touren werden nicht übertragen.
+- Laufende Botendienst-Tour: bisheriger Fahrer bietet sie einem bestimmten aktiven Fahrer an; dieser bestätigt innerhalb von 15 Minuten. Beide verwenden dieselbe Fahrzeugzuordnung, Gesamt-Kilometer bleiben erhalten. Kein Fahrzeugwechsel und keine erfundenen Kilometer je Teilfahrer. Nachweis und Fahrer jeder früheren Zustellung bleiben unverändert. Büro sieht den Fahrerwechselverlauf.
+
+## Originale, Korrekturen und Summen
+
+`delivery_amendments` speichert begründete Korrekturen zusätzlich und unveränderlich. Originalnachweis, originale Beträge und Unterschrift werden nie überschrieben. Eine nachträgliche Geldkorrektur wird vom angemeldeten Fahrer bestätigt; sie erhält keine alte Kundenunterschrift als vermeintlich neue Zustimmung. Korrekturen vor und nach dem Zustellabschluss werden unterschieden.
+
+Beim Wiederöffnen bleibt der ursprüngliche Abschluss archiviert und wird als zurückgenommen gekennzeichnet. Ein neuer offener Stopp übernimmt die Lieferdaten und Päckchenzahl; Summen zählen nur den wirksamen Stopp. Eine neue Zustellung benötigt eine neue Bestätigung und, wo erforderlich, eine neue verschlüsselte Unterschrift. Alte verschlüsselte Signaturen passen wegen Bindung an die Stoppkennung nicht zum neuen Stopp. Eine identische Wiederholung des alten Abschlusses wird nur bestätigt und öffnet keinen weiteren Stopp. Beide Originalarchive bleiben gegen Update/Delete gesperrt.
+
+`effective_proof_payments` liefert aktuelle, nach Korrekturen wirksame Zahlungseingänge. Büro, Fahrer und der serverseitige Abrechnungsbetrag verwenden dieselben Werte. Auch der Datenbank-Einfügeschutz der Abrechnung kontrolliert diese Summe. Gleichzeitiges Abrechnen/Korrigieren oder gleichzeitige Geldkorrektur/Zustellung darf keine veraltete Zahlung archivieren. Revisionen und Korrekturkennungen verhindern Überschreiben und doppelte Rücknahmen.
+
+Die aktuelle PDF-Ausgabe zeigt Original und zusätzliche Korrekturseite. Bereits auf Seite 1 ist eine Rücknahme beziehungsweise nachträgliche Geldkorrektur deutlich markiert. Die Originalunterschrift bleibt ausdrücklich dem Original zugeordnet. Alte App-Fenster erhalten zurückgenommene Stopps nicht doppelt in ihren Summen; ein korrigierter PDF-Nachweis erfordert die neue Korrekturansicht, damit alte PDF-Software keine spätere Korrektur verschweigt.
+
+## Online, Geräte und Übergabe
+
+Arbeitsbeginn, Korrekturen und Fahrerwechsel benötigen bestätigte Online-Verbindung. Zustellungen, Tourstart/-ende und Büro-Mitnahme behalten ihre verschlüsselte Offline-Warteschlange. Vor Korrektur/Übergabe alle Vorgänge der Tour übertragen. Vor einer laufenden Übergabe müssen beide Fahrer sicherstellen, dass auf **allen verwendeten Geräten** keine ausstehenden Abschlüsse der bisherigen Person mehr liegen; ein Server kann unübertragene Vorgänge eines ausgeschalteten Geräts nicht erkennen.
+
+Ein Übergabeangebot bindet sich an den bestätigten Tourstand. Nachträge, Geldkorrekturen, Zustellungen oder Umordnen machen es ungültig; der bisherige Fahrer muss neu anbieten. Abgelaufene oder ersetzte Angebote können nicht übernommen werden. Ab erster bestätigter Übernahme darf die vorherige Person keine weiteren Vorgänge der Tour speichern. Eventuell verbliebene alte Offline-Vorgänge werden nicht gelöscht, sondern bleiben mit einem sichtbaren Übertragungsfehler zur Klärung auf dem Gerät. Auch vor einer direkten Übernahme muss ein vorheriger Fahrer einen gegebenenfalls auf einem anderen Gerät vorgemerkten Start zuerst klären. Die App weist darauf hin.
+
+Arbeitsbeginn und Abfahrt bei einem Fahrerwechsel bleiben der ursprünglichen startenden Person zugeordnet. Vorbereitungsdauer wird nur an der ersten Abfahrt des Tages angezeigt. Fahrerwechsel macht vorhandene Zustellungen nicht zu Zustellungen des neuen Fahrers.
+
+## Migration, Aufbewahrung und Wiederherstellung
+
+Vorbereitet, ausschließlich lokal mit fiktiven Daten angewendet: in dieser Reihenfolge `work-starts.sql`, `delivery-amendments.sql`, `tour-handover.sql`, `tour-deletion.sql`, nach den bisherigen Schema-/Büromigrationen. Die Anwendung ist wiederholbar. Neue Tabellen, Sicht und Schutztrigger; keine Änderung historischer Nachweisbytes. Neue Übernahme-/Korrekturtrigger schützen gegen konkurrierende Änderungen. D1-Änderungszähler können Triggeränderungen mitzählen; die betroffenen RPCs prüfen weiterhin atomare Mutation und Revision, ohne solche Zähler fälschlich als mehrere Benutzeraktionen zu interpretieren.
+
+Aufbewahrung bleibt höchstens 364 Tage, Sicherungen höchstens 30 Tage und gegebenenfalls kürzer. Korrekturfristen knüpfen an den Originalnachweis beziehungsweise die ursprüngliche Stopp-Erfassung an, Fahrerwechsel an die ursprüngliche Tourerfassung; spätere Korrekturen verlängern keine Frist. Arbeitsbeginne werden ebenfalls fristgerecht bereinigt. Bereinigung und Wiederherstellung der zusätzlichen Unveränderlichkeitstrigger erfolgen in derselben D1-Transaktion wie die bisherigen Archive. Sicherungen berücksichtigen die neuen Fristquellen und prüfen beim Restore die zusätzlichen Archivschutztrigger und die Abrechnungssicht. Alte Sicherungen ohne neue Tabellen bleiben prüfbar; vor Nutzung mit neuem Worker müssen die vorbereiteten Migrationen zuletzt in der dokumentierten Reihenfolge angewendet werden.
+
+Nur der alte Worker-Code ist nach Verwendung neuer Korrekturen kein geeigneter Rückfallplan: Alte Abrechnungslogik kennt Rücknahmen/Geldkorrekturen nicht. Bei einem Rollback müssen wirksame Korrekturen und Übergaben berücksichtigt werden; keinesfalls frühere Insert-Trigger isoliert wiederherstellen. Für eine Veröffentlichung sind eine neue konkrete Betreiberfreigabe sowie eine unmittelbar zuvor frische verschlüsselte Betriebssicherung samt getrenntem Restore erforderlich.
+
+## Prüfungen
+
+Fiktive Backendtests decken Privatfahrzeuge ohne Kilometer, Alt-Touren, täglichen Arbeitsbeginn, Rollen und Fremdzugriff, Korrekturen vor/nach Abschluss und nach Tourende, Abrechnungssperre, Konkurrenz mit Abrechnung und Zustellung, Geldprüfung beim Wiederöffnen, alte Abschlusswiederholung, falsche Wiederverwendung einer verschlüsselten Unterschrift, Päckchen-/Kassensummen sowie direkte und beidseitig bestätigte Übergabe ab. Synthetischer verschlüsselter Restore bestätigt unveränderte Originalnachweise, korrigierte Abrechnung und Archivschutz. Bestehende Backend-/Sicherungsprüfungen bleiben Teil der Gesamtprüfung.
+
+Browserprüfung mit getrennten Fahrer-/Bürokonten: Arbeitsbeginn, direkte Übernahme, beide Geldfelder, Pflichtgrund und Geldprüfung, neuer leerer Signaturbereich, Übergabe im selben Auto, spätere Korrektur nach Ende, Bürozeiten/Kasse und korrigierter Original-PDF. Bestehende Fahrer-Offline- und mobile OCR-/Büro-Mitnahmeprüfung werden ebenfalls erneut ausgeführt. Ein beim Gesamtlauf entdeckter schneller Folgeklick wurde korrigiert: Korrekturfenster schließt erst nach der aktualisierten Ansicht, ältere parallel eintreffende Ansichtsantworten überschreiben keine neuere Anfrage. PDF und fiktive Ansichten werden visuell geprüft. Maßgeblich sind die abgeschlossenen Testergebnisse, nicht allein dieser Prüfplan.
+
+Abgeschlossene lokale Prüfung: 35 Grundprüfungen, 68 Cloudflare-Backendprüfungen, 16 Sicherungs-/Aufbewahrungsprüfungen und alle drei Browserabläufe erfolgreich, zusammen **122 Tests ohne Fehler**. Lokaler Build erfolgreich. Aktuelle fiktive PDF-Seiten und Büroansicht visuell kontrolliert; ursprüngliche Unterschrift und spätere Korrektur sind getrennt dargestellt, Rücknahme auf Seite 1 markiert. Private Produktionsschlüssel wurden hierfür nicht benutzt. Weitere GitHub-Gesamtprüfung im vorhandenen Arbeitszweig; keine Veröffentlichung dieser Ergänzungen.
+
+## Ergänzungen: Tourauswahl, Löschen und Arztlieferungen
+
+Eigene, noch nicht gestartete Touren können nach Bestätigung einschließlich vorbereiteter Stopps gelöscht werden. Der Server prüft Ersteller, aktuellen Fahrer und Tourrevision; ein konkurrierender Start, eine Übernahme oder Paketänderung verhindert das Löschen. Nachweise und Abrechnungen dürfen nicht vorhanden sein. Kinddaten werden atomar entfernt, bei Fehlern wird die gesamte Löschung zurückgerollt. Ausstehende Vorgänge auf anderen Geräten müssen vorher geklärt werden.
+
+Nur Empfängerart Arzt: keine Unterschrift und keine Eingabe der Päckchenzahl; Arztstopps zählen auch bei historischen gespeicherten Stückzahlen nicht zur Tour-Päckchensumme. Andere Empfänger derselben Tour behalten ihre Regeln. Technisch bleibt für ältere Datenformate eine interne Standardzahl erhalten. Ein Fahrer kann mehrere Touren am Tag übernehmen; nach dem Tourende öffnet sich die Auswahl der offenen Touren auch dann, wenn er bereits weitere eigene Touren besitzt.
+
+## Belegerkennung anhand des bereitgestellten Layouts
+
+Das bereitgestellte PDF wurde lokal angesehen. Es enthält einen seitlich gescannten Bildbeleg ohne Textschicht; reguläre Kameraaufnahmen können hochkant erfolgen. Die Erkennung versucht lokal bei Bedarf vier rechtwinklige Ausrichtungen und verwendet genau eine vollständige Erkennung. Die Apotheke wird aus dem Kopfbereich bestimmt; deren eigene Adresse und Telefonnummer werden von den darunter stehenden Kundendaten getrennt. Botendienstbeleg, Barcode und Belegnummer werden ignoriert. Name mit Anrede, Straße, Postleitzahl/Ort und kurze lokale Telefonnummern werden erkannt; bei fehlender Vorwahl wird keine erfunden.
+
+Ausdrücklich bestätigte Kassenregel: ausschließlich der Wert bei Offen wird zu kassieren. Positive Bar-, Faktura- oder EC-Karte-Werte kennzeichnen in der Apotheke bereits gebuchte Beträge. Bei Offen 0 wird daraus der passende Zahlungsgrund vorgeschlagen; bei Offen größer 0 bleibt der Zahlungsgrund leer. Fehlende, widersprüchliche oder beschädigte Offen-Werte sowie Offen 0 / Bar 0 bleiben zur manuellen Prüfung. Jede Übernahme erfordert weiterhin Sichtprüfung und Bestätigung. Fotos und OCR-Rohtext werden nicht hochgeladen oder in Kundenprofile gespeichert.
+
+Tests enthalten ausschließlich fiktive Namen, Anschriften, Telefonnummern und Beträge. Die Originaldatei ist kein Testfixture und kein Bestandteil des Git-Zweigs oder Veröffentlichungspakets. Der vollständige mobile Browserablauf prüft denselben synthetischen Beleg hochkant sowie seitlich gedreht mit echter lokaler Texterkennung.
+
+## Aktueller Gesamtprüfstand
+
+Nach diesen Ergänzungen bestanden lokal 35 Grundprüfungen, 77 Cloudflare-Backendprüfungen und 16 Sicherungs-/Aufbewahrungsprüfungen. Auch alle drei Browserabläufe bestanden, einschließlich echter OCR für Hochkant- und Seitenlage: insgesamt 131 lokale Tests ohne Fehler. Die früheren 122 Tests oben dokumentieren den Zwischenstand vor den letzten Ergänzungen.
+
+Ein früherer Commit-/Push-Versuch wurde wegen eines Fehlers der automatischen Freigabeprüfung (Workspace-Guthaben) vor Ausführung gestoppt. Spätere freigegebene lokale Prüfungen konnten wieder ausgeführt werden; daraus folgt keine Betreiberfreigabe einer Veröffentlichung. Kein Deployment und keine produktive Migration dieses Pakets.
