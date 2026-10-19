@@ -13,6 +13,6 @@ export function payment(input,due,status){
 export function collected(stop){return Number.isSafeInteger(stop.collectedCents)?stop.collectedCents:stop.status==='zugestellt'?stop.cents:0;}
 export function cashByPharmacy(stops){
  const totals=new Map([['Marienapotheke',0],['Cusanus-Apotheke',0]]);
- for(const stop of stops)if(!stop.voided&&stop.status==='zugestellt')totals.set(stop.origin,(totals.get(stop.origin)||0)+collected(stop));
+ for(const stop of stops)if(!stop.voided&&!stop.removed&&stop.status==='zugestellt')totals.set(stop.origin,(totals.get(stop.origin)||0)+collected(stop));
  return [...totals].map(([origin,cents])=>({origin,cents}));
 }

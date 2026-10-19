@@ -13,6 +13,7 @@ export async function amendDelivery(db,uid,p,action,input){
  if(history.some(h=>h.kind==='reopen')||input.baseRevision!==(history.at(-1)?.revision||0))fail('failed-precondition','Päckchen inzwischen korrigiert. Bitte neu laden.');
  if(await db.prepare('SELECT 1 FROM cash_settlements WHERE tour_id=?').bind(tour.id).first())fail('failed-precondition','Bereits abgerechnete Fahrten können nicht korrigiert werden.');
  const data=JSON.parse(stop.data),proof=stop.proof_id?JSON.parse((await db.prepare('SELECT data FROM proofs WHERE id=?').bind(stop.proof_id).first()).data):null;
+ if(proof?.removed)fail('failed-precondition','Entfernte Päckchen bleiben als Entfernungsnachweis erhalten.');
  const previous=history.filter(h=>h.kind==='money'&&h.proof_id===stop.proof_id).at(-1),effective=previous?JSON.parse(previous.data):proof||{...data,collectedCents:0};
  const reason=text(input.reason,240,true);if(reason.length<3)fail('invalid-argument','Bitte einen nachvollziehbaren Korrekturgrund eingeben.');
  const kind=action==='reopenDelivery'?'reopen':'money',now=new Date().toISOString();let receipt={collectedCents:0,collectionReason:'',collectionConfirmed:true};

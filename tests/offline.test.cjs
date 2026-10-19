@@ -34,6 +34,17 @@ test('queue survives reopening, exposes no signature and rejects duplicate captu
 test('plaintext proof cannot enter pending storage',async()=>{
  await assert.rejects(offline.enqueue(uid,{...identity,signature}),/Unverschlüsselte/);
 });
+
+test('offline removal encrypts its reason and atomically excludes a competing delivery, including legacy queue entries',async()=>{
+ const {sealCompletion}=await import('../cloudflare/completion-envelope.mjs');
+ const c={...identity,stopId:'fictional-removal',completionId:crypto.randomUUID()},sealedSignature=await sealCompletion(key,c,null,capturedAt,'Fiktiver doppelter Auftrag');
+ const removal={action:'remove',tourId:c.tourId,stopId:c.stopId,completionId:c.completionId,capturedAt,sealedSignature};
+ await assert.rejects(offline.enqueue(uid,{...removal,removalReason:'Unverschlüsselt'}),/verschlüsselt/);
+ const delivery={tourId:c.tourId,stopId:c.stopId,completionId:crypto.randomUUID(),capturedAt,status:'nicht zugestellt'};
+ const results=await Promise.allSettled([offline.enqueue(uid,removal),offline.enqueue(uid,delivery)]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+ const records=await offline.pending(uid);assert.equal(records.length,1);assert.equal(records[0].input.action,'remove');assert.equal(JSON.stringify(records).includes('doppelter Auftrag'),false);await offline.acknowledge(uid,c.completionId);
+ await offline.enqueue(uid,delivery);await assert.rejects(offline.enqueue(uid,removal),/bereits/);await offline.acknowledge(uid,delivery.completionId);
+});
 test('assignment cache is encrypted, scoped to the account and cleared on logout',async()=>{
  await offline.saveAssignments(uid,{profile:{role:'driver',active:true},tours:[{id:'tour1',name:'Fiktiver Patient'}],stops:{}});
  assert.equal((await offline.loadAssignments(uid)).tours[0].name,'Fiktiver Patient');

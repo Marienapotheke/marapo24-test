@@ -22,13 +22,14 @@ export async function savePublicKey(uid,key){await put(`public:${uid}`,key);}
 export async function getPublicKey(uid){return get(`public:${uid}`);}
 export async function enqueue(uid,input){
   if('signature' in input)throw Error('Unverschlüsselte Unterschrift darf nicht gespeichert werden.');
+  if(input.action==='remove'&&(!input.sealedSignature||Object.keys(input).some(k=>!['action','tourId','stopId','completionId','capturedAt','sealedSignature'].includes(k))))throw Error('Entfernungsgrund muss verschlüsselt gespeichert werden.');
   const db=await open();
   return new Promise((resolve,reject)=>{
     const tx=db.transaction('items','readwrite'),s=tx.objectStore('items'),r=s.getAll();
     let failure;
     r.onsuccess=()=>{
       const records=r.result.filter(x=>x?.kind==='pending'&&x.uid===uid);
-      if(records.some(x=>(x.input.action||'delivery')===(input.action||'delivery')&&x.input.tourId===input.tourId&&x.input.stopId===input.stopId)){failure=Error('Für diesen Vorgang ist bereits ein Abschluss gespeichert.');tx.abort();return;}
+      if(records.some(x=>((x.input.action||'delivery')===(input.action||'delivery')||(['delivery','remove'].includes(x.input.action||'delivery')&&['delivery','remove'].includes(input.action||'delivery')))&&x.input.tourId===input.tourId&&x.input.stopId===input.stopId)){failure=Error('Für diesen Vorgang ist bereits ein Abschluss gespeichert.');tx.abort();return;}
       if(records.length>=200){failure=Error('200 Abschlüsse warten auf Übertragung. Bitte zuerst synchronisieren.');tx.abort();return;}
       const sequence=1+records.reduce((maximum,x)=>Math.max(maximum,x.sequence||0),0);
       s.put({kind:'pending',uid,input,error:null,sequence},`pending:${uid}:${input.completionId}`);

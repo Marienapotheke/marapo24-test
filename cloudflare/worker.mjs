@@ -11,6 +11,7 @@ import policy from '../functions/policy.cjs';
 import {odometer,handover} from './tour-workflow.mjs';
 import {validateCompletion} from './completion-policy.mjs';
 import {cashSettlement} from './cash-settlement.mjs';
+import {removePackage} from './package-removal.mjs';
 import {editPackage} from './package-edit.mjs';
 import {openWebEnvelope,deliveryKey} from './web-envelope.mjs';
 import {validatePng} from './png.mjs';
@@ -26,7 +27,7 @@ const iso=()=>new Date().toISOString();
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value))))).map(x=>x.toString(16).padStart(2,'0')).join('');
 function profile(row){return row?{uid:row.uid,displayName:row.display_name,roles:JSON.parse(row.roles),active:row.active===1,isAdmin:row.is_admin===1,canCreateSpecialTour:row.active===1&&JSON.parse(row.roles).includes('office')}:null;}
 function tour(row){return row?{id:row.id,type:row.type,date:row.date,regularType:row.regular_type,driverId:row.driver_id,createdBy:row.created_by,status:row.status,schemaVersion:2,createdAt:row.created_at,vehicleId:row.vehicle_id,vehicleLabel:row.vehicle_label,startedAt:row.started_at,endedAt:row.ended_at,startCapturedAtClient:row.start_captured,endCapturedAtClient:row.end_captured,startOdometerKm:row.start_odometer,endOdometerKm:row.end_odometer,workflowVersion:row.workflow_version}:null;}
-function stop(row){if(!row)return null;const {_editVersion=0,...data}=JSON.parse(row.data);return {id:row.id,...data,parcelCount:parcelCount(data.parcelCount),...(row.payment_data?JSON.parse(row.payment_data):{}),editVersion:_editVersion,schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at};}
+function stop(row){if(!row)return null;const {_editVersion=0,...data}=JSON.parse(row.data);return {id:row.id,...data,parcelCount:parcelCount(data.parcelCount),...(row.payment_data?JSON.parse(row.payment_data):{}),...((row.payment_data&&JSON.parse(row.payment_data).removed===1)?{removed:true,cents:0}:{}),editVersion:_editVersion,schemaVersion:2,status:row.status,createdAt:row.created_at,proofId:row.proof_id,completedAt:row.completed_at};}
 async function ownTour(db,uid,input,p){requireDeliveryAccess(p);const row=await first(db,'SELECT * FROM tours WHERE id=?',id(input.tourId));if(!row)fail('not-found','Tour fehlt.');await checkAssignedDelivery(db,uid,p,row);return row;}
 const activeDriver="EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='driver'))";
 async function state(db,uid,p,input){
@@ -38,7 +39,7 @@ async function state(db,uid,p,input){
  const rows=view==='office'?await all(db,'SELECT * FROM tours WHERE date=? ORDER BY created_at LIMIT 101',date):await all(db,"SELECT * FROM tours WHERE driver_id=? AND (status!='finished' OR date=?)"+selfOnly+" ORDER BY created_at LIMIT 101",uid,date);
  if(rows.length>100)fail('resource-exhausted','Zu viele Touren für den Testlauf. Bitte Büro informieren.');
  if(input.workflowVersion!==2&&rows.some(t=>t.workflow_version>=2&&t.status!=='finished'))fail('failed-precondition','Die App wurde aktualisiert. Nach Übertragung ausstehender Vorgänge alle MARAPO24-Fenster schließen und im WLAN neu öffnen.');
- const projection="SELECT s.*,json_object('collectedCents',json_extract(p.data,'$.collectedCents'),'collectionReason',json_extract(p.data,'$.collectionReason'),'collectionConfirmed',json_extract(p.data,'$.collectionConfirmed'),'deliveryMethod',json_extract(p.data,'$.deliveryMethod'),'nonDeliveryReason',json_extract(p.data,'$.nonDeliveryReason'),'neighborName',json_extract(p.data,'$.neighborName'),'driverComment',json_extract(p.data,'$.driverComment')) AS payment_data FROM stops s JOIN tours t ON t.id=s.tour_id LEFT JOIN proofs p ON p.id=s.proof_id ";
+ const projection="SELECT s.*,json_object('collectedCents',json_extract(p.data,'$.collectedCents'),'collectionReason',json_extract(p.data,'$.collectionReason'),'collectionConfirmed',json_extract(p.data,'$.collectionConfirmed'),'deliveryMethod',json_extract(p.data,'$.deliveryMethod'),'nonDeliveryReason',json_extract(p.data,'$.nonDeliveryReason'),'neighborName',json_extract(p.data,'$.neighborName'),'driverComment',json_extract(p.data,'$.driverComment'),'removed',json_extract(p.data,'$.removed'),'removalReason',json_extract(p.data,'$.removalReason'),'removedBy',json_extract(p.data,'$.removedBy'),'removedByName',json_extract(p.data,'$.removedByName'),'removedAt',json_extract(p.data,'$.completedAt'),'originalCents',json_extract(p.data,'$.originalCents')) AS payment_data FROM stops s JOIN tours t ON t.id=s.tour_id LEFT JOIN proofs p ON p.id=s.proof_id ";
  const deliveries=view==='office'?await all(db,projection+'WHERE t.date=? ORDER BY s.created_at,s.id LIMIT 3001',date):await all(db,projection+"WHERE t.driver_id=? AND (t.status!='finished' OR t.date=?)"+(hasRole(p,'driver')?'':" AND EXISTS(SELECT 1 FROM self_delivery_tours m WHERE m.tour_id=t.id AND m.office_uid=t.driver_id)")+" ORDER BY s.created_at,s.id LIMIT 3001",uid,date);
  if(deliveries.length>3000)fail('resource-exhausted','Zu viele Päckchen für den Testlauf. Bitte Büro informieren.');
  const stops={};for(const t of rows)stops[t.id]=[];for(const s of deliveries)if(stops[s.tour_id])stops[s.tour_id].push(stop(s));
@@ -57,6 +58,7 @@ async function rpc(db,uid,p,action,input,env){
  if(['correctDeliveryAmount','reopenDelivery'].includes(action))return amendDelivery(db,uid,p,action,input);
  if(['takeOverOpenTour','offerTourHandover','acceptTourHandover'].includes(action))return handoverTour(db,uid,p,action,input);
  if(['saveCashSettlement','downloadCashSettlement'].includes(action))return cashSettlement(db,uid,p,action,input,env);
+ if(action==='removeProtectedPackage')return removePackage(db,uid,p,input,env);
  if(action==='updatePackage'||action==='deletePackage')return editPackage(db,uid,p,action,input);
  if(action==='prepareRegularTour'){
   requireRole(p,'office');fields(input,['date','typeId']);const option=regularTours(input.date).find(t=>t.id===input.typeId);if(!option)fail('invalid-argument','Reguläre Tour für diesen Tag auswählen.');
@@ -125,7 +127,7 @@ async function rpc(db,uid,p,action,input,env){
   return {completed:true};
  }
  if(action==='downloadProtectedProof'){
-  requireRole(p,'office');fields(input,['tourId','stopId','correctionsVersion']);const proofId=policy.identifiers(input),row=await first(db,"SELECT data FROM proofs WHERE id=? AND EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",proofId,uid);if(!row)fail('not-found','Nachweis fehlt oder Zugriff geändert.');const proof=await proofAmendments(db,JSON.parse(row.data));if(proof.corrections.length&&input.correctionsVersion!==1)fail('failed-precondition','Dieser Nachweis wurde korrigiert. Bitte App im WLAN neu öffnen, damit Original und Korrektur gemeinsam angezeigt werden.');return {proof,filename:'Zustellnachweis-'+proofId+'.pdf'};
+  requireRole(p,'office');fields(input,['tourId','stopId','correctionsVersion']);const proofId=policy.identifiers(input),row=await first(db,"SELECT data FROM proofs WHERE id=? AND EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office'))",proofId,uid);if(!row)fail('not-found','Nachweis fehlt oder Zugriff geändert.');const proof=await proofAmendments(db,JSON.parse(row.data));if(proof.corrections.length&&input.correctionsVersion!==1)fail('failed-precondition','Dieser Nachweis wurde korrigiert. Bitte App im WLAN neu öffnen, damit Original und Korrektur gemeinsam angezeigt werden.');return {proof,filename:(proof.removed?'Entfernungsnachweis-':'Zustellnachweis-')+proofId+'.pdf'};
  }
  if(action==='listUsers'||action==='updateUser'){
   requireRole(p,'office');if(!p.isAdmin)fail('permission-denied','Nur die Administratorin darf Konten verwalten.');
