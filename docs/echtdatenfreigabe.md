@@ -1,6 +1,17 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Hochkant-Belegerkennung vom 16.10.2026 – aktueller Betriebsstand
+## Scanfunktion auf Betreiberwunsch entfernt – 19.10.2026, aktueller Betriebsstand
+
+Der Betreiber hat die Entfernung ausdrücklich beauftragt, weil die Belegerkennung im tatsächlichen Einsatz weiter nicht zuverlässig funktioniert. Geprüfter Code `fa924f741537829828b1548bac845d917fb96019`; [GitHub-Prüfung 39221368334](https://github.com/Marienapotheke/marapo24-test/actions/runs/39221368334) mit 152 Tests erfolgreich. Worker-Version `b3245316-3e1b-409b-b504-f2c661c24c51`.
+
+Kamera-Schaltfläche, Fotoauswahl, Scanvorschau, OCR-/Parsermodule, Sprachmodelle und Bibliotheksabhängigkeiten entfernt. Das veröffentlichte Paket enthält keine Scandateien; die bisherigen öffentlichen Modul-/Modellpfade liefern keine ausführbaren Texterkennungsdateien mehr. Lieferdaten werden vollständig manuell erfasst, auf Handy und PC. Bestehende Touren, Lieferdaten, Kundenprofile, Nachweise, Abrechnungen und Offline-Warteschlangen bleiben erhalten. Keine Datenmigration; Serverquellbundle und Offline-Speichermodul unverändert. Die früheren Scanprüfungen wurden mit der entfernten Funktion gelöscht; manuelle mobile Erfassung mit späterem Offline-Abschluss und Büroabrechnung ist weiterhin im Browser geprüft.
+
+Frische verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 10:18 Uhr und danach um 10:19 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt mit Integrität/Fremdschlüsseln/Archivschutz. Alle 145 vorherigen Zustellnachweise und 8 Abrechnungen exakt unverändert. 20 öffentliche Dateien bytegenau mit dem geprüften Paket abgeglichen; zehn unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan, main und v3 unverändert. Kein Testdatensatz in den Echtbetrieb eingefügt.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Alte geöffnete Fenster können bis zum Neustart noch die frühere Kamera-Schaltfläche anzeigen. Bereits vorhandene öffentliche Sprachmodell-Caches können ungenutzt auf dem Gerät verbleiben; die neue App verwendet sie nicht. Offline-Daten werden nicht bereinigt. Details: `docs/scan-entfernt-2026-10-19.md`.
+
+
+## Vorherige Hochkant-Belegerkennung vom 16.10.2026
 
 Nach konkreter Betreiberfreigabe „ja“ veröffentlicht: geprüfter Code `1038d1fb8db5df842ed310b7ddbab995a95e51b0`, [GitHub-Prüfung 38913535246](https://github.com/Marienapotheke/marapo24-test/actions/runs/38913535246) erfolgreich mit 162 Tests, darunter vier Cloudflare-Browserabläufe. Worker-Version `dc21ea18-6b80-4b89-ae01-ab33fbeadc16`. Keine Migration; Serverquellbundle und Offline-Speichermodul unverändert gegenüber dem vorherigen geprüften Paket.
 
