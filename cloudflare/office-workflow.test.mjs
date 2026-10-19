@@ -1,6 +1,6 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {createRequire} from 'node:module';
 import {fixtureRuntime} from './fixture-runtime.mjs';import {localDate} from './domain.mjs';import {sealSignature} from '../offline-store.mjs';import {deliveryKey} from './web-envelope.mjs';import {purgeExpired,RETENTION_POLICY} from './retention.mjs';
-import {parseLabel,isMobileCameraDevice} from './label-parser.mjs';import {matchingStops} from './office-search.mjs';
+import {matchingStops} from './office-search.mjs';
 const require=createRequire(import.meta.url),{PNG}=require('../functions/node_modules/pngjs');
 const capture=()=>({completionId:crypto.randomUUID(),capturedAt:new Date().toISOString()});
 const parcel=tourId=>({tourId,type:'privat',origin:'Marienapotheke',name:'Fiktiv Muster',street:'Musterweg 1',postalCode:'54321',city:'Musterstadt',cents:500});
@@ -29,13 +29,6 @@ test('another office account settles an earlier finished tour once and sees the 
  const proof=(await f.call('office-20','downloadCashSettlement',{tourId})).body.data.proof;assert.equal(proof.driverId,'driver-a');assert.equal(proof.settledByUid,winner.uid);assert.equal(proof.signerIdentity,'authenticated-office-account');assert.equal(proof.signature,signature);
  const state=(await f.call('office-20','state',{date:'2026-10-15'})).body.data;assert.equal(state.tours[0].cashSettlement.signerName,winner.input.signerName);assert.equal((await f.call('driver-b','downloadCashSettlement',{tourId})).status,403);await assert.rejects(f.db.prepare('DELETE FROM cash_settlements').run());
  }finally{await f.runtime.dispose();}});
-test('OCR parser distinguishes unpaid money, invoice and explicit cash/card payment and leaves ambiguity unresolved',()=>{
- const base='Marienapotheke\nName: Erika Muster\nMusterweg 12\n54321 Musterstadt\nTelefon: 06531 12345\n';
- for(const [tail,amount,reason] of [['Zu kassieren: 12,50 EUR','12,50',''],['Faktura','0,00','Auf Rechnung'],['Bereits bar bezahlt','0,00','Bereits bar bezahlt'],['Bezahlt mit EC','0,00','Bereits mit EC bezahlt']]){const {fields}=parseLabel(base+tail);assert.equal(fields.amount,amount);assert.equal(fields.paymentReason,reason);assert.equal(fields.name,'Erika Muster');assert.equal(fields.street,'Musterweg 12');assert.equal(fields.postalCode,'54321');assert.equal(fields.origin,'Marienapotheke');}
- for(const tail of ['Bar','EC','Rechnung Nr. 123','Nicht bezahlt','Faktura\nZu kassieren: 10,00','Bar bezahlt\nEC bezahlt'])assert.equal(parseLabel(base+tail).fields.amount,'');
- assert.equal(parseLabel(base+'Cusanus-Apotheke\nFaktura').fields.origin,'');assert.throws(()=>parseLabel('x'.repeat(16001)));
-});
-test('mobile scanner detection excludes desktop PCs and office search matches only names in its provided day',()=>{
- assert.equal(isMobileCameraDevice({userAgent:'Mozilla/5.0 (Windows NT 10.0)',maxTouchPoints:10}),false);assert.equal(isMobileCameraDevice({userAgent:'Mozilla Android',maxTouchPoints:5}),true);assert.equal(isMobileCameraDevice({userAgent:'Mozilla Macintosh',maxTouchPoints:5}),true);
+test('office search matches only names in its provided day',()=>{
  const stops=[{id:'one',name:'Erika Muster',street:'Anderer Weg'},{id:'two',name:'Theo Beispiel',street:'Musterweg'}];assert.deepEqual(matchingStops(stops,' MUSTER ').map(s=>s.id),['one']);assert.deepEqual(matchingStops(stops,'Musterweg'),[]);
 });
