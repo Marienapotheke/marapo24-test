@@ -1,4 +1,4 @@
-# Offene Päckchen während der Fahrt entfernen – vorbereitet
+# Offene Päckchen während der Fahrt entfernen – veröffentlicht
 
 Betreiberentscheidungen: Nur offene Päckchen während einer laufenden Tour entfernen, Pflichtgrund, auch offline. Im Büro als „Entfernt“ mit Grund, Fahrer und Zeitpunkt erhalten. Päckchenzahl und Betrag entfallen vollständig aus den Tourensummen; der ursprüngliche Betrag bleibt nachvollziehbar. Bereits abgeschlossene Zustellungen werden weiterhin über die bestehenden Korrekturen behandelt.
 
@@ -17,4 +17,8 @@ Lokale Serverprüfungen: Pflichtgrund, falscher Fahrer, vor Tourstart, veränder
 
 Android-Browser: echte Offline-Netzabschaltung, Pflichtgrund, verschlüsselte Warteschlange, Päckchensumme, anschließender Zustell- und Tourabschluss; Verbindungsrückkehr bei gestörter Zustandsabfrage und verloren gegangener Bestätigung. Automatische Wiederholung ohne Neuladen, unveränderte Kennungen, Büroanzeige und PDF-Erzeugung geprüft. Verschlüsselte Sicherung mit isoliertem Restore erhält Entfernungsgrund, ursprünglichen Betrag und Archivschutz.
 
-Vor Veröffentlichung: vollständige GitHub-Prüfung des konkreten Commits abwarten, Betreiberfreigabe für dieses Paket, frische verschlüsselte Betriebssicherung mit erfolgreichem isoliertem Restore. Noch kein Deployment, keine produktive Migration oder Änderung produktiver Kundendaten. main/v3 bleiben unverändert. Nach Veröffentlichung ausstehende Vorgänge übertragen, alle App-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen.
+Vor Veröffentlichung: vollständige GitHub-Prüfung des konkreten Commits abwarten, Betreiberfreigabe für dieses Paket, frische verschlüsselte Betriebssicherung mit erfolgreichem isoliertem Restore. Vorbereitungsphase ohne Deployment und ohne Änderungen produktiver Kundendaten; Veröffentlichung erst nach Erfüllung dieser Voraussetzungen. main/v3 bleiben unverändert. Nach Veröffentlichung ausstehende Vorgänge übertragen, alle App-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen.
+
+## Abgeschlossene Veröffentlichung
+
+Betreiberfreigabe erteilt. Code `dfccbd4a4e2d59a7afb73480a803633c791855c7`, GitHub-Prüfung `39246248687` mit 156 erfolgreichen Tests. Worker `355e21db-fa1a-4a45-b5bf-beeb7f2961f3`. Vorher-/Nachher-Sicherungen um 13:42 Uhr und 13:43 Uhr erfolgreich wiederhergestellt. Alle 158 bestehenden Zustellnachweise und 9 Abrechnungen exakt unverändert. Keine Migration. Verbindlicher Stand: `docs/echtdatenfreigabe.md`.

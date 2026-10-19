@@ -1,6 +1,17 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Scanfunktion auf Betreiberwunsch entfernt – 19.10.2026, aktueller Betriebsstand
+## Offene Päckchen mit Grund entfernen – 19.10.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „freigabe erteilt“ veröffentlicht: geprüfter Code `dfccbd4a4e2d59a7afb73480a803633c791855c7`; [GitHub-Prüfung 39246248687](https://github.com/Marienapotheke/marapo24-test/actions/runs/39246248687) erfolgreich mit 156 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 82 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen, vier Cloudflare-Browserabläufe). Worker-Version `355e21db-fa1a-4a45-b5bf-beeb7f2961f3`.
+
+Fahrer können ausschließlich offene Päckchen während laufender Tour mit Pflichtgrund entfernen, auch offline. Päckchenzahl und Betrag zählen danach nicht mehr zur Tour. Im Büro bleiben „Entfernt“, Grund, Fahrer und Zeitpunkt sichtbar, einschließlich ursprünglichem Betrag und eigenem Entfernungs-PDF. Keine Änderung abgeschlossener Zustellnachweise. Der Grund liegt verschlüsselt in der Offline-Warteschlange; Zustellung und Entfernung desselben Stopps schließen sich atomar aus. Bestehende Offline-Datenbankkennung und alte Abschlüsse bleiben kompatibel. Die Scanfunktion bleibt entfernt.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 13:42 Uhr und danach um 13:43 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Ein erster Exportversuch war fehlgeschlagen; erst nach erfolgreicher Wiederholung und Restore wurde veröffentlicht. Alle 158 vorherigen Zustellnachweise und 9 Abrechnungen exakt unverändert. 20 öffentliche Dateien bytegenau abgeglichen, elf unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU und Aufbewahrungszeitplan unverändert. Keine Datenmigration und kein Testdatensatz im Echtbetrieb. main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen. Vor Abfahrt „Für Funklöcher vorbereitet“ kontrollieren. Entfernte Päckchen bleiben bis zur bestätigten Übertragung als ausstehender Vorgang sichtbar. Details: `docs/paeckchen-entfernen-2026-10-19.md`.
+
+
+## Vorherige Veröffentlichung: Scanfunktion entfernt – 19.10.2026
 
 Der Betreiber hat die Entfernung ausdrücklich beauftragt, weil die Belegerkennung im tatsächlichen Einsatz weiter nicht zuverlässig funktioniert. Geprüfter Code `fa924f741537829828b1548bac845d917fb96019`; [GitHub-Prüfung 39221368334](https://github.com/Marienapotheke/marapo24-test/actions/runs/39221368334) mit 152 Tests erfolgreich. Worker-Version `b3245316-3e1b-409b-b504-f2c661c24c51`.
 
