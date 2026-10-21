@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Noch nicht veröffentlicht: [Offene Stopps oben, zweiter Name und ruhige Eingabe](fahrer-eingabe-2026-10-21.md). Der folgende Stand der Kontenverwaltung bleibt bis zur gesonderten Freigabe live.
+
 ## Fahrer- und Bürokonten in der Administration anlegen – 21.10.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ zur konkreten Veröffentlichung der Kontenverwaltung veröffentlicht: geprüfter Code `dc25f98a1c63d86f3dba517068e287e1aef2f4a4`; [GitHub-Prüfung 39574250934](https://github.com/Marienapotheke/marapo24-test/actions/runs/39574250934) erfolgreich mit 163 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 89 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `6d0e805d-bf8e-4a30-a144-2f4297529f32`.

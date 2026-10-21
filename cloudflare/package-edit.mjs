@@ -9,7 +9,7 @@ export async function editPackage(db,uid,p,action,input){
  if(action==='deletePackage'){fields(input,['tourId','stopId','baseRevision']);mutation=db.prepare('DELETE FROM stops WHERE id=? AND tour_id=? AND '+permission).bind(...args);}
  else{const {stopId:ignored,baseRevision:ignoredRevision,...data}=input;
   // An older open app does not send counts. Preserve an already recorded count on edits.
-  if(data.parcelCount===undefined){const previous=await db.prepare('SELECT data FROM stops WHERE id=? AND tour_id=?').bind(stopId,tourId).first();if(previous)data.parcelCount=JSON.parse(previous.data).parcelCount;}
+  if(data.parcelCount===undefined||data.secondName===undefined){const previous=await db.prepare('SELECT data FROM stops WHERE id=? AND tour_id=?').bind(stopId,tourId).first();if(previous){const saved=JSON.parse(previous.data);if(data.parcelCount===undefined)data.parcelCount=saved.parcelCount;if(data.secondName===undefined)data.secondName=saved.secondName;}}
   const parsed=packageData(data,{regularType:t.regular_type});mutation=db.prepare('UPDATE stops SET data=? WHERE id=? AND tour_id=? AND '+permission).bind(JSON.stringify({...parsed,_editVersion:revision+1}),...args);}
  // Both statements share a D1 transaction. Only a successful preceding mutation advances the plan.
  const plan=action==='deletePackage'?"(SELECT json_group_array(value) FROM (SELECT value FROM json_each(tour_orders.stop_ids) WHERE value!=? ORDER BY key))":'tour_orders.stop_ids';
