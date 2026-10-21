@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Vorbereitet am 21.10.2026, noch nicht veröffentlicht: farbige Apotheken-/Zahlungsanzeige, einklappbare Bürotouren, Geldbeträge nach Apotheke, „Überweist“ und Vollbild-Unterschriften. Einzelheiten und lokale Prüfungen: [Büroansicht und Unterschriften](buero-farben-2026-10-21.md). Der folgende Betriebsstand bleibt bis zu einer gesondert freigegebenen Veröffentlichung unverändert.
+
 ## Offene Päckchen mit Grund entfernen – 19.10.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „freigabe erteilt“ veröffentlicht: geprüfter Code `dfccbd4a4e2d59a7afb73480a803633c791855c7`; [GitHub-Prüfung 39246248687](https://github.com/Marienapotheke/marapo24-test/actions/runs/39246248687) erfolgreich mit 156 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 82 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen, vier Cloudflare-Browserabläufe). Worker-Version `355e21db-fa1a-4a45-b5bf-beeb7f2961f3`.

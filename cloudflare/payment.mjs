@@ -6,7 +6,7 @@ export function payment(input,due,status){
  const cents=input.collectedCents,reason=input.collectionReason;
  if(!Number.isSafeInteger(cents)||cents<0||cents>due||typeof reason!=='string'||reason.length>120)invalid();
  if(status!=='zugestellt'&&(cents!==0||reason!==''))invalid();
- if(status==='zugestellt'&&cents<due&&!['Kein Geld vorhanden','Nur Teilbetrag vorhanden','Zahlung abgelehnt','Sonstiger Grund'].includes(reason))invalid();
+ if(status==='zugestellt'&&cents<due&&!['Kein Geld vorhanden','Nur Teilbetrag vorhanden','Zahlung abgelehnt','Überweist','Sonstiger Grund'].includes(reason))invalid();
  if(cents===due&&reason!=='')invalid();
  return {collectedCents:cents,collectionReason:reason,collectionConfirmed:true};
 }
