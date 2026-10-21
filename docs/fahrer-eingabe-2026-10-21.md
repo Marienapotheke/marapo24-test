@@ -1,4 +1,4 @@
-# Offene Stopps, zweiter Name und ruhige Eingabe – vorbereitet am 21.10.2026
+# Fahreransicht, Eingabe und Straßenberechnung – vorbereitet am 21.10.2026
 
 Noch nicht veröffentlicht. Keine produktive Migration und keine Änderungen produktiver Lieferungen für Entwicklung oder Tests. Maßgeblicher Live-Stand bleibt die zuvor freigegebene Kontenverwaltung.
 
@@ -16,6 +16,16 @@ Noch nicht veröffentlicht. Keine produktive Migration und keine Änderungen pro
 Die bisherige Darstellung hat das gesamte Erfassungsformular bei jeder Aktualisierung innerhalb der Seite neu eingehängt, auch wenn es bereits am richtigen Ort stand. Dadurch kann ein Browser den Fokus und die Bildschirmtastatur verlieren. Das Formular wird jetzt nur bei einem tatsächlichen Wechsel zwischen Fahrer- und Büroansicht versetzt. Auch Tourenkatalog und Arbeitsbeginn werden nicht bei jeder Aktualisierung unnötig neu eingehängt. Normales Tippen, Tabulator und selbst gewählte Feldwechsel bleiben möglich.
 
 Browserprüfungen fokussieren Name, Straße, PLZ, Ort, Telefon, Betrag, Lieferhinweis und zweiten Namen, setzen den Cursor und lösen eine normale Neudarstellung aus. Fokus, Wert und Cursorposition bleiben erhalten. Der Test läuft in der Büroansicht und auf dem simulierten mobilen Fahrergerät.
+
+## Ergänzung: Sortierknopf reagiert scheinbar nicht
+
+Betreiberbeobachtung: Der Knopf ist normal antippbar, aber es scheint nichts zu passieren. Im bisherigen Code standen Fortschritt und Fehler ausschließlich im globalen Meldungsbereich weit oben, nicht beim Sortierknopf. Außerdem wurden gleichwertige Straßenendungen wie „Neustr.“ und „Neustraße“ streng als verschieden behandelt und verhinderten dann die gesamte Berechnung.
+
+Direkt beim Sortierknopf erscheint jetzt die Prüfung der jeweiligen Lieferadresse mit Fortschritt und anschließend die Straßenberechnung. Ein Fehler nennt dort die betreffende Adresse bzw. die nicht bestätigte Berechnung. Sperrgründe wie Offlinebetrieb, ausstehende Übertragungen oder weniger als zwei offene Stopps sind sichtbar. Eine erfolgreiche Berechnung bestätigt die neue Reihenfolge ausdrücklich. Falls die berechnete Reihenfolge unverändert ist, sagt die App das ebenfalls ausdrücklich. Ein Konto-/Sitzungswechsel während einer Berechnung überträgt keine alte Adressfehlermeldung in den neuen Zugang.
+
+Die Adressprüfung vereinheitlicht ausschließlich die gleichwertigen Endungen `straße`, `strasse` und `str.`. Eine andere Straße, andere Postleitzahl, anderer Ort oder andere Hausnummer bleiben gesperrt. Der vorhandene EU-Endpunkt, die kostenlose Budgetgrenze, die Versions-/Adress-Snapshotprüfung und die strenge Prüfung vollständiger Anbieterantworten bleiben erhalten. Der erste offene Stopp bleibt der bisherige Ausgangspunkt; kein neuer Standortzugriff und keine Übermittlung von Namen oder Telefonnummern. Koordinatenreihenfolge und Job-Zuordnung entsprechen der [Geoapify-Dokumentation](https://apidocs.geoapify.com/docs/route-planner/).
+
+Der komplette lokale Knopfablauf ist mit einem simulierten Anbieter geprüft: falscher Ort, unvollständige Antwort, erfolgreiche neue Reihenfolge und ausdrücklich unveränderte Reihenfolge. Außerdem wird „Neustr. 3“ gegen „Neustraße 3“ geprüft, bei weiterhin abgewiesenem falschem Ort, PLZ, Straße oder Hausnummer. Dies stellt die konkrete reale Fehlerfahrt noch nicht nach; dafür wurden keine produktiven Kundenadressen oder realen Providerantworten ausgelesen. Keine Behauptung, jede tatsächliche Fahrt unabhängig optimiert zu haben.
 
 ## Rückwärtskompatibilität und Prüfung
 

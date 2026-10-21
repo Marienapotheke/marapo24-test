@@ -4,6 +4,8 @@ import {fail,fields,text,id,hasRole,requireRole,localDate} from './domain.mjs';
 const normalize=s=>String(s||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('de-DE');
 // Common official/local spellings refer to the same place; do not accept a different town.
 const locality=s=>normalize(s).replace(/\s*(?:\(mosel\)|an der mosel)\s*$/,'').trim();
+// Equivalent German street suffixes only; postcode, locality and house number still must match.
+export const normalizeStreet=value=>normalize(value).replace(/(?:straße|strasse|str\.)(?=\s|$)/g,'strasse');
 const hash=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 export function customerIdentity(data){return {customerId:hash([normalize(data.name),normalize(data.street),data.postalCode,normalize(data.city)]),customerSearchName:normalize(data.name)};}
 const first=(db,sql,...args)=>db.prepare(sql).bind(...args).first();
@@ -29,8 +31,8 @@ async function location(db,data,key){
  const addressId=hash(['city-checked-v2',normalize(data.street),data.postalCode,normalize(data.city)]),old=await first(db,'SELECT * FROM address_locations WHERE id=?',addressId);if(old)return old;
  await consumeCredits(db,1);const url=new URL('https://api-eu.geoapify.com/v1/geocode/search');url.searchParams.set('text',data.street+', '+data.postalCode+' '+data.city+', Deutschland');url.searchParams.set('filter','countrycode:de');url.searchParams.set('limit','1');url.searchParams.set('apiKey',key);
  const result=await providerFetch(url),p=result.features?.[0]?.properties,number=data.street.match(/(?:\s|^)(\d+[a-z]?(?:[-/]\d+[a-z]?)?)\s*$/i)?.[1];
- const expectedStreet=normalize(data.street.replace(/\s+\d+[a-z]?(?:[-/]\d+[a-z]?)?\s*$/i,''));
- if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||p.lat<-90||p.lat>90||p.lon<-180||p.lon>180||p.postcode!==data.postalCode||![p.city,p.town,p.village,p.municipality,p.suburb].some(city=>city&&locality(city)===locality(data.city))||normalize(p.street)!==expectedStreet||(number&&normalize(p.housenumber)!==normalize(number)))fail('failed-precondition','Eine Lieferadresse ist auf der Karte nicht eindeutig. Bitte Adresse prüfen oder manuell sortieren.');
+ const expectedStreet=normalizeStreet(data.street.replace(/\s+\d+[a-z]?(?:[-/]\d+[a-z]?)?\s*$/i,''));
+ if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||p.lat<-90||p.lat>90||p.lon<-180||p.lon>180||p.postcode!==data.postalCode||![p.city,p.town,p.village,p.municipality,p.suburb].some(city=>city&&locality(city)===locality(data.city))||normalizeStreet(p.street)!==expectedStreet||(number&&normalize(p.housenumber)!==normalize(number)))fail('failed-precondition','Eine Lieferadresse ist auf der Karte nicht eindeutig. Bitte Adresse prüfen oder manuell sortieren.');
  await db.prepare('INSERT OR IGNORE INTO address_locations VALUES (?,?,?,?,?)').bind(addressId,p.lat,p.lon,'Geoapify / OpenStreetMap',new Date().toISOString()).run();return {lat:p.lat,lon:p.lon};
 }
 export async function customerRouteAction(action,input,uid,p,env){
