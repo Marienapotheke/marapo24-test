@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import crypto from 'node:crypto';import {wrapRecoveryKey,unwrapRecoveryKey} from '../scripts/key-vault.mjs';
+test('password-protected recovery key restores exactly, rejects wrong password, changed metadata and different system',async()=>{
+ const recovery={version:1,key:crypto.randomBytes(32).toString('base64')},password='Fiktive-Lange-Wiederherstellungsphrase-987!';const vault=await wrapRecoveryKey(recovery,password,'fictional-test-only');assert.equal(JSON.stringify(vault).includes(recovery.key),false);assert.deepEqual(await unwrapRecoveryKey(vault,password,'fictional-test-only'),recovery);
+ await assert.rejects(unwrapRecoveryKey(vault,'Fiktive-falsche-lange-Passphrase-123!','fictional-test-only'));await assert.rejects(unwrapRecoveryKey(vault,password,'different-system'));await assert.rejects(unwrapRecoveryKey({...vault,header:{...vault.header,target:'different-system'}},password));await assert.rejects(wrapRecoveryKey(recovery,'123456','fictional-test-only'));
+});

@@ -1,0 +1,42 @@
+name: Protected proof tests (emulators only)
+on:
+  push:
+    branches: [test-geschuetzte-zustellnachweise]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.25.0'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm --dir functions install --frozen-lockfile --ignore-scripts
+      - run: pnpm --dir cloudflare-probe install --frozen-lockfile --ignore-scripts
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm test:emulator
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:browser
+      - run: pnpm test:free
+      - run: pnpm test:backup
+      - run: pnpm build:free
+      - run: pnpm test:free:browser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: fictional-browser-test-failure
+          path: artifacts/
+          if-no-files-found: ignore

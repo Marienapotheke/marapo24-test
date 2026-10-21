@@ -1,0 +1,34 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import {fixtureRuntime} from './fixture-runtime.mjs';
+import {localDate} from './domain.mjs';
+const capture=()=>({completionId:crypto.randomUUID(),capturedAt:new Date().toISOString()});
+const parcel=tourId=>({tourId,type:'arzt',origin:'Marienapotheke',name:'Fiktiv Muster',street:'Musterweg 1',postalCode:'54321',city:'Musterstadt',phone:'01234567',note:'Nur für diese Lieferung',cents:500});
+async function setup(){const f=await fixtureRuntime();const tourId=(await f.call('admin','createSpecialTour',{date:localDate(),type:'Fiktive Korrekturtour'})).body.data.tourId;return {...f,tourId};}
+test('office corrects and removes prepared parcels; only assigned driver can modify claimed tour',async()=>{const f=await setup();try{
+ const data=parcel(f.tourId),stopId=(await f.call('office','createPackage',data)).body.data.stopId;
+ assert.equal((await f.call('office','updatePackage',{...data,stopId,baseRevision:0,cents:700})).status,200);assert.equal((await f.call('office','updatePackage',{...data,stopId,baseRevision:0})).status,400);
+ await f.call('driver-a','claimSpecialTour',{tourId:f.tourId});assert.equal((await f.call('driver-b','deletePackage',{tourId:f.tourId,stopId,baseRevision:1})).status,403);assert.equal((await f.call('driver-a','updatePackage',{...data,stopId,baseRevision:1,name:'Fiktiv Korrigiert',cents:800})).status,200);
+ const state=(await f.call('driver-a','state')).body.data;assert.equal(state.stops[f.tourId][0].cents,800);assert.equal(state.stops[f.tourId][0].editVersion,2);assert.equal((await f.call('driver-a','deletePackage',{tourId:f.tourId,stopId,baseRevision:2})).status,200);assert.equal((await f.db.prepare('SELECT count(*) n FROM stops').first()).n,0);
+ assert.equal((await f.call('driver-a','startProtectedTour',{tourId:f.tourId,vehicleId:'car1',odometerKm:100,...capture()})).status,400);
+ }finally{await f.runtime.dispose();}});
+test('concurrent corrections reject stale content and invalidate prior route revision',async()=>{const f=await setup();try{
+ await f.call('driver-a','claimSpecialTour',{tourId:f.tourId});const data=parcel(f.tourId),one=(await f.call('driver-a','createPackage',data)).body.data.stopId,two=(await f.call('driver-a','createPackage',{...data,name:'Fiktiv Zwei'})).body.data.stopId;
+ assert.equal((await f.call('driver-a','reorderStops',{tourId:f.tourId,stopIds:[two,one],baseRevision:0})).status,200);
+ const results=await Promise.all(['office','driver-a'].map((uid,i)=>f.call(uid,'updatePackage',{...data,stopId:one,baseRevision:0,street:'Fiktiver Weg '+(i+2)})));assert.deepEqual(results.map(r=>r.status).sort(),[200,400]);const state=(await f.call('driver-a','state')).body.data;assert.equal(state.tours[0].orderRevision,2);assert.deepEqual(state.stops[f.tourId].map(s=>s.id),[two,one]);
+ assert.equal((await f.call('driver-a','reorderStops',{tourId:f.tourId,stopIds:[one,two],baseRevision:1})).status,400);assert.equal((await f.call('office','deletePackage',{tourId:f.tourId,stopId:one,baseRevision:1})).status,200);assert.deepEqual(JSON.parse((await f.db.prepare('SELECT stop_ids FROM tour_orders').first()).stop_ids),[two]);
+ }finally{await f.runtime.dispose();}});
+test('race between deletion and tour start permits exactly one operation; running parcels and archives cannot be edited',async()=>{const f=await setup();try{
+ await f.call('driver-a','claimSpecialTour',{tourId:f.tourId});const data=parcel(f.tourId),stopId=(await f.call('driver-a','createPackage',data)).body.data.stopId;const results=await Promise.all([f.call('driver-a','deletePackage',{tourId:f.tourId,stopId,baseRevision:0}),f.call('driver-a','startProtectedTour',{tourId:f.tourId,vehicleId:'car1',odometerKm:100,...capture()})]);assert.deepEqual(results.map(r=>r.status).sort(),[200,400]);
+ if(results[0].status===200){const made=await f.call('driver-a','createPackage',data);data.stopId=made.body.data.stopId;assert.equal((await f.call('driver-a','startProtectedTour',{tourId:f.tourId,vehicleId:'car1',odometerKm:100,...capture()})).status,200);}else data.stopId=stopId;
+ assert.equal((await f.call('office','updatePackage',{...data,baseRevision:0})).status,400);assert.equal((await f.call('driver-a','deletePackage',{tourId:f.tourId,stopId:data.stopId,baseRevision:0})).status,400);
+ assert.equal((await f.call('driver-a','completeProtectedDelivery',{tourId:f.tourId,stopId:data.stopId,status:'zugestellt',...capture()})).status,200);const proof=await f.db.prepare('SELECT data FROM proofs').first();assert.equal((await f.call('driver-a','updatePackage',{...data,baseRevision:0,note:'Verändern verboten'})).status,400);assert.equal((await f.db.prepare('SELECT data FROM proofs').first()).data,proof.data);
+ }finally{await f.runtime.dispose();}});
+test('customer-note migration removes only suggestion notes, redacts legacy responses and preserves delivery records',async()=>{const f=await setup();try{
+ await f.call('driver-a','claimSpecialTour',{tourId:f.tourId});const data=parcel(f.tourId),stopId=(await f.call('driver-a','createPackage',data)).body.data.stopId;await f.call('driver-a','startProtectedTour',{tourId:f.tourId,vehicleId:'car1',odometerKm:100,...capture()});assert.equal((await f.call('driver-a','completeProtectedDelivery',{tourId:f.tourId,stopId,status:'zugestellt',...capture()})).status,200);
+ const proof=(await f.db.prepare('SELECT data FROM proofs').first()).data;const row=await f.db.prepare('SELECT * FROM customers').first();assert.equal('note' in JSON.parse(row.data),false);await f.db.prepare("UPDATE customers SET data=json_set(data,'$.note','Fiktiver alter Merkhintergrund')").run();assert.equal('note' in (await f.call('office','searchCustomers',{query:'Fiktiv'})).body.data.customers[0],false);
+ const migration=(await fs.readFile(new URL('./customer-notes.sql',import.meta.url),'utf8')).replace(/\r?\n/g,' ');await f.db.exec(migration);await f.db.exec(migration);const clean=await f.db.prepare('SELECT * FROM customers').first();assert.equal('note' in JSON.parse(clean.data),false);assert.equal(clean.id,row.id);assert.equal(clean.last_delivered_at,row.last_delivered_at);assert.equal((await f.db.prepare('SELECT data FROM proofs').first()).data,proof);assert.equal(JSON.parse((await f.db.prepare('SELECT data FROM stops').first()).data).note,data.note);
+ const next=(await f.call('driver-a','createPackage',{...data,note:'Anderer einmaliger Lieferhinweis'})).body.data.stopId;await f.call('driver-a','completeProtectedDelivery',{tourId:f.tourId,stopId:next,status:'zugestellt',...capture()});assert.equal('note' in JSON.parse((await f.db.prepare('SELECT data FROM customers').first()).data),false);assert.equal((await f.db.prepare('SELECT count(*) n FROM customers').first()).n,1);await assert.rejects(f.db.prepare('UPDATE proofs SET data=?').bind('{}').run());
+ }finally{await f.runtime.dispose();}});

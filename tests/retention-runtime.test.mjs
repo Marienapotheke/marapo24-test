@@ -1,0 +1,13 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {fixtureRuntime} from '../cloudflare/fixture-runtime.mjs';import {purgeExpired,RETENTION_POLICY,backupExpiry,deletionStatements,cutoffFor} from '../cloudflare/retention.mjs';
+test('trusted cleanup removes only expired records, preserves archive guards and rolls back a failed transaction',async()=>{
+ const f=await fixtureRuntime();try{const old='2024-01-01T00:00:00.000Z',now=new Date('2026-10-13T12:00:00Z'),recent=now.toISOString();
+ for(const [id,time] of [['old',old],['recent',recent]]){await f.db.prepare("INSERT INTO tours(id,date,type,driver_id,created_by,status,created_at) VALUES (?,'2026-10-13','Fiktiv','driver-a','office','running',?)").bind(id,time).run();await f.db.prepare("INSERT INTO stops VALUES (?,?,'{}','offen',?,NULL,NULL)").bind(id,id,time).run();await f.db.prepare("INSERT INTO proofs VALUES (?,?,?,'driver-a',?,'fingerprint',?)").bind(id,id,id,id,JSON.stringify({status:'zugestellt',completedAt:time})).run();await f.db.prepare("INSERT INTO customers VALUES (?,?,'{}',?)").bind(id,id,time).run();await f.db.prepare("INSERT INTO address_locations VALUES (?,50,7,'Fiktiv',?)").bind(id,time).run();}
+ await assert.rejects(purgeExpired(f.db,{now}));assert.equal((await f.db.prepare('SELECT count(*) AS n FROM proofs').first()).n,2);
+ const batch=deletionStatements(cutoffFor(now)).map(([s,v])=>v.length?f.db.prepare(s).bind(...v):f.db.prepare(s));batch.splice(3,0,f.db.prepare('SELECT missing_column FROM proofs'));await assert.rejects(f.db.batch(batch));assert.equal((await f.db.prepare('SELECT count(*) AS n FROM proofs').first()).n,2);await assert.rejects(f.db.prepare("DELETE FROM proofs WHERE id='recent'").run());
+ const result=await purgeExpired(f.db,{policy:RETENTION_POLICY,now});assert.equal(result.deleted.proofs,1);assert.equal(result.deleted.stops,1);assert.equal(result.deleted.customers,1);assert.equal(result.deleted.addressLocations,1);assert.equal((await f.db.prepare('SELECT id FROM proofs').first()).id,'recent');await assert.rejects(f.db.prepare("DELETE FROM proofs WHERE id='recent'").run());await assert.rejects(f.db.prepare("UPDATE proofs SET data='{}'").run());assert.equal((await purgeExpired(f.db,{policy:RETENTION_POLICY,now})).deleted.proofs,0);
+ }finally{await f.runtime.dispose();}
+});
+test('backup lifetime is limited by both backup age and the age of its oldest data',()=>{
+ assert.equal(backupExpiry('2026-10-13T00:00:00Z','2026-10-12T00:00:00Z'),'2026-11-12T00:00:00.000Z');
+ const oldest='2025-10-20T00:00:00Z',created='2026-10-13T00:00:00Z';assert.equal(backupExpiry(created,oldest),'2026-10-19T00:00:00.000Z');assert.ok(Date.parse(backupExpiry(created,oldest))-Date.parse(oldest)<365*86400000);
+});
