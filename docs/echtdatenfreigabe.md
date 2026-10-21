@@ -1,8 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Offene Stopps oben, zweiter Name und ruhige Eingabe](fahrer-eingabe-2026-10-21.md). Der folgende Stand der Kontenverwaltung bleibt bis zur gesonderten Freigabe live.
+## Fahreransicht, Eingabe und Straßenberechnung – 21.10.2026, aktueller Betriebsstand
 
-## Fahrer- und Bürokonten in der Administration anlegen – 21.10.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja freigabe“ veröffentlicht: geprüfter Code `ed266828f61ae98dc0d1d9ce77015ec18e6ff64d`; [GitHub-Prüfung 39626465850](https://github.com/Marienapotheke/marapo24-test/actions/runs/39626465850) erfolgreich mit 168 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 94 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `986a873f-e079-44b0-8ef2-cb1331a860bc`.
+
+Offene Stopps stehen in der Fahreransicht oben, bestätigte und lokal offline abgeschlossene darunter. Ab zwei Päckchen ist ein optionaler zweiter Name beim gemeinsamen Stopp mit gemeinsamem Betrag und Nachweis möglich; Suche und PDF berücksichtigen ihn lieferbezogen. Formularaktualisierungen behalten Eingabefokus und Cursor. Die Straßenberechnung zeigt Fortschritt, Fehler und unveränderte Reihenfolge direkt am Knopf und akzeptiert gleichwertige deutsche Straßenendungen. Ort, PLZ, Straße und Hausnummer werden weiterhin geprüft. Die konkrete reale Fehlerfahrt wurde nicht unabhängig nachgestellt; Tests verwenden fiktive Daten und einen simulierten Anbieter.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 17:46 Uhr und danach um 17:47 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 351 vorherigen Zustellnachweise und 19 Abrechnungen bytegenau unverändert. 22 öffentliche Dateien bytegenau abgeglichen, 15 unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und verschlüsselte Offline-Datenbank erhalten. Keine Migration und keine produktiven Testdaten; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen. Details: [Fahreransicht, Eingabe und Straßenberechnung](fahrer-eingabe-2026-10-21.md).
+
+## Vorherige Veröffentlichung: Fahrer- und Bürokonten in der Administration anlegen – 21.10.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ zur konkreten Veröffentlichung der Kontenverwaltung veröffentlicht: geprüfter Code `dc25f98a1c63d86f3dba517068e287e1aef2f4a4`; [GitHub-Prüfung 39574250934](https://github.com/Marienapotheke/marapo24-test/actions/runs/39574250934) erfolgreich mit 163 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 89 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `6d0e805d-bf8e-4a30-a144-2f4297529f32`.
 

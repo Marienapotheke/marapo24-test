@@ -1,6 +1,6 @@
-# Fahreransicht, Eingabe und Straßenberechnung – vorbereitet am 21.10.2026
+# Fahreransicht, Eingabe und Straßenberechnung – veröffentlicht am 21.10.2026
 
-Noch nicht veröffentlicht. Keine produktive Migration und keine Änderungen produktiver Lieferungen für Entwicklung oder Tests. Maßgeblicher Live-Stand bleibt die zuvor freigegebene Kontenverwaltung.
+Nach ausdrücklicher Betreiberfreigabe am 21.10.2026 veröffentlicht. Keine produktive Migration und keine Änderungen produktiver Lieferungen für Entwicklung oder Tests. Sicherung und Live-Prüfung sind unten dokumentiert.
 
 ## Vereinbartes Verhalten
 
@@ -33,4 +33,16 @@ Der zweite Name ist ein optionales, auf 90 Zeichen begrenztes Feld im bestehende
 
 Fiktive Prüfungen decken stabile Reihenfolge einschließlich Offline-Abschluss, gemeinsame Päckchensumme/Geldbetrag, Validierung, alte Bearbeitungsclients, Kundenprofiltrennung und geschützten Nachweis ab. Der Browser prüft zusätzlich beide Namen, Eingabefokus, sofortiges Nach-unten-Rutschen im Funkloch, richtige Navigation nach dem Sortieren und Tagessuche nach dem zweiten Namen. Bestehende Offline-, Kassen-, Unterschrifts- und Korrekturabläufe werden mitgeprüft.
 
-Vor Veröffentlichung: Betreiberfreigabe für dieses Paket, erfolgreiche GitHub-Gesamtprüfung, frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test und anschließender Live-Datei-/Archivabgleich. main/v3 bleiben unverändert.
+Veröffentlichungsvoraussetzungen erfüllt: ausdrückliche Betreiberfreigabe, erfolgreiche GitHub-Gesamtprüfung, frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test und anschließender Live-Datei-/Archivabgleich. main/v3 bleiben unverändert.
+
+## Veröffentlichungsnachweis
+
+## Fahreransicht, Eingabe und Straßenberechnung – 21.10.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „ja freigabe“ veröffentlicht: geprüfter Code `ed266828f61ae98dc0d1d9ce77015ec18e6ff64d`; [GitHub-Prüfung 39626465850](https://github.com/Marienapotheke/marapo24-test/actions/runs/39626465850) erfolgreich mit 168 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 94 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `986a873f-e079-44b0-8ef2-cb1331a860bc`.
+
+Offene Stopps stehen in der Fahreransicht oben, bestätigte und lokal offline abgeschlossene darunter. Ab zwei Päckchen ist ein optionaler zweiter Name beim gemeinsamen Stopp mit gemeinsamem Betrag und Nachweis möglich; Suche und PDF berücksichtigen ihn lieferbezogen. Formularaktualisierungen behalten Eingabefokus und Cursor. Die Straßenberechnung zeigt Fortschritt, Fehler und unveränderte Reihenfolge direkt am Knopf und akzeptiert gleichwertige deutsche Straßenendungen. Ort, PLZ, Straße und Hausnummer werden weiterhin geprüft. Die konkrete reale Fehlerfahrt wurde nicht unabhängig nachgestellt; Tests verwenden fiktive Daten und einen simulierten Anbieter.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 17:46 Uhr und danach um 17:47 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 351 vorherigen Zustellnachweise und 19 Abrechnungen bytegenau unverändert. 22 öffentliche Dateien bytegenau abgeglichen, 15 unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und verschlüsselte Offline-Datenbank erhalten. Keine Migration und keine produktiven Testdaten; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen. Details: [Fahreransicht, Eingabe und Straßenberechnung](fahrer-eingabe-2026-10-21.md).
