@@ -1,6 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Vorbereitet am 21.10.2026, noch nicht veröffentlicht: farbige Apotheken-/Zahlungsanzeige, einklappbare Bürotouren, Geldbeträge nach Apotheke, „Überweist“ und Vollbild-Unterschriften. Einzelheiten und lokale Prüfungen: [Büroansicht und Unterschriften](buero-farben-2026-10-21.md). Der folgende Betriebsstand bleibt bis zu einer gesondert freigegebenen Veröffentlichung unverändert.
+Noch nicht veröffentlicht: [Neue Personen in der Administration anlegen](konten-anlegen-2026-10-21.md). Die folgende Veröffentlichung der Bürofarben bleibt der aktuelle Live-Stand.
+
+## Bürofarben, offene Beträge und Vollbild-Unterschriften – 21.10.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „gut dann freigabe“ veröffentlicht: geprüfter Code `3d48690b9c8a63dafdbbd1d6a6b65534cef82bdc`; [GitHub-Prüfung 39560735673](https://github.com/Marienapotheke/marapo24-test/actions/runs/39560735673) erfolgreich mit 158 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 84 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `baf7b7e0-cd24-4bbf-ab21-1e37ed0ff2ab`.
+
+Marienapotheke blau, Cusanus-Apotheke violett: Kundenkarten, getrennte Kassensummen und farblich abgesetzte kassierte Beträge. Büro-Touren lassen sich einklappen; die Namenssuche öffnet passende Treffer vorübergehend. Nach Tourende werden aktuelle Kunden mit Geldbetrag nach Apotheke und alphabetisch angezeigt; Nullbeträge und historische Einträge bleiben gesondert sichtbar. Nicht zugestellt erscheint orange auf helleren Kundenkarten. Offene Forderungen nach Tourende sowie Zahlungsgründe werden fett/rot hervorgehoben. „Überweist“ ist ein zusätzlicher Grund für den weiterhin offenen Rest, kein Zahlungseingang. Zustell- und Abrechnungsunterschriften können auf einer eigenen Vollbildfläche erfasst werden und werden proportional ins bestehende geschützte PNG-Format übernommen. Die PDF-Darstellung unterscheidet Apotheke, kassierte Beträge und offene Zahlungen ebenfalls farblich.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 09:23 Uhr und danach um 09:24 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 316 vorherigen Zustellnachweise und 15 Abrechnungen bytegenau unverändert. 22 öffentliche Dateien bytegenau mit dem geprüften Paket abgeglichen, elf unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und verschlüsselte Offline-Datenbank erhalten. Keine Datenmigration und keine Testdatensätze im Echtbetrieb; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Vor Abfahrt „Für Funklöcher vorbereitet“ kontrollieren. Details: [Büroansicht und Unterschriften](buero-farben-2026-10-21.md).
 
 ## Vorherige Veröffentlichung: Offene Päckchen mit Grund entfernen – 19.10.2026
 

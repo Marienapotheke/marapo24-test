@@ -1,3 +1,4 @@
+import {createStaffAccount} from './staff-admin.mjs';
 import {deleteOwnTour,deletionState} from './tour-deletion.mjs';
 import {startWork,workStartState} from './work-starts.mjs';
 import {amendDelivery,applyAmendments,proofAmendments} from './delivery-amendments.mjs';
@@ -156,6 +157,7 @@ export default {
     if(p){p={...p,sessionKind:kind,loginEmail:email,mustChangePassword:mustChange,officeUsername};if(kind==='driver')p={...p,roles:p.roles.filter(r=>r==='driver'),isAdmin:false,canCreateSpecialTour:false};if(kind==='office')p={...p,roles:p.roles.filter(r=>r==='office')};p.canRecoverPasswords=isRecoveryAdmin(p,env);}
     if(mustChange&&!['changeOfficePassword','session'].includes(action))fail('failed-precondition','Bitte zuerst das vorläufige Passwort ändern.');
     if(action==='session'){fields(input,[]);result={data:{profile:p}};}
+    else if(action==='createStaffAccount')result={data:await createStaffAccount(input,env,p)};
     else if(['changeOfficePassword','listPasswordRequests','resetOfficePassword'].includes(action))result=await officeAccountAction(action,input,request,env,p);
     else if(['authorizeDriverDevice','listDriverDevices','revokeDriverDevice','setDriverPin'].includes(action)){if(action==='setDriverPin'&&!isRecoveryAdmin(p,env))fail('permission-denied','Persönlicher Administratorzugang zum Zurücksetzen der Fahrer-PIN erforderlich.');result=await driverAdminAction(action,input,request,env,p);}
     else if(['searchCustomers','reorderStops','optimizeStops','prepareRouteAddress'].includes(action))result={data:await customerRouteAction(action,input,uid,p,env)};

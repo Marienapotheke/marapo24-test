@@ -30,4 +30,3 @@ Marienapotheke blau, Cusanus-Apotheke violett: Kundenkarten, getrennte Kassensum
 Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 09:23 Uhr und danach um 09:24 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 316 vorherigen Zustellnachweise und 15 Abrechnungen bytegenau unverändert. 22 öffentliche Dateien bytegenau mit dem geprüften Paket abgeglichen, elf unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und verschlüsselte Offline-Datenbank erhalten. Keine Datenmigration und keine Testdatensätze im Echtbetrieb; main/v3 unverändert.
 
 Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Vor Abfahrt „Für Funklöcher vorbereitet“ kontrollieren. Details: [Büroansicht und Unterschriften](buero-farben-2026-10-21.md).
-
