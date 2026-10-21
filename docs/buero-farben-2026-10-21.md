@@ -1,6 +1,6 @@
-# Büroansicht und Unterschriften – Vorbereitung 21.10.2026
+# Büroansicht und Unterschriften – veröffentlicht am 21.10.2026
 
-Status: ausschließlich lokal vorbereitet und mit fiktiven Daten geprüft. Kein Deployment, keine produktive Migration und kein Zugriff auf produktive Kundeninhalte für diese Änderung. Der freigegebene Betriebsstand vom 19.10.2026 bleibt maßgeblich.
+Vorbereitung und Tests ausschließlich mit fiktiven Daten. Nach ausdrücklicher Betreiberfreigabe am 21.10.2026 veröffentlicht; keine Datenmigration. Sicherung und Verifikation siehe Veröffentlichungsnachweis unten.
 
 ## Vereinbarte Darstellung
 
@@ -17,4 +17,17 @@ Keine Schemaänderung. Keine Änderung der verschlüsselten Offline-Datenbank od
 
 Lokale Prüfungen: 36 Grundprüfungen, 84 Cloudflare-Backendprüfungen einschließlich zwei neuer Prüfungen zu Gruppierung/Zahlungsgrund, 16 Sicherungs-/Aufbewahrungsprüfungen und vier Cloudflare-Browserabläufe. PDF-/Abrechnungsprüfungen zusätzlich nach der PDF-Anpassung wiederholt. Browser prüfen beide Vollbild-Unterschriften, Größenwechsel, geschützte Archivierung, Klappen/Suche, rote Forderungsanzeige, orange Nichtzustellung und bestehende Offline-Synchronisation mit fiktiven Daten.
 
-Vor Veröffentlichung: konkrete Betreiberfreigabe für dieses Paket, erfolgreiche GitHub-Gesamtprüfung, frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test und anschließender Abgleich des veröffentlichten Pakets. main/v3 bleiben unverändert. Noch keine Freigabe für diese neue Veröffentlichung dokumentiert.
+Vor Veröffentlichung: konkrete Betreiberfreigabe für dieses Paket, erfolgreiche GitHub-Gesamtprüfung, frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test und anschließender Abgleich des veröffentlichten Pakets. main/v3 bleiben unverändert. Diese Voraussetzungen wurden vor Veröffentlichung erfüllt.
+
+## Veröffentlichungsnachweis
+
+## Bürofarben, offene Beträge und Vollbild-Unterschriften – 21.10.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „gut dann freigabe“ veröffentlicht: geprüfter Code `3d48690b9c8a63dafdbbd1d6a6b65534cef82bdc`; [GitHub-Prüfung 39560735673](https://github.com/Marienapotheke/marapo24-test/actions/runs/39560735673) erfolgreich mit 158 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 84 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `baf7b7e0-cd24-4bbf-ab21-1e37ed0ff2ab`.
+
+Marienapotheke blau, Cusanus-Apotheke violett: Kundenkarten, getrennte Kassensummen und farblich abgesetzte kassierte Beträge. Büro-Touren lassen sich einklappen; die Namenssuche öffnet passende Treffer vorübergehend. Nach Tourende werden aktuelle Kunden mit Geldbetrag nach Apotheke und alphabetisch angezeigt; Nullbeträge und historische Einträge bleiben gesondert sichtbar. Nicht zugestellt erscheint orange auf helleren Kundenkarten. Offene Forderungen nach Tourende sowie Zahlungsgründe werden fett/rot hervorgehoben. „Überweist“ ist ein zusätzlicher Grund für den weiterhin offenen Rest, kein Zahlungseingang. Zustell- und Abrechnungsunterschriften können auf einer eigenen Vollbildfläche erfasst werden und werden proportional ins bestehende geschützte PNG-Format übernommen. Die PDF-Darstellung unterscheidet Apotheke, kassierte Beträge und offene Zahlungen ebenfalls farblich.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 09:23 Uhr und danach um 09:24 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 316 vorherigen Zustellnachweise und 15 Abrechnungen bytegenau unverändert. 22 öffentliche Dateien bytegenau mit dem geprüften Paket abgeglichen, elf unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und verschlüsselte Offline-Datenbank erhalten. Keine Datenmigration und keine Testdatensätze im Echtbetrieb; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Vor Abfahrt „Für Funklöcher vorbereitet“ kontrollieren. Details: [Büroansicht und Unterschriften](buero-farben-2026-10-21.md).
+
