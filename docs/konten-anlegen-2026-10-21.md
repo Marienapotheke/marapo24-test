@@ -1,6 +1,6 @@
-# Neue Personen in der Administration – vorbereitet am 21.10.2026
+# Neue Personen in der Administration – veröffentlicht am 21.10.2026
 
-Noch nicht veröffentlicht. Die vorherige Veröffentlichung der Bürofarben bleibt der Live-Betriebsstand. Kein produktives Konto wurde für Entwicklung oder Tests angelegt.
+Nach ausdrücklicher Betreiberfreigabe am 21.10.2026 veröffentlicht. Kein produktives Konto wurde für Entwicklung oder Tests angelegt. Sicherung und Live-Prüfung sind unten dokumentiert.
 
 ## Bedienung
 
@@ -26,3 +26,15 @@ Neue Personen erscheinen nach bestätigtem Speichern in der Kontenliste und in d
 Fiktive Backendprüfungen decken Zugriffsverweigerung, fremde Administrator-E-Mail, eingeschleuste Berechtigungen, ungültige PINs, tatsächliche Fahrer-PIN-Anmeldung, vorläufige Büroanmeldung mit Pflicht-Passwortwechsel, beide Rollen, wiederholte Vorgangskennungen, doppelte Benutzernamen und Listenkapazitäten, parallele Wiederholung sowie vollständigen Transaktionsabbruch bei einem Speicherfehler ab. Browserprüfung umfasst das Formular im echten Administratorablauf, eine verlorene erfolgreiche Serverbestätigung mit identischer Wiederholung, PIN-Augensymbol, Passwortausgabe und Leeren beim Schließen sowie das Ausblenden für normale Bürokräfte.
 
 Vor Veröffentlichung sind Betreiberfreigabe für diese Erweiterung, erfolgreiche GitHub-Gesamtprüfung und eine frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test erforderlich. main/v3 bleiben unverändert.
+
+## Veröffentlichungsnachweis
+
+## Fahrer- und Bürokonten in der Administration anlegen – 21.10.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „ja“ zur konkreten Veröffentlichung der Kontenverwaltung veröffentlicht: geprüfter Code `dc25f98a1c63d86f3dba517068e287e1aef2f4a4`; [GitHub-Prüfung 39574250934](https://github.com/Marienapotheke/marapo24-test/actions/runs/39574250934) erfolgreich mit 163 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 89 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `6d0e805d-bf8e-4a30-a144-2f4297529f32`.
+
+Der verifizierte persönliche Administratorzugang kann unter „Mitarbeiterkonten verwalten“ neue Personen als Fahrer, Büro oder mit beiden Rollen anlegen. Fahrer-PIN wird von der Administratorin selbst festgelegt. Bürokräfte erhalten einen eindeutigen Benutzernamen und ein zufälliges vorläufiges Passwort mit Pflichtänderung vor Datenzugriff. Atomare Anlage und wiederholbare Vorgangskennung verhindern halbfertige und doppelte Konten bei Speicher-/Übertragungsfehlern. Keine neuen Administratorrechte und keine Gerätefreigabe. Bestehende Konten und Zugangsverfahren bleiben erhalten.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 11:21 Uhr und danach um 11:22 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 329 vorherigen Zustellnachweise und 18 Abrechnungen bytegenau unverändert; im laufenden Betrieb kamen zwischenzeitlich 2 weitere Zustellnachweise hinzu. 22 öffentliche Dateien bytegenau abgeglichen, zwölf unangemeldete API-Zugriffe einschließlich Kontenanlage gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und Offline-Datenbank erhalten. Keine Migration und keine produktiven Testkonten; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen. Danach mit dem persönlichen Administratorzugang anmelden. Details: [Neue Personen in der Administration](konten-anlegen-2026-10-21.md).

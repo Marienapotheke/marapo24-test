@@ -1,8 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Neue Personen in der Administration anlegen](konten-anlegen-2026-10-21.md). Die folgende Veröffentlichung der Bürofarben bleibt der aktuelle Live-Stand.
+## Fahrer- und Bürokonten in der Administration anlegen – 21.10.2026, aktueller Betriebsstand
 
-## Bürofarben, offene Beträge und Vollbild-Unterschriften – 21.10.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja“ zur konkreten Veröffentlichung der Kontenverwaltung veröffentlicht: geprüfter Code `dc25f98a1c63d86f3dba517068e287e1aef2f4a4`; [GitHub-Prüfung 39574250934](https://github.com/Marienapotheke/marapo24-test/actions/runs/39574250934) erfolgreich mit 163 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 89 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `6d0e805d-bf8e-4a30-a144-2f4297529f32`.
+
+Der verifizierte persönliche Administratorzugang kann unter „Mitarbeiterkonten verwalten“ neue Personen als Fahrer, Büro oder mit beiden Rollen anlegen. Fahrer-PIN wird von der Administratorin selbst festgelegt. Bürokräfte erhalten einen eindeutigen Benutzernamen und ein zufälliges vorläufiges Passwort mit Pflichtänderung vor Datenzugriff. Atomare Anlage und wiederholbare Vorgangskennung verhindern halbfertige und doppelte Konten bei Speicher-/Übertragungsfehlern. Keine neuen Administratorrechte und keine Gerätefreigabe. Bestehende Konten und Zugangsverfahren bleiben erhalten.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 11:21 Uhr und danach um 11:22 Uhr (Europe/Berlin), jeweils isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 329 vorherigen Zustellnachweise und 18 Abrechnungen bytegenau unverändert; im laufenden Betrieb kamen zwischenzeitlich 2 weitere Zustellnachweise hinzu. 22 öffentliche Dateien bytegenau abgeglichen, zwölf unangemeldete API-Zugriffe einschließlich Kontenanlage gesperrt. Schlüsselbindungen, D1-EU, Aufbewahrungszeitplan und Offline-Datenbank erhalten. Keine Migration und keine produktiven Testkonten; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen. Danach mit dem persönlichen Administratorzugang anmelden. Details: [Neue Personen in der Administration](konten-anlegen-2026-10-21.md).
+
+## Vorherige Veröffentlichung: Bürofarben, offene Beträge und Vollbild-Unterschriften – 21.10.2026
 
 Nach ausdrücklicher Betreiberfreigabe „gut dann freigabe“ veröffentlicht: geprüfter Code `3d48690b9c8a63dafdbbd1d6a6b65534cef82bdc`; [GitHub-Prüfung 39560735673](https://github.com/Marienapotheke/marapo24-test/actions/runs/39560735673) erfolgreich mit 158 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 84 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `baf7b7e0-cd24-4bbf-ab21-1e37ed0ff2ab`.
 
