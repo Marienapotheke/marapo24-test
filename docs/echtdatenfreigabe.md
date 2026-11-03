@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Noch nicht veröffentlicht: [Kundenunterschrift direkt ansehen](kundenunterschrift-2026-11-03.md). Der folgende Betriebsstand bleibt bis zur Freigabe dieser Ergänzung unverändert.
+
 ## Ergänzung: Abrechnungsdialog erneut öffnen – 03.11.2026, aktueller Betriebsstand
 
 Nach der Betreiberfreigabe und der Aufforderung „weiter“ veröffentlicht: Code `112f0da747c37d27adbcccca87fb8a26ce051bb4`, Worker-Version `009cb64e-2dde-4634-9d28-3d0c4f5ffac9`. [GitHub-Prüfung 41624126236](https://github.com/Marienapotheke/marapo24-test/actions/runs/41624126236) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Das konkrete Produktionspaket wurde zusätzlich isoliert geprüft.
