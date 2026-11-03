@@ -1,2 +1,5 @@
 # Immutable downloaded reference: preserve CRLF and bundled-library whitespace.
 recovery/** -text -whitespace
+
+# Derived bundled PDF libraries retain upstream whitespace and line endings.
+cloudflare/office-pdf.mjs -text -whitespace

@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Noch nicht veröffentlicht: [Abrechnung nur bei kassiertem Geld, tatsächlicher Abrechnungsname und kilometerfreie Selbst-Mitnahme](abrechnung-mitnahme-2026-11-03.md). Der folgende freigegebene Stand bleibt bis zur gesonderten Veröffentlichung live.
+
 ## Wiederaufbau, sichere Tourerfassung, Adressvorschläge und Zustelluhrzeit – 03.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ zum konkret geprüften Paket veröffentlicht: Code `9947d33f7aeb9f46781e5dc79ea221fd6d61a5a7`; [GitHub-Prüfung 41603444377](https://github.com/Marienapotheke/marapo24-test/actions/runs/41603444377) erfolgreich mit 182 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 104 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restore-/Retentions-/Wiederaufbauprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `8f5def12-30a6-4ba1-b167-79d3bb3976ec`.
