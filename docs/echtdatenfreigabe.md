@@ -1,8 +1,18 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Abrechnung nur bei kassiertem Geld, tatsächlicher Abrechnungsname und kilometerfreie Selbst-Mitnahme](abrechnung-mitnahme-2026-11-03.md). Der folgende freigegebene Stand bleibt bis zur gesonderten Veröffentlichung live.
+## Abrechnung bei Kasseneingang, tatsächlicher Name und Selbst-Mitnahme ohne Kilometer – 03.11.2026, aktueller Betriebsstand
 
-## Wiederaufbau, sichere Tourerfassung, Adressvorschläge und Zustelluhrzeit – 03.11.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja“ zum konkret geprüften Paket veröffentlicht: Code `925193d0926b25a44925594884feef818f6f3292`; [GitHub-Prüfung 41622402514](https://github.com/Marienapotheke/marapo24-test/actions/runs/41622402514) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restore-/Retentions-/Wiederaufbauprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `54098dad-e181-4054-9d53-cb7a4f386e2e`.
+
+Bei insgesamt 0 € tatsächlich kassiertem Geld für Marien und Cusanus entfällt die neue Abrechnungsunterschrift in Fahrer- und Büroansicht, auch bei offenen Kundenforderungen. Der Server verweigert neue Null-Kassen-Nachweise und prüft die Einnahmen beim Einfügen atomar. Bei ausschließlich kassiertem Cusanus-Geld bleibt die bisherige Marien-Abrechnungsunterschrift nach ausdrücklicher Rückfrage sichtbar. Bestehende Null-Abrechnungen und deren exakte Wiederholungen bleiben unverändert erhalten.
+
+Das Namensfeld jeder neuen Abrechnung startet leer und ist auch im Büro bearbeitbar. Die tatsächlich abrechnende Person trägt ihren Namen ein und unterschreibt. Der angemeldete Zugang wird getrennt zur Nachvollziehbarkeit gespeichert und nicht automatisch als physisch abrechnende Person ausgegeben. Büroansicht und PDF unterscheiden diese Angaben; historische Identitätskennungen und Originalnachweise bleiben erhalten. Selbst-Mitnahme-Touren zeigen und verlangen keine Kilometer mehr, auch ältere Touren mit vorhandener Fahrzeugkennung. Gespeicherte Altwerte werden nicht gelöscht; schon offline erfasste zulässige Endkilometer alter Clients bleiben übertragbar. Reguläre Touren behalten ihre bisherigen Fahrzeug-/Kilometerregeln.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 11:54 Uhr und danach um 11:55 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Alle 984 vorherigen Zustellnachweise, 51 Abrechnungen, 9 Korrekturen und 2 Fahrerzuordnungsnachweise bytegenau unverändert. 22 öffentliche Dateien bytegenau mit dem Paket abgeglichen, 19 unangemeldete API-Zugriffe gesperrt. Gesamtes Datenbankschema, Schlüsselbindungen, D1-EU, Kompatibilitätseinstellungen und Aufbewahrungszeitplan unverändert. Keine produktive Migration oder Testdatensätze; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen; Browserdaten nicht löschen. Vor Abfahrt „Für Funklöcher vorbereitet“ prüfen. Details: [Abrechnung und Selbst-Mitnahme](abrechnung-mitnahme-2026-11-03.md).
+
+## Vorherige Veröffentlichung: Wiederaufbau, sichere Tourerfassung, Adressvorschläge und Zustelluhrzeit – 03.11.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ zum konkret geprüften Paket veröffentlicht: Code `9947d33f7aeb9f46781e5dc79ea221fd6d61a5a7`; [GitHub-Prüfung 41603444377](https://github.com/Marienapotheke/marapo24-test/actions/runs/41603444377) erfolgreich mit 182 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 104 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restore-/Retentions-/Wiederaufbauprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `8f5def12-30a6-4ba1-b167-79d3bb3976ec`.
 
