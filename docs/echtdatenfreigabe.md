@@ -1,6 +1,8 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Fahreransicht, Eingabe und Straßenberechnung – 21.10.2026, aktueller Betriebsstand
+Standkontrolle 03.11.2026: Live läuft inzwischen Worker `4872e4c6-766d-4647-8aed-44c325d1df67` vom 30.10.; dieser neuere, auf einem anderen Rechner bearbeitete Quellstand fehlt im vorliegenden Git-Zweig. Der folgende Abschnitt dokumentiert die vorherige Veröffentlichung. Nicht über den neueren Stand veröffentlichen. Lesende Befunde, lokaler Korrekturentwurf und Integrationsvoraussetzungen: [Störungsanalyse vom 03.11.](stoerungsanalyse-2026-11-03.md). Keine neue Veröffentlichung im Rahmen dieser Analyse.
+
+## Fahreransicht, Eingabe und Straßenberechnung – 21.10.2026, vorherige dokumentierte Veröffentlichung
 
 Nach ausdrücklicher Betreiberfreigabe „ja freigabe“ veröffentlicht: geprüfter Code `ed266828f61ae98dc0d1d9ce77015ec18e6ff64d`; [GitHub-Prüfung 39626465850](https://github.com/Marienapotheke/marapo24-test/actions/runs/39626465850) erfolgreich mit 168 Tests (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 94 Cloudflare-Backendprüfungen, 16 Sicherungsprüfungen und vier Cloudflare-Browserabläufe). Worker-Version `986a873f-e079-44b0-8ef2-cb1331a860bc`.
 
