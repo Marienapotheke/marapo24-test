@@ -1,4 +1,4 @@
-# Wiederaufbau aus Cloudflare und vorbereitete Korrekturen – 03.11.2026
+# Wiederaufbau aus Cloudflare und freigegebene Korrekturen – 03.11.2026
 
 ## Herkunft und unveränderte Referenz
 
@@ -22,7 +22,7 @@ Die ursprünglichen Autorenkommentare, die frühere Server-Modulaufteilung und d
 
 Die am 30.10. hinzugekommenen Abläufe bleiben enthalten: zusätzliche Bearbeitungsmöglichkeiten während der Fahrt, geänderte Erfassungs-/Unterschriftssteuerung, Ablageort und geschützte Ablagefotos, automatische offene Zahlung bei indirekter Übergabe sowie Apotheken-Depot und Ortsteilabgleich bei der Routenberechnung. Alte Nachweise und Offline-Nachrichten bleiben kompatibel.
 
-## Vorbereitete Änderungen
+## Veröffentlichte Änderungen
 
 **Wiedereinstieg und Tourauswahl:** Die persönliche Auswahl wird für dasselbe Konto und denselben Tag wiederhergestellt. Andernfalls haben aktuelle laufende/vorbereitete Touren Vorrang vor alten Fahrten. Ein fremdes oder nicht mehr zugeordnetes Tour-ID wird nicht übernommen. Der Tourwähler bleibt auch bei einer beendeten Tour sichtbar. Datum, Status und Hinweise auf alte/beendete Touren stehen direkt daneben. Kein Fahrerwechsel ist nötig, um eine andere eigene Tour anzusehen. Die konkrete Ursache aller auf dem Handy beobachteten Leeransichten wurde mangels damaliger Bildschirmaufzeichnung nicht abschließend bewiesen.
 
@@ -44,4 +44,20 @@ Die ausdrücklich genannte Beispieladresse wurde zusätzlich ohne Kundennamen be
 
 Entwicklung und sämtliche Prüfungen verwenden fiktive Datenbanken, lokale Identitätsdienste und simulierte Kartenantworten. Prüfungen umfassen die bytegenaue Referenz, aktuelle Server-/Berechtigungsabläufe, unveränderliche Archive, Sicherung/Restore/Retention, mobile Wiederaufnahme, geänderten Tourstatus bei fokussiertem Formular, neue Datumssperre, Vorschlagsprüfung ohne automatisches Speichern sowie Zustelluhrzeit vor und nach Offline-Übertragung. Die früheren Routen- und Zahlungs-Browserprüfungen wurden an bereits live enthaltenes Depot- und indirektes Zahlungsverhalten angepasst, ohne diese Live-Regeln zurückzunehmen.
 
-**Noch nicht veröffentlicht.** main/v3 und produktive Datensätze unverändert. Ein späteres Paket benötigt erfolgreiche GitHub-Gesamtprüfung, ausdrückliche Betreiberfreigabe für dieses konkrete Update und unmittelbar davor eine frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test. Danach Datei-/Binding-/Archivabgleich. Browserdaten und vorhandene Offline-Warteschlangen nicht löschen. Die Wiedergewinnung des Programms ersetzt keine Datensicherung.
+**Nach ausdrücklicher Freigabe am 03.11.2026 veröffentlicht.** GitHub-Gesamtprüfung, frische verschlüsselte Sicherung mit isoliertem Restore und anschließender Live-/Archivabgleich erfolgreich. main/v3 und bestehende Archive unverändert. Browserdaten und vorhandene Offline-Warteschlangen nicht löschen. Die Wiedergewinnung des Programms ersetzt keine Datensicherung.
+
+## Veröffentlichungsnachweis
+
+## Wiederaufbau, sichere Tourerfassung, Adressvorschläge und Zustelluhrzeit – 03.11.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „ja“ zum konkret geprüften Paket veröffentlicht: Code `9947d33f7aeb9f46781e5dc79ea221fd6d61a5a7`; [GitHub-Prüfung 41603444377](https://github.com/Marienapotheke/marapo24-test/actions/runs/41603444377) erfolgreich mit 182 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 104 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restore-/Retentions-/Wiederaufbauprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `8f5def12-30a6-4ba1-b167-79d3bb3976ec`.
+
+Die am 30.10. auf dem anderen Rechner veröffentlichte App wurde zuvor bytegenau aus Cloudflare gesichert und als aktuelle Arbeitsfassung wiederaufgebaut. Ihre bisherigen Zahlungs-, Bearbeitungs-, Foto-, Unterschrifts- und Depotabläufe bleiben enthalten. Der Wiederaufbau ersetzt nicht vollständig die ursprünglichen Autorenkommentare und Server-Modulaufteilung; maßgebliche Arbeitsdateien sind dokumentiert.
+
+Persönliche Tourauswahl wird beim Wiedereinstieg für dasselbe Konto/Tag wiederhergestellt; aktuelle Fahrten werden bei fehlender Auswahl bevorzugt. Tourwähler, Datum und Status bleiben sichtbar. Neue Fahrer-Päckchen sind nur in heutigen offenen/laufenden Touren zulässig, auch serverseitig atomar geprüft. Ein fokussiertes Eingabefeld hält Statusänderungen nicht mehr zurück. Vor Speichern wird der bestätigte Tourstand geladen; abgewiesene Eingaben bleiben bestehen. Ältere Touren, bestehende Nachweise, zulässige Korrekturen und Offline-Abschlüsse bleiben erhalten.
+
+Adressprüfung berücksichtigt mehrere Kartenfunde und gleichwertige Hausnummernschreibweisen. Bei fehlendem eindeutigem Treffer werden Vorschläge zur bewussten Prüfung im Bearbeitungsformular angezeigt. Unbestätigte Hausnummern sind gekennzeichnet; kein automatisches Ändern, Speichern oder Vorsortieren aufgrund eines Vorschlags. Depot, EU-Endpunkt, Budget und konkurrierende Revisionsprüfungen bleiben erhalten. Zustelluhrzeit und Datum stehen direkt am zugestellten Stopp in Fahrer-/Büroansicht. Maßgeblich ist der ursprüngliche Erfassungszeitpunkt; wartende Offline-Abschlüsse sind ausdrücklich als lokal gekennzeichnet. Historischer Ersatz aus dem Serverzeitpunkt wird als Speicherzeit bezeichnet. Originalnachweise und Kundenprofile werden dafür nicht geändert.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 09:47 Uhr und danach um 09:50 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und mit Integrität, Fremdschlüsseln und Archivschutz geprüft. Ein erster Exportversuch war fehlgeschlagen; veröffentlicht wurde erst nach erfolgreicher Wiederholung und Restore. Alle 968 vorherigen Zustellnachweise, 50 Abrechnungen, 9 Korrekturen und 2 Fahrerzuordnungsnachweise bytegenau unverändert. 22 öffentliche Dateien bytegenau mit dem Paket abgeglichen, 19 unangemeldete API-Zugriffe gesperrt. Datenbankschema, Schlüsselbindungen, D1-EU, Kompatibilität, übrige Live-Einstellungen und Aufbewahrungszeitplan unverändert. Keine produktive Migration, keine Testdatensätze, kein Merge nach main; v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen. Vor Abfahrt „Für Funklöcher vorbereitet“ prüfen. Bereits vorhandene Offline-Warteschlangen und Schlüssel bleiben erhalten. Details: [Wiederaufbau und Änderungen vom 03.11.](wiederaufbau-2026-11-03.md).

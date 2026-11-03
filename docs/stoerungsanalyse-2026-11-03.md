@@ -1,6 +1,6 @@
-# Störungsprüfung vom 03.11.2026 – noch keine Veröffentlichung
+# Historische Störungsprüfung vom 03.11.2026 vor Veröffentlichung
 
-Fortschreibung: Der Betreiber hat anschließend den Wiederaufbau aus Cloudflare beauftragt. Der aktuelle ausführbare Stand wurde bytegenau gesichert und in die Arbeitsfassung integriert; die hier beschriebene fehlende Quellintegration wurde damit durch den dokumentierten Wiederaufbau gelöst. Der erste isolierte Entwurf ist überholt. Aktueller Stand, Adressvorschläge und zusätzlich beauftragte Zustelluhrzeit: [Wiederaufbau vom 03.11.](wiederaufbau-2026-11-03.md). Keine Veröffentlichung erfolgt.
+Fortschreibung: Der Betreiber hat anschließend den Wiederaufbau aus Cloudflare beauftragt. Der aktuelle ausführbare Stand wurde bytegenau gesichert und in die Arbeitsfassung integriert; die hier beschriebene fehlende Quellintegration wurde damit durch den dokumentierten Wiederaufbau gelöst. Der erste isolierte Entwurf ist überholt. Aktueller Stand, Adressvorschläge und zusätzlich beauftragte Zustelluhrzeit: [Wiederaufbau vom 03.11.](wiederaufbau-2026-11-03.md). Die anschließende Veröffentlichung nach ausdrücklicher Freigabe ist im verlinkten Wiederaufbau-Dokument nachgewiesen.
 
 ## Ausgangsstand und Grenzen
 
