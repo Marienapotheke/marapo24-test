@@ -9,6 +9,14 @@ export const parcelDescription=stop=>stop.type==='arzt'?'Arztlieferung · nicht 
 export const totalParcels=stops=>stops.reduce((sum,s)=>sum+(s.voided||s.removed?0:countedParcels(s)),0);
 export const dueCents=stop=>stop.cashExempt===true||stop.removed?0:stop.cents;
 export const recipientNames=stop=>[stop.name,stop.secondName].filter(Boolean).join(' / ');
+// Prefer the actual device capture over a later offline upload. Older records
+// without it are explicitly labelled as server recording time by the view.
+export function deliveryTime(stop){
+ if(stop.status!=='zugestellt'||stop.voided||stop.removed)return null;
+ const pending=stop.action==='delivery',value=pending?stop.capturedAt:stop.capturedAtClient||stop.completedAt;
+ if(typeof value!=='string'||!Number.isFinite(+new Date(value)))return null;
+ return {value,pending,recorded:!pending&&!stop.capturedAtClient};
+}
 // Display only: keep the planned relative order and never write a new route here.
 export function driverDisplayStops(stops,queue=[]){
  const visible=stops.filter(s=>!s.removed||queue.some(q=>q.input.stopId===s.id));

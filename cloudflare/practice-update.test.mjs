@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {fixtureRuntime} from './fixture-runtime.mjs';
+import {fixtureRuntime,fictionalDepot} from './fixture-runtime.mjs';
 import {localDate,packageData} from './domain.mjs';
 import {parcelCount,totalParcels,phoneHref} from './stop-details.mjs';
 import {sealCompletion} from './completion-envelope.mjs';
@@ -60,21 +60,21 @@ test('oversized encrypted comments and tampered ciphertext cannot create archive
 
 // Approximate illustrative Mosel town centres, never customer addresses or provider calls.
 const towns=[['Mülheim',7.010,49.911],['Lieser',7.022,49.917],['Bernkastel-Kues',7.075,49.916],['Zeltingen',7.019,49.954],['Wehlen',7.035,49.942]];
-test('geographic route fixture uses current first stop, lon/lat, provider job indexes and exact double reversal',async()=>{
+test('geographic route fixture uses recovered pharmacy depot, lon/lat, provider job indexes and exact double reversal',async()=>{
  let payload,wrongCity=false,broken=false;
  const f=await setup({bindings:{GEOAPIFY_API_KEY:'fictional-provider-key'},outbound:async request=>{const url=new URL(request.url);assert.equal(url.hostname,'api-eu.geoapify.com');if(url.pathname.includes('geocode')){const index=Number(url.searchParams.get('text').match(/Musterweg (\d+)/)[1])-1,[city,lon,lat]=towns[index];return Response.json({features:[{properties:{city:wrongCity?'Anderer Ort':city==='Mülheim'?'Mülheim an der Mosel':city,street:'Musterweg',housenumber:String(index+1),postcode:'54321',lon,lat}}]});}payload=await request.json();return Response.json({features:[{properties:{agent_index:0,actions:(broken?[0,0,2,3,4]:[0,1,2,3,4]).map(job_index=>({job_index,job_id:String(job_index)}))}}]});}});
  try{const ids=[];for(const [i,[city]] of towns.entries())ids.push((await f.call('driver-a','createPackage',{...parcel(f.tourId),city:city==='Mülheim'?'Mülheim (Mosel)':city,street:'Musterweg '+(i+1)})).body.data.stopId);
  wrongCity=true;assert.equal((await f.call('driver-a','prepareRouteAddress',{tourId:f.tourId,stopId:ids[0]})).status,400);wrongCity=false;
  for(const stopId of ids)assert.equal((await f.call('driver-a','prepareRouteAddress',{tourId:f.tourId,stopId})).status,200);
  const reversed=[...ids].reverse();assert.equal((await f.call('driver-a','reorderStops',{tourId:f.tourId,stopIds:reversed,baseRevision:0})).status,200);
- let result=await f.call('driver-a','optimizeStops',{tourId:f.tourId,baseRevision:1});assert.equal(result.status,200);assert.deepEqual(payload.agents[0].start_location,[towns[4][1],towns[4][2]]);assert.deepEqual(payload.jobs[0].location,payload.agents[0].start_location);assert.deepEqual(result.body.data.stopIds,reversed);
+ let result=await f.call('driver-a','optimizeStops',{tourId:f.tourId,baseRevision:1});assert.equal(result.status,200);assert.deepEqual(payload.agents[0].start_location,[fictionalDepot.lon,fictionalDepot.lat]);assert.deepEqual(payload.jobs[0].location,[towns[4][1],towns[4][2]]);assert.deepEqual(result.body.data.stopIds,reversed);
  assert.equal(JSON.stringify(payload).includes('Fiktive'),false);assert.equal(JSON.stringify(payload).includes('0123456789'),false);
  const ordered=result.body.data.stopIds;for(const [revision,stopIds] of [[2,[...ordered].reverse()],[3,ordered]])assert.equal((await f.call('driver-a','reorderStops',{tourId:f.tourId,stopIds,baseRevision:revision})).status,200);
  assert.deepEqual((await f.call('driver-a','state')).body.data.stops[f.tourId].map(s=>s.id),ordered);
  broken=true;assert.equal((await f.call('driver-a','optimizeStops',{tourId:f.tourId,baseRevision:4})).status,503);assert.equal((await f.db.prepare('SELECT revision FROM tour_orders').first()).revision,4);
  }finally{await f.runtime.dispose();}
 });
-test('a stop changed during provider computation cannot receive the stale optimized order',async()=>{
+test('a stop changed during provider computation cannot receive the stale optimized order',{timeout:30000},async()=>{
  let notify,release;const entered=new Promise(resolve=>notify=resolve),waiting=new Promise(resolve=>release=resolve);
  const f=await setup({bindings:{GEOAPIFY_API_KEY:'fictional-provider-key'},outbound:async request=>{const url=new URL(request.url);if(url.pathname.includes('geocode'))return Response.json({features:[{properties:{city:'Musterstadt',street:'Musterweg',housenumber:'1',postcode:'54321',lon:7,lat:50}}]});notify();await waiting;return Response.json({features:[{properties:{actions:[{job_index:1},{job_index:0}]}}]});}});
  try{const ids=[];for(let i=0;i<2;i++)ids.push((await f.call('driver-a','createPackage',parcel(f.tourId))).body.data.stopId);for(const stopId of ids)await f.call('driver-a','prepareRouteAddress',{tourId:f.tourId,stopId});

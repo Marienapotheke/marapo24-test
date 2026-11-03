@@ -1,6 +1,8 @@
 # MARAPO24 – geschützte Zustellnachweise (Testbranch)
 
-Nur fiktive Testdaten. Implementierung im Branch `test-geschuetzte-zustellnachweise`; nicht bereitgestellt, nicht für Echtbetrieb freigegeben.
+Die bestehende Cloudflare-App läuft im ausdrücklich freigegebenen Echtbetrieb. Entwicklung und Tests im Branch `test-geschuetzte-zustellnachweise` verwenden ausschließlich fiktive Daten. Die Änderungen vom 03.11.2026 sind vorbereitet, noch nicht veröffentlicht.
+
+Aktueller Wiederaufbau aus der Live-Version vom 30.10., maßgebliche Programmdateien und vorbereitete Korrekturen: [Wiederaufbau vom 03.11.2026](docs/wiederaufbau-2026-11-03.md). Der aktuelle Server-Einstieg `cloudflare/worker.mjs` verwendet `cloudflare/recovered-worker.mjs`; ältere Servermodule sind historische Referenzen. `pnpm build:free`, `pnpm test:free`, `pnpm test:free:browser` und `pnpm test:backup` prüfen diese Cloudflare-Arbeitsfassung.
 
 Details zu Backend, Büro-PDF, Zugriffsregeln, Tests und Grenzen zur laufenden v3: [Geschützte Zustellnachweise](docs/geschuetzte-zustellnachweise.md).
 

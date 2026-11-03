@@ -1,5 +1,7 @@
 # Störungsprüfung vom 03.11.2026 – noch keine Veröffentlichung
 
+Fortschreibung: Der Betreiber hat anschließend den Wiederaufbau aus Cloudflare beauftragt. Der aktuelle ausführbare Stand wurde bytegenau gesichert und in die Arbeitsfassung integriert; die hier beschriebene fehlende Quellintegration wurde damit durch den dokumentierten Wiederaufbau gelöst. Der erste isolierte Entwurf ist überholt. Aktueller Stand, Adressvorschläge und zusätzlich beauftragte Zustelluhrzeit: [Wiederaufbau vom 03.11.](wiederaufbau-2026-11-03.md). Keine Veröffentlichung erfolgt.
+
 ## Ausgangsstand und Grenzen
 
 Der Arbeitsordner und GitHub-Zweig `test-geschuetzte-zustellnachweise` stehen auf `25347bcba489841d96021144d3dcedf55650a6e1`, dokumentierte Veröffentlichung vom 21.10. Die tatsächliche Live-Version ist dagegen `4872e4c6-766d-4647-8aed-44c325d1df67`, hochgeladen am 30.10.2026. Betreiber bestätigt zwischenzeitliche Bearbeitung auf einem anderen Rechner. Dessen bearbeitbare Quellen, Tests und Änderungsdokumentation fehlen hier. 15 öffentliche Dateien unterscheiden sich vom zuletzt dokumentierten Paket. Der alte Repo-Stand darf deshalb nicht über die aktuelle App veröffentlicht werden.
@@ -33,4 +35,4 @@ Dies sind gezielte Entwurfsprüfungen, keine vollständige Regression des unbeka
 
 ## Noch erforderlich
 
-Aktuellen Projektordner bzw. Git-Stand vom am 30.10. verwendeten Rechner beschaffen, Änderungen dort integrieren, aktuelle Gesamtprüfung durchführen und bisherige Funktionen einschließlich neuerer Zustell-/Zahlungs-/Fotoabläufe überprüfen. Erst ein konkretes vollständig geprüftes Paket zur Betreiberfreigabe vorlegen. Vor einer späteren Veröffentlichung wie vereinbart frische verschlüsselte Sicherung mit isoliertem Restore und anschließender Live-/Archivkontrolle. Bestehende Offline-Warteschlangen und Browserdaten nicht löschen. Historische Tourdaten oder Nachweise nicht zur nachträglichen Tageszuordnung verändern.
+Die ursprünglichen Autorenquellen vom anderen Rechner bleiben für eine spätere bessere Modulaufteilung hilfreich. Die funktionale Integration erfolgt inzwischen auf Grundlage des ausdrücklich beauftragten Wiederaufbaus. Aktuelle Gesamtprüfung und bisherige Funktionen einschließlich neuerer Zustell-/Zahlungs-/Fotoabläufe überprüfen und erst ein konkretes vollständig geprüftes Paket zur Betreiberfreigabe vorlegen. Vor einer späteren Veröffentlichung wie vereinbart frische verschlüsselte Sicherung mit isoliertem Restore und anschließender Live-/Archivkontrolle. Bestehende Offline-Warteschlangen und Browserdaten nicht löschen. Historische Tourdaten oder Nachweise nicht zur nachträglichen Tageszuordnung verändern.

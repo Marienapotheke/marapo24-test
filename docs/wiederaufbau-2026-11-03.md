@@ -1,0 +1,47 @@
+# Wiederaufbau aus Cloudflare und vorbereitete Korrekturen – 03.11.2026
+
+## Herkunft und unveränderte Referenz
+
+Der Betreiber hat den Wiederaufbau des aktuellen Cloudflare-Stands ausdrücklich beauftragt, weil der Projektordner des anderen Rechners nicht vorliegt. Wiedergewonnen wurde die tatsächlich laufende Worker-Version `4872e4c6-766d-4647-8aed-44c325d1df67` vom 30.10.2026. Vor und nach dem Download wurde dieselbe alleinige Live-Version geprüft; alle öffentlichen Dateien wurden ein zweites Mal gelesen und bytegenau verglichen.
+
+`recovery/cloudflare-20261030/` enthält das unveränderte Serverprogramm, 22 öffentliche Dateien, ausschließlich das Datenbankschema und ein Manifest mit SHA-256-Prüfsummen. Das Serverprogramm hat SHA-256 `ca80825e1f5baf2fb5f58f8c551513d70fd726efd21d634974d217f1770e0519`. `.gitattributes` verhindert eine automatische Zeilenendenänderung dieser Referenzdateien. Die Wiederaufbauprüfung kontrolliert sämtliche 24 Dateiprüfsummen auch nach Git-Checkout.
+
+Keine Kundenzeilen, Unterschriften oder privaten Schlüssel wurden dafür exportiert. Die sichtbare öffentliche App-Konfiguration enthält nur bereits ausgelieferte öffentliche Kennungen; private Worker-Bindings sind nicht enthalten. Das Schema besteht aus 25 Tabellen, zwei Views, 13 Indizes und 27 Triggern. Es dient lokalen fiktiven Tests und ist **keine produktive Migration**.
+
+Die ursprünglichen Autorenkommentare, die frühere Server-Modulaufteilung und die Tests vom anderen Rechner können nicht vollständig aus einem ausgelieferten Bundle rekonstruiert werden. Das ausführbare Programm ist dagegen vollständig vorhanden. Diese Einschränkung wird nicht als Wiedergewinnung der ursprünglichen Autorenquellen ausgegeben.
+
+## Maßgebliche Arbeitsdateien
+
+- `cloudflare/app.mjs`, `index.html` und die zugehörigen Module sind aus den aktuellen öffentlichen Dateien wiederaufgebaut.
+- `cloudflare/worker.mjs` ist der Einstieg und exportiert `cloudflare/recovered-worker.mjs`. Diese lesbare, wiedergewonnene Serverdatei ist jetzt maßgeblich. Die älteren modularen Serverdateien bleiben als historische Referenz und für kompatible Hilfsfunktionen erhalten; ihre Änderung allein verändert das gebaute Serverprogramm nicht.
+- `cloudflare/address-suggestions.mjs` enthält die neu ergänzten, getrennt prüfbaren Vorschlags- und Hausnummernfunktionen.
+- `cloudflare/office-pdf.mjs` exportiert die unveränderte wiedergewonnene PDF-Implementierung. Der Build kopiert das bereits gebündelte PDF-Modul mit seinen Lizenzhinweisen bytegenau aus der Referenz. Eine spätere PDF-Änderung muss eine neue bearbeitbare Implementierung bewusst einführen; die Referenzdatei nicht bearbeiten.
+- `cloudflare/offline-store.mjs` ist die aktuelle Cloudflare-Variante. Nur der lokale Test-Name der Datenbank unterscheidet sich von der Referenz. Der Produktionsbuild setzt ihn auf die bisherige Kennung `marapo24-botendienst-offline-v1` zurück. Die v3-Datei im Wurzelverzeichnis bleibt unverändert.
+- `scripts/cloudflare-build.mjs` baut ausschließlich diese aktuelle Arbeitsfassung. Test-Hinweise bleiben im lokalen HTML; der Produktionsmodus entfernt sie wie bisher.
+- `scripts/recover-cloudflare.mjs` ist ein ausdrücklich auszuführendes, lesendes Wiedergewinnungswerkzeug. Es verweigert das Überschreiben vorhandener Zielordner. Kein Deployment und kein Export von Kundendaten. Nicht in CI ausführen.
+
+Die am 30.10. hinzugekommenen Abläufe bleiben enthalten: zusätzliche Bearbeitungsmöglichkeiten während der Fahrt, geänderte Erfassungs-/Unterschriftssteuerung, Ablageort und geschützte Ablagefotos, automatische offene Zahlung bei indirekter Übergabe sowie Apotheken-Depot und Ortsteilabgleich bei der Routenberechnung. Alte Nachweise und Offline-Nachrichten bleiben kompatibel.
+
+## Vorbereitete Änderungen
+
+**Wiedereinstieg und Tourauswahl:** Die persönliche Auswahl wird für dasselbe Konto und denselben Tag wiederhergestellt. Andernfalls haben aktuelle laufende/vorbereitete Touren Vorrang vor alten Fahrten. Ein fremdes oder nicht mehr zugeordnetes Tour-ID wird nicht übernommen. Der Tourwähler bleibt auch bei einer beendeten Tour sichtbar. Datum, Status und Hinweise auf alte/beendete Touren stehen direkt daneben. Kein Fahrerwechsel ist nötig, um eine andere eigene Tour anzusehen. Die konkrete Ursache aller auf dem Handy beobachteten Leeransichten wurde mangels damaliger Bildschirmaufzeichnung nicht abschließend bewiesen.
+
+**Erfassung sperren:** Neue Fahrer-Päckchen sind nur in heutigen offenen/laufenden Touren zulässig. Vor dem Speichern wird der bestätigte Stand erneut geladen; der Server prüft Datum, Status und Zuordnung auch atomar beim Einfügen. Büro-Vorbereitung für andere Tage bleibt möglich. Ältere Touren können weiterhin abgeschlossen und im bisher erlaubten Umfang korrigiert werden; vorhandene Offline-Abschlüsse werden nicht durch die neue Eingabeprüfung gesperrt. Das Formular bleibt bei Ablehnung unverändert und wird nicht automatisch einem anderen Ziel zugeordnet.
+
+**Aktualisierung während der Eingabe:** Die pauschale Zurückhaltung jeder Neudarstellung bei fokussiertem Formular entfällt. Fokus und Cursor bleiben durch die bestehenden stabilen DOM-Positionen erhalten, während geänderte Tourstatus und Sperren sofort sichtbar werden. Ein Abschluss auf einem anderen Gerät kann die Erfassungsmaske daher auch bei fokussiertem Feld sperren.
+
+**Adressprüfung und Vorschläge:** Bis zu fünf Kartentreffer werden streng geprüft; der erste Treffer allein entscheidet nicht mehr. Ort/Ortsteil, PLZ, Straße, Koordinaten und Hausnummer bleiben Voraussetzungen für automatische Übernahme in den bestätigten Adresscache. Gleichwertige Schreibweisen wie `7a` und `7 a` sowie Leerzeichen um Hausnummernbereiche werden erkannt; `7/9` wird nicht mit `7-9` gleichgesetzt.
+
+Wenn kein eindeutiger Treffer passt, liefert der Server nur dem berechtigten Zugang bis zu fünf begrenzte Adressvorschläge aus derselben Anbieterantwort. Namen, Telefon, Unterschriften oder Kundenhinweise werden dafür nicht übertragen. Vorschläge werden nicht als bestätigte Koordinaten gespeichert. Ein Straßenfund ohne Hausnummer behält im Prüf-Formular die bisherige Nummer und ist ausdrücklich als unbestätigt gekennzeichnet. Fehlen brauchbare Treffer, bleibt die eingegebene Anschrift erhalten und manuelles Sortieren ist möglich.
+
+„Im Formular prüfen“ übernimmt einen Vorschlag nur in die Bearbeitungsfelder des betroffenen offenen Stopps. Der Fahrer muss prüfen und speichern und anschließend die Route erneut berechnen. Es erfolgt keine automatische Änderung der Hausnummer, der Kundendaten oder der Reihenfolge. Ein geänderter Tour-/Adressstand verhindert die Übernahme eines veralteten Vorschlags. Texte werden als Text ausgegeben; Anbietertexte werden nicht als HTML ausgeführt. Das vorhandene EU-Ziel, das Kreditlimit, der Depotstart, die vollständige Job-Zuordnung und der Schutz vor konkurrierenden Änderungen bleiben erhalten.
+
+Die ausdrücklich genannte Beispieladresse wurde zusätzlich ohne Kundennamen beim öffentlichen OpenStreetMap-Geocoder abgefragt: [Gebäude Moselstraße 7](https://www.openstreetmap.org/way/826105278), PLZ 54470, wird dort mit Ortsbezeichnung „Graacher Schäferei“ und Gemeindeebene „Bernkastel-Kues“ zurückgegeben. Solche abweichenden Kartenbezeichnungen können die strenge Prüfung gegen „Graach“ erklären. Das ist keine Behauptung über die damals tatsächlich zurückgegebene private Geoapify-Antwort oder über eine falsche Eingabe des Betreibers.
+
+**Zustelluhrzeit:** Zugestellte Stopps zeigen direkt in Fahrer- und Büroansicht „Zugestellt um … Uhr“ mit Datum. Maßgeblich ist der im unveränderten Nachweis gespeicherte Geräte-Erfassungszeitpunkt, nicht ein späterer Upload. Noch wartende Offline-Abschlüsse sind ausdrücklich als nur auf dem Gerät erfasst gekennzeichnet. Fehlt bei einem Altbestand der Erfassungszeitpunkt, wird der vorhandene Serverzeitpunkt als „Zustellung gespeichert um …“ bezeichnet. Offene, entfernte und zurückgenommene Stopps erhalten keine erfundene Zustelluhrzeit. Kundenprofile und Originalnachweise werden nicht ergänzt oder umgeschrieben.
+
+## Prüfung und Veröffentlichung
+
+Entwicklung und sämtliche Prüfungen verwenden fiktive Datenbanken, lokale Identitätsdienste und simulierte Kartenantworten. Prüfungen umfassen die bytegenaue Referenz, aktuelle Server-/Berechtigungsabläufe, unveränderliche Archive, Sicherung/Restore/Retention, mobile Wiederaufnahme, geänderten Tourstatus bei fokussiertem Formular, neue Datumssperre, Vorschlagsprüfung ohne automatisches Speichern sowie Zustelluhrzeit vor und nach Offline-Übertragung. Die früheren Routen- und Zahlungs-Browserprüfungen wurden an bereits live enthaltenes Depot- und indirektes Zahlungsverhalten angepasst, ohne diese Live-Regeln zurückzunehmen.
+
+**Noch nicht veröffentlicht.** main/v3 und produktive Datensätze unverändert. Ein späteres Paket benötigt erfolgreiche GitHub-Gesamtprüfung, ausdrückliche Betreiberfreigabe für dieses konkrete Update und unmittelbar davor eine frische verschlüsselte Betriebssicherung mit isoliertem Restore-Test. Danach Datei-/Binding-/Archivabgleich. Browserdaten und vorhandene Offline-Warteschlangen nicht löschen. Die Wiedergewinnung des Programms ersetzt keine Datensicherung.

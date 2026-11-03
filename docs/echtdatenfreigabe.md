@@ -1,6 +1,6 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Standkontrolle 03.11.2026: Live läuft inzwischen Worker `4872e4c6-766d-4647-8aed-44c325d1df67` vom 30.10.; dieser neuere, auf einem anderen Rechner bearbeitete Quellstand fehlt im vorliegenden Git-Zweig. Der folgende Abschnitt dokumentiert die vorherige Veröffentlichung. Nicht über den neueren Stand veröffentlichen. Lesende Befunde, lokaler Korrekturentwurf und Integrationsvoraussetzungen: [Störungsanalyse vom 03.11.](stoerungsanalyse-2026-11-03.md). Keine neue Veröffentlichung im Rahmen dieser Analyse.
+Standkontrolle 03.11.2026: Live läuft weiterhin Worker `4872e4c6-766d-4647-8aed-44c325d1df67` vom 30.10. Auf ausdrücklichen Betreiberauftrag wurde dieser neuere Stand aus Cloudflare wiedergewonnen, bytegenau gesichert und als aktuelle Arbeitsfassung integriert. Die ursprünglichen Autorenquellen vom anderen Rechner liegen weiterhin nicht vollständig vor; das ausführbare Programm ist wiedergewonnen. Tour-/Eingabekorrekturen, Adressvorschläge und sichtbare Zustelluhrzeit sind vorbereitet, noch nicht veröffentlicht. Maßgebliche Dateien, Herkunft und Prüfungen: [Wiederaufbau vom 03.11.](wiederaufbau-2026-11-03.md). Lesende Vorfallsprüfung: [Störungsanalyse](stoerungsanalyse-2026-11-03.md). Der folgende Abschnitt dokumentiert die vorherige Veröffentlichung; keinen älteren Stand darüber veröffentlichen.
 
 ## Fahreransicht, Eingabe und Straßenberechnung – 21.10.2026, vorherige dokumentierte Veröffentlichung
 

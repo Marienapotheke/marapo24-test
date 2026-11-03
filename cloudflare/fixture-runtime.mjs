@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(new URL('../cloudflare-probe/package.json',import.meta.url));
 const {build}=require('esbuild'),{Miniflare}=require('miniflare');
+export const fictionalDepot={lat:50,lon:6};
 export const project='marap024-botendienst-test',number='233196612528',appId='1:233196612528:web:fictional-cloudflare-test';
 export function signedToken(key,claims,kid='fictional-key',header={}){const h=Buffer.from(JSON.stringify({alg:'RS256',typ:'JWT',kid,...header})).toString('base64url'),p=Buffer.from(JSON.stringify(claims)).toString('base64url');return h+'.'+p+'.'+crypto.sign('RSA-SHA256',Buffer.from(h+'.'+p),key).toString('base64url');}
 export async function fixtureRuntime({bindings={},outbound}={}){
@@ -17,16 +18,10 @@ export async function fixtureRuntime({bindings={},outbound}={}){
  const runtime=new Miniflare({modules:true,script:built.outputFiles[0].text,compatibilityDate:'2026-07-30',compatibilityFlags:['nodejs_compat'],bindings:{FIREBASE_PROJECT_ID:project,FIREBASE_PROJECT_NUMBER:number,FIREBASE_APP_ID:appId,DELIVERY_PROOF_PRIVATE_KEY:pem,DRIVER_PIN_PEPPER:'fictional-test-pepper-0123456789abcdef0123456789abcdef',OFFICE_PASSWORD_PEPPER:'fictional-office-pepper-0123456789abcdef0123456789abcdef',MASTER_ADMIN_EMAIL:'admin@example.test',...bindings},d1Databases:{DB:'fictional-marapo24'},outboundService:request=>{
   if(request.url==='https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')return Response.json({'fictional-key':authPublic},{headers:{'Cache-Control':'max-age=3600'}});
   if(request.url==='https://firebaseappcheck.googleapis.com/v1/jwks')return Response.json({keys:[checkPublic]},{headers:{'Cache-Control':'max-age=3600'}});
+  const providerUrl=new URL(request.url);if(providerUrl.hostname==='api-eu.geoapify.com'&&providerUrl.pathname==='/v1/geocode/search'&&providerUrl.searchParams.get('text')==='Friedrichstraße 14, 54470 Bernkastel-Kues, Deutschland')return Response.json({features:[{properties:{...fictionalDepot,postcode:'54470',city:'Bernkastel-Kues',street:'Friedrichstraße',housenumber:'14'}}]});
   if(outbound)return outbound(request);return new Response('External network disabled in tests',{status:503});
  }});
- await runtime.ready;const db=await runtime.getD1Database('DB');await db.exec((await fs.readFile(path.join(base,'schema.sql'),'utf8')).replace(/\r?\n/g,' '));
- await db.exec((await fs.readFile(path.join(base,'driver-auth.sql'),'utf8')).replace(/\r?\n/g,' '));
- await db.exec((await fs.readFile(path.join(base,'office-auth.sql'),'utf8')).replace(/\r?\n/g,' '));
- await db.exec((await fs.readFile(path.join(base,'customers-routes.sql'),'utf8')).replace(/\r?\n/g,' '));
- await db.exec((await fs.readFile(path.join(base,'workflow-schema.sql'),'utf8')).replace(/\r?\n/g,' '));
- await db.exec((await fs.readFile(path.join(base,'cash-settlement.sql'),'utf8')).replace(/\r?\n/g,' '));
- await db.exec((await fs.readFile(path.join(base,'office-workflow.sql'),'utf8')).replace(/\r?\n/g,' '));
- for(const file of ['work-starts.sql','delivery-amendments.sql','tour-handover.sql','tour-deletion.sql'])await db.exec((await fs.readFile(path.join(base,file),'utf8')).replace(/\r?\n/g,' '));
+ await runtime.ready;const db=await runtime.getD1Database('DB');await db.exec((await fs.readFile(path.join(base,'../recovery/cloudflare-20261030/schema.sql'),'utf8')).replace(/\r?\n/g,' '));
  for(const [uid,roles,isAdmin,special] of [['driver-a',['driver'],0,0],['driver-b',['driver'],0,0],['office',['office'],0,0],['dual',['office','driver'],0,0],['admin',['office'],1,1]])await db.prepare('INSERT INTO users VALUES (?,?,?,1,?,?)').bind(uid,'Fiktiv '+uid,JSON.stringify(roles),isAdmin,special).run();
  for(let i=4;i<=11;i++)await db.prepare('INSERT INTO users VALUES (?,?,?,1,0,0)').bind('driver-'+i,'Fiktiver Fahrer '+i,'["driver"]').run();
  for(let i=4;i<=20;i++)await db.prepare('INSERT INTO users VALUES (?,?,?,1,0,0)').bind('office-'+i,'Fiktives Büro '+i,'["office"]').run();
