@@ -1,1 +1,2 @@
-recovery/** -text
+# Immutable downloaded reference: preserve CRLF and bundled-library whitespace.
+recovery/** -text -whitespace
