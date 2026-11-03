@@ -1,8 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Kundenunterschrift direkt ansehen](kundenunterschrift-2026-11-03.md). Der folgende Betriebsstand bleibt bis zur Freigabe dieser Ergänzung unverändert.
+## Kundenunterschrift direkt ansehen – 03.11.2026, aktueller Betriebsstand
 
-## Ergänzung: Abrechnungsdialog erneut öffnen – 03.11.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `0e14865bfb231055cc635b9e9015fe96cb6c361d`; [GitHub-Prüfung 41655694895](https://github.com/Marienapotheke/marapo24-test/actions/runs/41655694895) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `f1708c87-551e-4f9c-b83b-30c62dc8f7f1`.
+
+Bei unterschriebenen privaten Zustellungen zeigt die Büroansicht neben dem PDF zusätzlich „Unterschrift ansehen“. Die geschützte Vorschau enthält die gespeicherte Originalunterschrift mit Empfängernamen, Zustellzeit und gegebenenfalls Nachbarname. Schließen und Sitzungswechsel entfernen das Bild. Der vollständige PDF-Nachweis bleibt verfügbar. Nur die App-Datei wurde gegenüber dem vorherigen Paket geändert; Server und PDF-Modul sind bytegleich. Details: [Kundenunterschrift](kundenunterschrift-2026-11-03.md).
+
+Verschlüsselte Betriebssicherungen auf S1 vor Veröffentlichung um 15:46 Uhr und danach um 15:47 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und geprüft. Alle 991 ursprünglichen Zustellnachweise, 52 Abrechnungen, 9 Korrekturen und 2 Fahrerzuordnungsnachweise bytegenau unverändert. Alle 22 öffentlichen Dateien entsprechen den Paketprüfsummen; 19 unangemeldete API-Zugriffe gesperrt. Datenbankschema, Live-Einstellungen, Schlüsselbindungen, D1-EU und Aufbewahrungszeitplan unverändert. Keine produktive Migration oder Testdatensätze; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen.
+
+## Vorherige Veröffentlichung: Abrechnungsdialog erneut öffnen – 03.11.2026
 
 Nach der Betreiberfreigabe und der Aufforderung „weiter“ veröffentlicht: Code `112f0da747c37d27adbcccca87fb8a26ce051bb4`, Worker-Version `009cb64e-2dde-4634-9d28-3d0c4f5ffac9`. [GitHub-Prüfung 41624126236](https://github.com/Marienapotheke/marapo24-test/actions/runs/41624126236) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Das konkrete Produktionspaket wurde zusätzlich isoliert geprüft.
 
