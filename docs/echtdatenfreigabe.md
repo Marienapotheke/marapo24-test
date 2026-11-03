@@ -1,6 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-## Abrechnung bei Kasseneingang, tatsächlicher Name und Selbst-Mitnahme ohne Kilometer – 03.11.2026, aktueller Betriebsstand
+## Ergänzung: Abrechnungsdialog erneut öffnen – 03.11.2026, aktueller Betriebsstand
+
+Nach der Betreiberfreigabe und der Aufforderung „weiter“ veröffentlicht: Code `112f0da747c37d27adbcccca87fb8a26ce051bb4`, Worker-Version `009cb64e-2dde-4634-9d28-3d0c4f5ffac9`. [GitHub-Prüfung 41624126236](https://github.com/Marienapotheke/marapo24-test/actions/runs/41624126236) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Das konkrete Produktionspaket wurde zusätzlich isoliert geprüft.
+
+Die unten dokumentierten Abrechnungs- und Selbst-Mitnahme-Änderungen bleiben enthalten. Zusätzlich werden nach Abbruch eines unbestätigten Speicherversuchs die Dialogfelder zurückgesetzt: Beim erneuten Öffnen ist der Name wieder leer und bearbeitbar. Der mobile Browserablauf prüft Verbindungsfehler, Abbruch, Wiederöffnung und anschließendes erfolgreiches Speichern. Gegenüber dem ersten heutigen Paket wurden nur die App-Datei und Paketdokumentation geändert; Server und PDF sind bytegleich.
+
+Frische verschlüsselte Betriebssicherungen auf S1 vor Veröffentlichung um 15:31 Uhr und danach um 15:32 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt. Alle 990 ursprünglichen Zustellnachweise, 52 Abrechnungen, 9 Korrekturen und 2 Fahrerzuordnungsnachweise sind bytegenau unverändert. Alle 22 veröffentlichten Dateien stimmen mit dem geprüften Paket überein; 19 unangemeldete API-Zugriffe sind gesperrt. Datenbankschema, Live-Einstellungen, Schlüsselbindungen, D1-EU und Aufbewahrungszeitplan unverändert. Keine produktive Migration; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen.
+
+## Erste Veröffentlichung: Abrechnung bei Kasseneingang, tatsächlicher Name und Selbst-Mitnahme ohne Kilometer – 03.11.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ zum konkret geprüften Paket veröffentlicht: Code `925193d0926b25a44925594884feef818f6f3292`; [GitHub-Prüfung 41622402514](https://github.com/Marienapotheke/marapo24-test/actions/runs/41622402514) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restore-/Retentions-/Wiederaufbauprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `54098dad-e181-4054-9d53-cb7a4f386e2e`.
 
