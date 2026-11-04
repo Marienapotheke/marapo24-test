@@ -1,8 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Tourauswahl oben und einklappbare Päckchenerfassung](fahrer-layout-2026-11-04.md). Der folgende Betriebsstand bleibt bis zur Freigabe dieser Ergänzung unverändert.
+## Tourauswahl oben und einklappbare Päckchenerfassung – 04.11.2026, aktueller Betriebsstand
 
-## Zahlungsgrund nur bei 0 € – 03.11.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Anwendungscode `b90059551a03ca6cd011becb5ef8191fe106f3df`; Worker-Version `848d1bcf-716f-4a0c-8102-62dfc46d54f9`. Lokal 168 Prüfungen erfolgreich: 36 Grundprüfungen, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Browserabläufe. GitHub startete für den Layout-Commit keinen Prüflauf; ein anschließender Dokumentations-/Test-Push wurde mit „Internal Server Error“ abgelehnt. Die lokale Wiederaufbauprüfung wurde gezielt für das genehmigte einklappbare HTML ergänzt (Commit db7547e); Anwendungscode und freigegebenes Paket blieben dabei unverändert. Die unveränderten v3-/Firestore-Emulatorabläufe wurden nicht erneut lokal ausgeführt.
+
+In der Fahreransicht stehen verfügbare Touren mit Übernahme ganz oben, danach eigene Tourauswahl und Arbeitsbeginn. Die Übernahmeauswahl bleibt auch während einer gewählten/laufenden Tour an dieser Stelle. „Päckchen hinzufügen“ lässt sich in Fahrer- und Büroansicht vollständig über die Überschrift einklappen. Entwürfe bleiben erhalten; bewusstes Bearbeiten öffnet den Bereich automatisch. Mobile Darstellung geprüft. Details: [Fahrerlayout](fahrer-layout-2026-11-04.md).
+
+Verschlüsselte Betriebssicherungen auf S1 vor Veröffentlichung um 10:50 Uhr und danach um 10:55 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und geprüft. Alle 1072 ursprünglichen Zustellnachweise, 55 Abrechnungen, 9 Korrekturen und 2 Fahrerzuordnungsnachweise bytegenau unverändert. 22 öffentliche Dateien stimmen mit den Paketprüfsummen überein; 19 unangemeldete API-Zugriffe gesperrt. Server und PDF-Modul bytegleich zum vorherigen Paket. Datenbankschema, Live-Einstellungen, Schlüsselbindungen, D1-EU und Aufbewahrungszeitplan unverändert. Keine produktive Migration oder Testdatensätze; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen.
+
+## Vorherige Veröffentlichung: Zahlungsgrund nur bei 0 € – 03.11.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `56b666e02bc70cf6165d9cc58373eff3e30ba0c4`; [GitHub-Prüfung 41660171616](https://github.com/Marienapotheke/marapo24-test/actions/runs/41660171616) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `0b52800b-d61c-4d1e-a4ba-1aab49d15170`.
 
