@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Noch nicht veröffentlicht: [Tourauswahl oben und einklappbare Päckchenerfassung](fahrer-layout-2026-11-04.md). Der folgende Betriebsstand bleibt bis zur Freigabe dieser Ergänzung unverändert.
+
 ## Zahlungsgrund nur bei 0 € – 03.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `56b666e02bc70cf6165d9cc58373eff3e30ba0c4`; [GitHub-Prüfung 41660171616](https://github.com/Marienapotheke/marapo24-test/actions/runs/41660171616) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `0b52800b-d61c-4d1e-a4ba-1aab49d15170`.
