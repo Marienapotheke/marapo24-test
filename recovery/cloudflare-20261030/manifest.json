@@ -1,0 +1,148 @@
+{
+  "format": 1,
+  "recoveredAt": "2026-11-03T07:53:16.230Z",
+  "version": "4872e4c6-766d-4647-8aed-44c325d1df67",
+  "origin": "https://marapo24-protected-test.apotheker-stoeck.workers.dev",
+  "files": [
+    {
+      "path": "worker.mjs",
+      "sha256": "ca80825e1f5baf2fb5f58f8c551513d70fd726efd21d634974d217f1770e0519",
+      "bytes": 117360
+    },
+    {
+      "path": "assets/index.html",
+      "sha256": "fb2f6d6eea3bb15a78fe6b51464019a662b676d94c620b214a7cfd0af100a88f",
+      "bytes": 17171
+    },
+    {
+      "path": "assets/app.mjs",
+      "sha256": "ee2118bf7b5dcd92cfc2e9b4845c62570d1bc542c93b88245164ede7410a39cd",
+      "bytes": 88851
+    },
+    {
+      "path": "assets/office-presentation.mjs",
+      "sha256": "7aef28938f7148b29ed3765bcae06c96287ff709acc768b4841e3a1e550902a1",
+      "bytes": 1079
+    },
+    {
+      "path": "assets/signature-screen.mjs",
+      "sha256": "c4ef49047f74503943fbb18b3917340fade7e3c1d0fb86cb31a05f30e7ff24df",
+      "bytes": 4082
+    },
+    {
+      "path": "assets/sync-recovery.mjs",
+      "sha256": "2e265176862d25c7e7e6f08ee4b6e7d9879cabff61ff241c24a616318924e8a7",
+      "bytes": 2572
+    },
+    {
+      "path": "assets/tour-deletion-controls.mjs",
+      "sha256": "147893a0bb58850616736dddd0ccca996130c215f942df6d6eda85a75bde4183",
+      "bytes": 1624
+    },
+    {
+      "path": "assets/tour-selection.mjs",
+      "sha256": "a1bf8c73a457b6d531c0c0b7e6db30bd7893de742fb4b646411bf772a454107c",
+      "bytes": 422
+    },
+    {
+      "path": "assets/workflow-controls.mjs",
+      "sha256": "9725c0625ca162fb6bcab674bf5b125971ec608d454191eb42b24fb6cb2d4fa5",
+      "bytes": 13167
+    },
+    {
+      "path": "assets/install-app.mjs",
+      "sha256": "c2040e30ba07e0a8018a9744fe1adb28d45aee4df159a8948dd39bf0536d51df",
+      "bytes": 966
+    },
+    {
+      "path": "assets/tour-workflow.mjs",
+      "sha256": "7192ffe5c4d1f3ef5ae094fea97bb3033f35e867dd5bdbae6d6b0db217bbff83",
+      "bytes": 2839
+    },
+    {
+      "path": "assets/payment.mjs",
+      "sha256": "788ae817e5f6fd8bdc11a97f9c0479623fa3b5109cb4968ac8424b2a9d8ad6ab",
+      "bytes": 1498
+    },
+    {
+      "path": "assets/office-search.mjs",
+      "sha256": "ce2333d1ef6ec4af0b6d5585ef8c21679ead669e7e14cdde03d7817d9a7b31e8",
+      "bytes": 316
+    },
+    {
+      "path": "assets/stop-details.mjs",
+      "sha256": "37ee3ad8bd8ec00df6f8c61a58e5b885cf27aacc7602cb3e268383f45ac39871",
+      "bytes": 1763
+    },
+    {
+      "path": "assets/completion-envelope.mjs",
+      "sha256": "8109099c593750d7e79edbb29137f16b7babaa3c8b2e2770dcc6b67acc1a3452",
+      "bytes": 1082
+    },
+    {
+      "path": "assets/password-proof.mjs",
+      "sha256": "b4fe7c711712a78df146626d6f703d2b92d845012e7fabd9a059bfe44aeef849",
+      "bytes": 961
+    },
+    {
+      "path": "assets/app-config.js",
+      "sha256": "b5f5e9754b775bd8363cf843739d56b0e3ef4a3878846e36dadfd4a5cb7e3dcd",
+      "bytes": 534
+    },
+    {
+      "path": "assets/offline-store.mjs",
+      "sha256": "ae1c7b4b9db8b0571e39fabb0122c6bfb3a294d603360f79a0707d5ac7d10d75",
+      "bytes": 5336
+    },
+    {
+      "path": "assets/office-pdf.mjs",
+      "sha256": "1c72ffd03d6c078f1d1cfceae06abe890853b18e2dee701f82a908d60aa30958",
+      "bytes": 1468714
+    },
+    {
+      "path": "assets/manifest.webmanifest",
+      "sha256": "0b7de1c271fa06ef27460dad5b7fcaedd507e2a67581d1f35fd631f11a2b680b",
+      "bytes": 397
+    },
+    {
+      "path": "assets/sw.js",
+      "sha256": "af1e06b03a5d81c6067231ccccf191c80e022aa4936a08a52af2ed944f1dc3d2",
+      "bytes": 1620
+    },
+    {
+      "path": "assets/icons/app-192.png",
+      "sha256": "fce77420aa31dc9d272eb6f0fce977ee7c9ba059ab1c63f5bba9c2bfd83bc673",
+      "bytes": 2141
+    },
+    {
+      "path": "assets/icons/app-512.png",
+      "sha256": "4dd2951b85a279f6ce0044091cae41358ca63d8427cd2bec7289bb2cbf98747d",
+      "bytes": 5406
+    },
+    {
+      "path": "schema.sql",
+      "sha256": "5201ce9cf57a5054187f650b739d651879c477bcd5149a23ae964ad2c6bdcedb",
+      "bytes": 17819
+    }
+  ],
+  "schemaCounts": {
+    "table": 25,
+    "view": 2,
+    "index": 13,
+    "trigger": 27
+  },
+  "databaseJurisdiction": "eu",
+  "secretBindingNames": [
+    "DELIVERY_PROOF_PRIVATE_KEY",
+    "DRIVER_PIN_PEPPER",
+    "GEOAPIFY_API_KEY",
+    "MASTER_ADMIN_EMAIL",
+    "OFFICE_PASSWORD_PEPPER"
+  ],
+  "cron": [
+    "0 * * * *"
+  ],
+  "deploymentPerformed": false,
+  "customerRowsExported": false,
+  "originalAuthoredSourcesAvailable": false
+}

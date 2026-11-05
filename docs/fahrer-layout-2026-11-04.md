@@ -1,0 +1,23 @@
+# Tourauswahl oben und einklappbare Päckchenerfassung – veröffentlicht am 04.11.2026
+
+Nach ausdrücklicher Betreiberfreigabe veröffentlicht. Ausgangspunkt war Worker-Version 0b52800b-d61c-4d1e-a4ba-1aab49d15170.
+
+In der Fahreransicht stehen die verfügbaren Touren mit Übernahme zuerst, direkt danach die Auswahl der eigenen Tour. Die Arbeitsbeginn-Karte folgt darunter. Die Übernahmeauswahl bleibt auch bei einer gewählten oder laufenden Tour an dieser Position; sie wird nicht mehr in die Päckcheneingabe verschoben. Bestehende Übernahme-, Übergabe-, Arbeitszeit- und Berechtigungsregeln bleiben erhalten. Für reine Büro-Mitnahme bleibt die Fahrerübernahme wie bisher verborgen.
+
+„Päckchen hinzufügen“ ist ein zunächst geöffneter, über seine Überschrift vollständig einklappbarer Bereich. Das gilt im Fahrer- und Bürobereich. Eingaben bleiben beim Einklappen erhalten; Hintergrundaktualisierungen öffnen den Bereich nicht. Beim bewussten Bearbeiten eines Päckchens öffnet er sich automatisch. Native Details-/Summary-Bedienung unterstützt Tastatur und Touch, mit mindestens 44 Pixel hoher Überschrift. Keine automatische Speicherung durch das Einklappen.
+
+Vorhandene mobile Browserabläufe prüfen die Reihenfolge, das vollständige Einklappen bei ungespeichertem Entwurf und den Erhalt der Eingabe. Der Büroablauf prüft das automatische Öffnen beim Bearbeiten. Screenshot mit fiktiven Daten: artifacts/driver-top-collapsed-20261104.png. Alle fünf Browserabläufe mit fiktiven Daten lokal erfolgreich; mobile Darstellung anhand des Screenshots geprüft. Live-Veröffentlichung nach eigener Betreiberfreigabe, lokaler Gesamtprüfung und frischer verschlüsselter Sicherung mit isoliertem Restore-Test erfolgreich abgeschlossen. Datenbankschema, Server, Offline-Warteschlangen und Archive bleiben unverändert; main/v3 werden nicht geändert.
+
+## Zusätzliche lokale Gesamtprüfung vor Veröffentlichung
+
+Für den bereits übertragenen Layout-Commit b90059551a03ca6cd011becb5ef8191fe106f3df wurde von GitHub zunächst kein Prüflauf angezeigt. Daher wurden zusätzlich zur Browserprüfung die vollständigen lokalen Grund-, Cloudflare-Backend- und Sicherungsprüfungen ausgeführt: insgesamt 168 erfolgreich (36 + 108 + 19 + 5). Die unveränderten v3-/Firestore-Emulatorabläufe wurden hierfür nicht erneut lokal ausgeführt. Die bestehende Wiederaufbauprüfung berücksichtigt nun ausschließlich die ausdrücklich gewünschte Änderung des Erfassungsbereichs von div zu details und die zugehörige Touch-Stilregel; alle übrigen HTML-Inhalte und die unveränderliche Wiederaufbau-Referenz bleiben exakt geprüft. Der Anwendungscode und das vorbereitete Veröffentlichungspaket wurden dadurch nicht geändert.
+
+## Tourauswahl oben und einklappbare Päckchenerfassung – 04.11.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Anwendungscode `b90059551a03ca6cd011becb5ef8191fe106f3df`; Worker-Version `848d1bcf-716f-4a0c-8102-62dfc46d54f9`. Lokal 168 Prüfungen erfolgreich: 36 Grundprüfungen, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Browserabläufe. GitHub startete für den Layout-Commit keinen Prüflauf; ein anschließender Dokumentations-/Test-Push wurde mit „Internal Server Error“ abgelehnt. Die lokale Wiederaufbauprüfung wurde gezielt für das genehmigte einklappbare HTML ergänzt (Commit db7547e); Anwendungscode und freigegebenes Paket blieben dabei unverändert. Die unveränderten v3-/Firestore-Emulatorabläufe wurden nicht erneut lokal ausgeführt.
+
+In der Fahreransicht stehen verfügbare Touren mit Übernahme ganz oben, danach eigene Tourauswahl und Arbeitsbeginn. Die Übernahmeauswahl bleibt auch während einer gewählten/laufenden Tour an dieser Stelle. „Päckchen hinzufügen“ lässt sich in Fahrer- und Büroansicht vollständig über die Überschrift einklappen. Entwürfe bleiben erhalten; bewusstes Bearbeiten öffnet den Bereich automatisch. Mobile Darstellung geprüft. Details: [Fahrerlayout](fahrer-layout-2026-11-04.md).
+
+Verschlüsselte Betriebssicherungen auf S1 vor Veröffentlichung um 10:50 Uhr und danach um 10:55 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und geprüft. Alle 1072 ursprünglichen Zustellnachweise, 55 Abrechnungen, 9 Korrekturen und 2 Fahrerzuordnungsnachweise bytegenau unverändert. 22 öffentliche Dateien stimmen mit den Paketprüfsummen überein; 19 unangemeldete API-Zugriffe gesperrt. Server und PDF-Modul bytegleich zum vorherigen Paket. Datenbankschema, Live-Einstellungen, Schlüsselbindungen, D1-EU und Aufbewahrungszeitplan unverändert. Keine produktive Migration oder Testdatensätze; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen.

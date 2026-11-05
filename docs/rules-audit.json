@@ -1,0 +1,5 @@
+{
+  "score": 5,
+  "summary": "Scoped Firestore rule review: authority comes from immutable server-managed active profiles and verified Auth; client role escalation, archive writes, driver proof reads, foreign-tour reads and direct completion/time/vehicle edits are denied. Allowed office creates validate required fields, types and sizes; vehicle updates retain creation time and revalidate the complete schema. Stop creation is denied after tour start. Seventeen emulator tests and the full offline browser acceptance test passed on 2026-10-13. This rating concerns the candidate rules only, not operational readiness: isolated named-database configuration, IAM, actual-device acceptance and explicit deployment approval remain required. Never deploy these rules to the live v3 default database.",
+  "findings": []
+}

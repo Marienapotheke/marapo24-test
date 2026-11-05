@@ -1,0 +1,19 @@
+# Abrechnungsnachweis und zusätzliche Bürotouren – veröffentlicht am 14.10.2026
+
+Nach ausdrücklicher Freigabe veröffentlicht: App-Code 50eb1465343af02dfbf796d590f04c920e5abda6, Worker 7529d4da-30db-4f8c-8eb3-84eb8dcdc123. Alle 116 Tests bestanden, additive Migration angewendet, öffentliche Dateien und Zugriffsschutz geprüft; verschlüsselte Sicherung mit isolierter Wiederherstellung vor und nach Veröffentlichung erfolgreich. Aktueller Betriebsstand: docs/echtdatenfreigabe.md.
+
+## Historische Vorbereitung vor der Freigabe
+
+Die Betreiberin hat die Erfassung auf dem Fahrergerät mit zusätzlicher Namensangabe gewählt. Das Update ist separat vorbereitet; die vorherige Veröffentlichung ist keine Freigabe für diese neue Backend-Erweiterung.
+
+Nach bestätigt übertragenem Tourende erscheint unter dem Marienapotheken-Betrag der Zugang zur Abrechnungsunterschrift. Nur die abrechnende Person trägt ihren Namen ein und zeichnet dort. Ein eigener Büro-Login erfolgt dabei nicht; der Nachweis kennzeichnet die Namensangabe ausdrücklich als Eingabe auf dem Fahrergerät. Er bestätigt die Abrechnung des ausgewiesenen Marienapotheken-Betrags, nicht die Identität über ein verifiziertes Mitarbeiterkonto. Für die Cusanus-Apotheke wird kein entsprechender Nachweis angeboten.
+
+Die Erfassung benötigt Internet und vollständig bestätigte Tourabschlüsse. Unterschriften werden für den Transport mit dem vorhandenen Backend-Schlüssel verschlüsselt und an Fahrer, Tour, Zweck und Abschlusskennung gebunden. Nach nicht bestätigter Übertragung kann dieselbe Erfassung erneut gesendet werden; es entsteht höchstens ein Nachweis pro Tour. Das Fenster bis zur Bestätigung offen lassen. Abmelden leert auch die separate Signaturfläche. Die bestehenden Offline-Zustellabschlüsse bleiben unverändert nutzbar.
+
+Das Backend liest den Marienapotheken-Betrag aus den archivierten Zustellnachweisen; Teilzahlungen zählen mit tatsächlich kassiertem Betrag. Der Fahrer darf nur für seine eigene serverseitig beendete Tour speichern. Aktive Rolle, Tourstatus und Betrag werden auch unmittelbar beim Einfügen geprüft. Der eingegebene Name, Betrag, Tour, Fahrer, Tourende, Signatur samt Prüfsumme und Gerät-/Serverzeit werden einmalig abgelegt. Änderungs- und Löschtrigger schützen den Nachweis; nur der vertrauenswürdige Aufbewahrungslauf kann abgelaufene Datensätze entfernen. Fahrer sehen den Bestätigungsstatus ohne Signatur. Nur aktive Bürozugänge dürfen den vollständigen Nachweis lesen und als PDF herunterladen.
+
+Die maximale Aufbewahrung bleibt 364 Tage; die Frist orientiert sich an der ursprünglichen Tourerfassung und wird durch eine spätere Unterschrift nicht verlängert. Sicherungen berücksichtigen denselben Fristbeginn und sind weiterhin höchstens 30 Tage gültig. Wiederherstellungsprüfung prüft zusätzlich die Schutztrigger des neuen Archivs. Ältere Sicherungen ohne dieses Archiv bleiben kompatibel; nach deren Wiederherstellung die freigegebenen Zusatzschemas erneut anwenden.
+
+Alle aktiven Bürozugänge dürfen nun zusätzliche Touren erstellen. Fahrer-PIN-Sitzungen erhalten dadurch keine Büro- oder Administratorrechte. Kontenverwaltung und Passwort-/PIN-Rücksetzung behalten ihre bisherigen Berechtigungen. Die zusätzliche Tour wird mit der erstellenden Person dokumentiert; vorläufige Bürokennwörter müssen weiterhin vor Zugriff persönlich geändert werden.
+
+Vor Live-Veröffentlichung: vollständige Tests am finalen App-Code, neue verschlüsselte Betriebssicherung mit isolierter Wiederherstellung, ausdrückliche Betreiberfreigabe für Update und neue Tabelle, additive Migration `cloudflare/cash-settlement.sql`, anschließend geprüften Worker veröffentlichen und tatsächliche Dateien/Zugriffsschutz prüfen. Keine Änderung an main, v3 oder Firestore-Regeln und keine fiktiven Daten im Echtbetrieb.

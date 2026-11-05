@@ -1,0 +1,74 @@
+rules_version = '2';
+// Standard Firestore, separately deployed ONLY to protected-deliveries.
+// users: immutable server-managed role. protectedTours: type/date/driverId/
+// createdBy/status/schemaVersion/createdAt. stops: type/name/address/note/cents/
+// status/schemaVersion/proofId/completedAt/createdAt; NO signature bytes.
+// protectedDeliveryProofs: immutable server archive; office read only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function role(expected) {
+      return request.auth != null && request.auth.token.email_verified == true &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == expected &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true;
+    }
+    function office() { return role('office'); }
+    function driver() { return role('driver'); }
+    function assigned(tourId) {
+      return driver() && exists(/databases/$(database)/documents/protectedTours/$(tourId)) &&
+        get(/databases/$(database)/documents/protectedTours/$(tourId)).data.driverId == request.auth.uid;
+    }
+    function shortString(value, maximum) { return value is string && value.size() <= maximum; }
+    function validTour(d) {
+      return d.keys().hasAll(['type','date','driverId','createdBy','status','schemaVersion','createdAt']) &&
+        d.keys().hasOnly(['type','date','driverId','createdBy','status','schemaVersion','createdAt']) &&
+        shortString(d.type,90) && d.type.size() > 0 && shortString(d.date,10) &&
+        d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        shortString(d.driverId,128) && d.driverId.size()>0 &&
+        get(/databases/$(database)/documents/users/$(d.driverId)).data.role == 'driver' &&
+        get(/databases/$(database)/documents/users/$(d.driverId)).data.active == true && d.createdBy == request.auth.uid &&
+        d.status == 'open' && d.schemaVersion == 2 && d.createdAt == request.time;
+    }
+    function validStop(d) {
+      return d.keys().hasAll(['type','name','address','note','cents','status','schemaVersion','proofId','completedAt','createdAt']) &&
+        d.keys().hasOnly(['type','name','address','note','cents','status','schemaVersion','proofId','completedAt','createdAt']) &&
+        d.type in ['privat','arzt','pflege','partner'] && shortString(d.name,90) && d.name.size() > 0 &&
+        shortString(d.address,160) && d.address.size() > 0 && shortString(d.note,240) &&
+        d.cents is int && d.cents >= 0 && d.cents <= 999900 && d.schemaVersion == 2 &&
+        d.status == 'offen' && d.proofId == null && d.completedAt == null && d.createdAt == request.time;
+    }
+    function validVehicle(d) {
+      return d.keys().hasAll(['label','active','createdAt']) && d.keys().hasOnly(['label','active','createdAt']) &&
+        shortString(d.label,40) && d.label.size()>0 && d.active is bool && d.createdAt is timestamp;
+    }
+    match /vehicles/{vehicleId} {
+      allow read: if office() || (driver() && resource.data.active == true);
+      allow create: if office() && validVehicle(request.resource.data) && request.resource.data.createdAt == request.time;
+      allow update: if office() && validVehicle(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+    }
+    match /users/{uid} {
+      allow get: if office() || (request.auth != null && request.auth.uid == uid);
+      allow list: if office();
+      allow create, update, delete: if false;
+    }
+    match /protectedTours/{tourId} {
+      allow read: if office() || (driver() && resource.data.driverId == request.auth.uid);
+      allow create: if office() && validTour(request.resource.data);
+      allow update, delete: if false;
+      match /stops/{stopId} {
+        allow read: if office() || assigned(tourId);
+        allow create: if office() && exists(/databases/$(database)/documents/protectedTours/$(tourId)) &&
+          get(/databases/$(database)/documents/protectedTours/$(tourId)).data.status == 'open' && validStop(request.resource.data);
+        allow update, delete: if false;
+      }
+    }
+    match /protectedDeliveryProofs/{proofId} {
+      allow read: if office();
+      allow create, update, delete: if false;
+    }
+    // Blocks legacy tours containing signatures as well as unknown collections.
+    // Replacing existing rules would affect v3: NEVER deploy without a separate
+    // validated cutover and explicit permission.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

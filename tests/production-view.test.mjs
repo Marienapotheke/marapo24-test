@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {productionHtml,productionOffline} from '../scripts/free-app-view.mjs';
+test('production view keeps payment and access controls, while separating fictitious offline storage',async()=>{
+ const source=await fs.readFile(new URL('../cloudflare/index.html',import.meta.url),'utf8'),html=productionHtml(source);assert.equal(html.includes('NUR FIKTIVE DATEN'),false);assert.equal(html.includes('Kostenloser Probelauf'),false);assert.ok(html.includes('Teilbetrag kassiert')&&html.includes('Nichts kassiert'));assert.ok(html.includes('id="chooseAdmin"')&&html.includes('id="chooseOffice"')&&html.includes('id="chooseDriver"'));assert.ok(source.includes('NUR FIKTIVE DATEN'));
+ const original=await fs.readFile(new URL('../offline-store.mjs',import.meta.url),'utf8'),production=productionOffline(original);assert.ok(production.includes("DB_NAME='marapo24-botendienst-offline-v1'"));assert.ok(original.includes("DB_NAME='marapo24-protected-offline-v1'"));assert.throws(()=>productionOffline('Unexpected source'));
+});
