@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Noch nicht veröffentlicht: [Zeitpunkt erfolgloser Zustellversuche](zustellversuchszeit-2026-11-05.md). Der folgende Betriebsstand bleibt bis zur Freigabe dieser Ergänzung unverändert.
+
 ## Tourauswahl oben und einklappbare Päckchenerfassung – 04.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Anwendungscode `b90059551a03ca6cd011becb5ef8191fe106f3df`; Worker-Version `848d1bcf-716f-4a0c-8102-62dfc46d54f9`. Lokal 168 Prüfungen erfolgreich: 36 Grundprüfungen, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Browserabläufe. GitHub startete für den Layout-Commit keinen Prüflauf; ein anschließender Dokumentations-/Test-Push wurde mit „Internal Server Error“ abgelehnt. Die lokale Wiederaufbauprüfung wurde gezielt für das genehmigte einklappbare HTML ergänzt (Commit db7547e); Anwendungscode und freigegebenes Paket blieben dabei unverändert. Die unveränderten v3-/Firestore-Emulatorabläufe wurden nicht erneut lokal ausgeführt.

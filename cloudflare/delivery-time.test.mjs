@@ -4,8 +4,8 @@ test('delivery display uses captured time, marks a pending offline capture and n
  assert.deepEqual(deliveryTime({status:'zugestellt',capturedAtClient:capturedAt,completedAt}),{value:capturedAt,pending:false,recorded:false});
  assert.deepEqual(deliveryTime({status:'zugestellt',action:'delivery',capturedAt}),{value:capturedAt,pending:true,recorded:false});
  assert.deepEqual(deliveryTime({status:'zugestellt',completedAt}),{value:completedAt,pending:false,recorded:true});
- assert.equal(localDateTime(capturedAt).time,'18:06');
- for(const stop of [{status:'offen',completedAt},{status:'nicht zugestellt',completedAt},{status:'zugestellt',removed:true,completedAt},{status:'zugestellt',voided:true,completedAt},{status:'zugestellt',completedAt:'bad'}])assert.equal(deliveryTime(stop),null);
+ for(const status of ['zugestellt','nicht zugestellt']){assert.deepEqual(deliveryTime({status,capturedAtClient:capturedAt,completedAt}),{value:capturedAt,pending:false,recorded:false});assert.deepEqual(deliveryTime({status,action:'delivery',capturedAt}),{value:capturedAt,pending:true,recorded:false});assert.deepEqual(deliveryTime({status,completedAt}),{value:completedAt,pending:false,recorded:true});} assert.equal(localDateTime(capturedAt).time,'18:06');
+ for(const stop of [{status:'offen',completedAt},{status:'zugestellt',removed:true,completedAt},{status:'zugestellt',voided:true,completedAt},{status:'zugestellt',completedAt:'bad'}])assert.equal(deliveryTime(stop),null);
 });
 test('driver and office receive the original delivery capture time without changing archived proof or customer profile',{timeout:40000},async()=>{
  const f=await fixtureRuntime();try{

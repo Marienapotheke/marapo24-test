@@ -12,7 +12,7 @@ export const recipientNames=stop=>[stop.name,stop.secondName].filter(Boolean).jo
 // Prefer the actual device capture over a later offline upload. Older records
 // without it are explicitly labelled as server recording time by the view.
 export function deliveryTime(stop){
- if(stop.status!=='zugestellt'||stop.voided||stop.removed)return null;
+ if(!['zugestellt','nicht zugestellt'].includes(stop.status)||stop.voided||stop.removed)return null;
  const pending=stop.action==='delivery',value=pending?stop.capturedAt:stop.capturedAtClient||stop.completedAt;
  if(typeof value!=='string'||!Number.isFinite(+new Date(value)))return null;
  return {value,pending,recorded:!pending&&!stop.capturedAtClient};
