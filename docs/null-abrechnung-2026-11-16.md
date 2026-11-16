@@ -11,3 +11,7 @@ Fiktive Prüfungen decken neue Null-Abrechnungen durch Büro und zugewiesenen Fa
 ## GitHub-Prüfumgebung
 
 Der erste GitHub-Lauf 43867919677 bestand Grund- und Emulatorprüfungen, brach danach beim Einrichten des Testbrowsers ab: ubuntu-latest lieferte Ubuntu 26.04, das Playwright 1.56 nicht unterstützt. Der Workflow ist deshalb auf Ubuntu 24.04 festgelegt. Anwendungscode und Abhängigkeiten werden dafür nicht geändert. Vor Veröffentlichung wird die vollständige GitHub-Prüfung erneut ausgeführt.
+
+## Ältere geöffnete App-Versionen
+
+Das Zahlungsmodul behält seinen bisherigen Export cashSettlementNeeded für ältere, noch geöffnete App-Versionen. Die aktuelle Oberfläche verwendet diese alte Beschränkung nicht mehr. Das Modul bleibt bytegleich zum vorherigen Betriebsstand; die neue Null-Abrechnung benötigt nur die geänderte Oberfläche und den geänderten Server.
