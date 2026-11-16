@@ -678,14 +678,13 @@ async function Ft(e, t, n, i, r, o) {
     if ((JSON.parse(u.data).settledByUid || u.driver_id) === t && u.completion_id === r.completionId && u.fingerprint === l) return { saved: true };
     a("already-exists", "Die Abrechnung ist bereits unterschrieben.");
   }
-  if(!(await e.prepare("SELECT 1 AS needed FROM current_proof_payments WHERE tour_id=? AND json_extract(data,'$.status')='zugestellt' AND effective_origin IN ('Marienapotheke','Cusanus-Apotheke') AND effective_collected_cents>0 LIMIT 1").bind(d.id).first()))a("failed-precondition","Keine Abrechnungsunterschrift erforderlich: Es wurde nichts kassiert.");
   let E = { uid: t, tourId: d.id, purpose: "marien-cash-settlement", completionId: r.completionId }, p = await q(r.sealedSignature, E, o.DELIVERY_PROOF_PRIVATE_KEY);
   p.capturedAt !== r.capturedAt && a("invalid-argument", "Erfassungszeit ver\xE4ndert."), await Ee(p.signature);
   let g = await e.prepare("SELECT coalesce(sum(effective_collected_cents),0) cents FROM current_proof_payments WHERE tour_id=? AND json_extract(data,'$.status')='zugestellt' AND effective_origin='Marienapotheke'").bind(d.id).first();
   g.cents !== r.collectedCents && a("failed-precondition", "Abrechnungsbetrag ge\xE4ndert. Tour aktualisieren und erneut pr\xFCfen.");
   let h = await e.prepare("SELECT display_name FROM users WHERE uid=?").bind(d.driver_id).first(), v = { settledByUid: t, settledByName: n.displayName, kind: "cash-settlement", origin: "Marienapotheke", tourId: d.id, tourType: d.type, tourDate: d.date, driverId: d.driver_id, driverName: h?.display_name || "Archivierter Zugang", signerName: c, signerIdentity: s ? "name-entered-on-office-device" : "name-entered-on-driver-device", collectedCents: g.cents, tourEndedAt: d.ended_at, capturedAtClient: r.capturedAt, completedAt: (/* @__PURE__ */ new Date()).toISOString(), retentionAt: d.created_at, signature: p.signature, signatureSha256: await Lt(Buffer.from(p.signature.slice(22), "base64")) };
   try {
-    const inserted=await e.prepare("INSERT INTO cash_settlements SELECT ?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM current_proof_payments WHERE tour_id=? AND json_extract(data,'$.status')='zugestellt' AND effective_origin IN ('Marienapotheke','Cusanus-Apotheke') AND effective_collected_cents>0)").bind(d.id, d.driver_id, r.completionId, l, g.cents, d.created_at, JSON.stringify(v),d.id).run();if(inserted.meta.changes!==1)a("failed-precondition","Der kassierte Betrag wurde inzwischen geändert. Tour bitte neu laden.");
+    await e.prepare("INSERT INTO cash_settlements VALUES (?,?,?,?,?,?,?)").bind(d.id, d.driver_id, r.completionId, l, g.cents, d.created_at, JSON.stringify(v)).run();
   } catch (_) {
     let T = await e.prepare("SELECT * FROM cash_settlements WHERE tour_id=?").bind(d.id).first();
     if (T) {
