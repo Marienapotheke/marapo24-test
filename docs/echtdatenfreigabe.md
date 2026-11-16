@@ -1,8 +1,16 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Abrechnung auch ohne kassiertes Geld](null-abrechnung-2026-11-16.md). Der folgende Betriebsstand bleibt bis zur Freigabe dieser Ergänzung unverändert.
+## Abrechnung auch ohne kassiertes Geld – 16.11.2026, aktueller Betriebsstand
 
-## Zeitpunkt erfolgloser Zustellversuche – 05.11.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `bb475c42f3bd633c1a3ad376ffe320114fa27335`; [GitHub-Gesamtprüfung 43869359600](https://github.com/Marienapotheke/marapo24-test/actions/runs/43869359600) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `6f1eac92-8509-42cf-ab97-1550d1fd72d6`. Der erste CI-Lauf scheiterte bei der Browserinstallation auf Ubuntu 26.04. Die Prüfumgebung ist nun auf unterstütztes Ubuntu 24.04 festgelegt; Anwendung und Abhängigkeiten wurden dafür nicht geändert.
+
+Nach bestätigt übertragenem Tourende kann der Abrechnungsnachweis in Fahrer- und Büroansicht auch bei 0 € tatsächlich kassiertem Geld unterschrieben werden. Dies ersetzt die Einschränkung vom 03.11. Offene Kundenforderungen bleiben offen. Tatsächlicher manuell eingegebener Abrechnungsname, Unterschrift, aktuelle Marien-Kassensumme, Berechtigungen und exakter Wiederholschutz bleiben erforderlich. Der atomare Datenbank-Abgleich verhindert widersprüchliche parallele Marien-Betragskorrekturen. Bestehende Nachweise und Null-Abrechnungen bleiben unverändert. Wie bisher sperrt die gespeicherte Abrechnung weitere Fahrerkorrekturen der Beträge. Details: [Null-Abrechnung](null-abrechnung-2026-11-16.md).
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 13:37 Uhr und danach um 13:49 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt und geprüft. Alle 1696 ursprünglichen Zustellnachweise, 85 Abrechnungen, 12 Korrekturen und 3 Fahrerzuordnungsnachweise bytegenau unverändert. 22 öffentliche Dateien entsprechen den Paketprüfsummen; 19 unangemeldete API-Zugriffe gesperrt. Gesamtes Datenbankschema, SQL-Archivschutz, Live-Einstellungen, Schlüsselbindungen, D1-EU, Offline-Datenbank und Aufbewahrungszeitplan unverändert. Keine produktive Migration oder Testdatensätze; main/v3 unverändert.
+
+Nach Speichern laufender Eingaben ausstehende Vorgänge übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Browserdaten nicht löschen.
+
+## Vorherige Veröffentlichung: Zeitpunkt erfolgloser Zustellversuche – 05.11.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja freigabe“ veröffentlicht: Code `578e78255bfd003edf2f9f7b67c60075d58dd706`; [GitHub-Prüfung 42034468512](https://github.com/Marienapotheke/marapo24-test/actions/runs/42034468512) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `6f3041ae-5bf1-4164-aa5a-e1fc9f3988c5`.
 
