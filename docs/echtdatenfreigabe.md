@@ -1,8 +1,18 @@
 # MARAPO24 – freigegebener Betriebsstand
 
-Noch nicht veröffentlicht: [Handy-Auswahl beim Fahrer-Tourstart](handywahl-tourstart-2026-11-18.md). Die zusätzliche nullable Spalte und ihr Änderungsschutz sind ausschließlich lokal vorbereitet; keine produktive Migration. Der folgende Betriebsstand bleibt bis zur gesonderten Freigabe unverändert.
+## Handy-Auswahl beim Fahrer-Tourstart – 18.11.2026, aktueller Betriebsstand
 
-## Abrechnung auch ohne kassiertes Geld – 16.11.2026, aktueller Betriebsstand
+Nach ausdrücklicher Betreiberfreigabe „ja“ einschließlich zusätzlichem Datenfeld veröffentlicht: Code `fc9c594025d8ed3e9bc6b3b9219d3bc5768b5843`; [GitHub-Gesamtprüfung 44314828866](https://github.com/Marienapotheke/marapo24-test/actions/runs/44314828866) erfolgreich mit 191 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 112 Cloudflare-Backendprüfungen, 20 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `f095d154-e9ce-4788-9b4b-f25c380b39b8`.
+
+Die aktuelle App verlangt beim Fahrer-Tourstart eine zunächst leere Auswahl aus „Handy schwarz“, „Handy rot“ oder „Handy lila“. Mitarbeiter-Mitnahme mit Bürozugang ist ausgenommen; beim Tourende erscheint kein neues Pflichtfeld. Die Auswahl wird zur Tour gespeichert und in Fahrer- und Büroansicht angezeigt. Startstatus, Kilometer, Abschluss-ID, Fingerprint und Handy werden atomar gespeichert. Nach Start schützt eine SQL-Regel die Zuordnung vor nachträglichem Überschreiben oder Löschen. Neue Anfragen mit startPhoneVersion:1 benötigen einen gültigen Gerätewert; alte Clients und wartende Offline-Starts ohne diese Zusatzfelder bleiben kompatibel. Historische Touren behalten NULL statt erfundener Farben. Die bestehende verschlüsselte Offline-Warteschlange und ihre Datenbankkennung bleiben erhalten; die neue Offline-Bereitschaftsversion lädt alle App-Dateien vollständig vor. Details: [Handywahl](handywahl-tourstart-2026-11-18.md).
+
+Vor Veröffentlichung wurde das additive SQL-Skript einmalig nach Prüfung des bestehenden Schemas angewendet: ausschließlich nullable Spalte tours.start_phone und tour_start_phone_guard ergänzt. Das erwartete Schema wurde zuvor ohne Kundendaten im Speicher erprobt und danach vollständig gegen die genehmigte Änderung geprüft. Alle bisherigen Tabellen, Sichten, Indexe und Archivschutzregeln bleiben erhalten; nach der Erweiterung und vor Programmveröffentlichung waren sämtliche historischen Handyfelder noch NULL. Kein anderes Schemaobjekt geändert, keine künstlichen Produktivdatensätze angelegt. main/v3 unverändert.
+
+Frische verschlüsselte Betriebssicherung auf S1 vor Erweiterung um 17:10 Uhr und danach um 17:12 Uhr (Europe/Berlin), beide isoliert erfolgreich wiederhergestellt. Alle 1838 ursprünglichen Zustellnachweise, 94 Abrechnungen, 12 Korrekturen und 3 Fahrerzuordnungsnachweise bytegenau unverändert. 22 öffentliche Dateien entsprechen den Paketprüfsummen; 19 unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, Live-Einstellungen, D1-EU und Aufbewahrungszeitplan unverändert. Sicherungsprüfung kontrolliert die neue Spalte und ihren Schutz, bleibt aber für alte Archive ohne Handyfeld kompatibel.
+
+Auf allen Fahrergeräten laufende Eingaben speichern und ausstehende Vorgänge übertragen, danach alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Vor Abfahrt „Für Funklöcher vorbereitet“ prüfen. Browserdaten nicht löschen.
+
+## Vorherige Veröffentlichung: Abrechnung auch ohne kassiertes Geld – 16.11.2026
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `bb475c42f3bd633c1a3ad376ffe320114fa27335`; [GitHub-Gesamtprüfung 43869359600](https://github.com/Marienapotheke/marapo24-test/actions/runs/43869359600) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `6f1eac92-8509-42cf-ab97-1550d1fd72d6`. Der erste CI-Lauf scheiterte bei der Browserinstallation auf Ubuntu 26.04. Die Prüfumgebung ist nun auf unterstütztes Ubuntu 24.04 festgelegt; Anwendung und Abhängigkeiten wurden dafür nicht geändert.
 
