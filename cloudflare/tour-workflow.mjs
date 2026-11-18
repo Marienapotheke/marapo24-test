@@ -19,3 +19,7 @@ export function handover(input,type){
  }else throw Error('Zustellstatus prüfen.');
  return {deliveryMethod:method,nonDeliveryReason:reason,neighborName:neighbor.trim(),dropoffLocation:location.trim()};
 }
+
+export const TOUR_PHONES={black:'Handy schwarz',red:'Handy rot',purple:'Handy lila'};
+export function tourStartPhone(value,{required=false}={}){if(value===undefined&&!required)return null;if(typeof value!=='string'||!Object.hasOwn(TOUR_PHONES,value))throw Error('Bitte Handy schwarz, Handy rot oder Handy lila auswählen.');return value;}
+export const tourPhoneLabel=value=>TOUR_PHONES[value]||'Nicht erfasst (ältere Tour)';

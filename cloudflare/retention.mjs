@@ -41,6 +41,8 @@ export function verifyCashArchive(db){
  return db.prepare('SELECT count(*) n FROM cash_settlements').get().n;
 }
 export function verifyWorkflowArchives(db){
+ if(db.prepare("PRAGMA table_info('tours')").all().some(column=>column.name==='start_phone')){const guard=db.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='tour_start_phone_guard'").get();if(!guard?.sql?.includes('RAISE(ABORT,')||!guard.sql.includes('OLD.start_id IS NOT NULL'))throw Error('Tour phone protection missing from restored archive.');if(db.prepare("SELECT 1 FROM tours WHERE start_phone IS NOT NULL AND start_phone NOT IN ('black','red','purple') LIMIT 1").get())throw Error('Invalid tour phone in restored archive.');}
+
  for(const [table,prefix] of [['delivery_amendments','amendment'],['tour_assignments','assignment']])if(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table)){
   for(const operation of ['insert_guard','immutable_update','immutable_delete']){const row=db.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name=?").get(prefix+'_'+operation);if(!row?.sql?.includes('RAISE(ABORT,'))throw Error('Workflow archive protection missing.');}
  }

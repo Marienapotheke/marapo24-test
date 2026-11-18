@@ -1,5 +1,7 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+Noch nicht veröffentlicht: [Handy-Auswahl beim Fahrer-Tourstart](handywahl-tourstart-2026-11-18.md). Die zusätzliche nullable Spalte und ihr Änderungsschutz sind ausschließlich lokal vorbereitet; keine produktive Migration. Der folgende Betriebsstand bleibt bis zur gesonderten Freigabe unverändert.
+
 ## Abrechnung auch ohne kassiertes Geld – 16.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `bb475c42f3bd633c1a3ad376ffe320114fa27335`; [GitHub-Gesamtprüfung 43869359600](https://github.com/Marienapotheke/marapo24-test/actions/runs/43869359600) erfolgreich mit 186 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 108 Cloudflare-Backendprüfungen, 19 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `6f1eac92-8509-42cf-ab97-1550d1fd72d6`. Der erste CI-Lauf scheiterte bei der Browserinstallation auf Ubuntu 26.04. Die Prüfumgebung ist nun auf unterstütztes Ubuntu 24.04 festgelegt; Anwendung und Abhängigkeiten wurden dafür nicht geändert.

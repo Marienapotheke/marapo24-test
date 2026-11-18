@@ -1,3 +1,4 @@
+import {tourStartPhone} from './tour-workflow.mjs';
 import {addressSuggestions as recoveredAddressSuggestions,splitStreetAddress as recoveredSplitStreet,normalizeHouseNumber as recoveredHouseNumber} from './address-suggestions.mjs';
 // Editable recovered Worker; exact baseline: recovery/cloudflare-20261030/.
 var __defProp = Object.defineProperty;
@@ -985,7 +986,7 @@ function ge(e) {
 }
 __name(ge, "ge");
 function $e(e) {
-  return e ? { id: e.id, type: e.type, date: e.date, regularType: e.regular_type, driverId: e.driver_id, createdBy: e.created_by, status: e.status, schemaVersion: 2, createdAt: e.created_at, vehicleId: e.vehicle_id, vehicleLabel: e.vehicle_label, startedAt: e.started_at, endedAt: e.ended_at, startCapturedAtClient: e.start_captured, endCapturedAtClient: e.end_captured, startOdometerKm: e.start_odometer, endOdometerKm: e.end_odometer, workflowVersion: e.workflow_version } : null;
+  return e ? { id: e.id, type: e.type, date: e.date, regularType: e.regular_type, driverId: e.driver_id, createdBy: e.created_by, status: e.status, schemaVersion: 2, createdAt: e.created_at, vehicleId: e.vehicle_id, vehicleLabel: e.vehicle_label, startedAt: e.started_at, endedAt: e.ended_at, startCapturedAtClient: e.start_captured, endCapturedAtClient: e.end_captured, startOdometerKm: e.start_odometer, endOdometerKm: e.end_odometer, workflowVersion: e.workflow_version, startPhone:e.start_phone??null } : null;
 }
 __name($e, "$e");
 function er(e) {
@@ -1113,10 +1114,11 @@ async function Hr(e, t, n, i, r, o) {
     return { version: 1, keyId: s.keyId, publicKey: s.publicKey };
   }
   if (i === "startProtectedTour" || i === "finishProtectedTour") {
-    R(r, i === "startProtectedTour" ? ["tourId", "vehicleId", "completionId", "capturedAt", "odometerKm"] : ["tourId", "completionId", "capturedAt", "odometerKm"]), M(r);
+    R(r, i === "startProtectedTour" ? ["tourId", "vehicleId", "completionId", "capturedAt", "odometerKm", "startPhone", "startPhoneVersion"] : ["tourId", "completionId", "capturedAt", "odometerKm"]), M(r);
     let s = await me(e, t, r, n), d = await Qt(r), c = i === "startProtectedTour", l = c ? s.start_id : s.end_id, u = c ? s.start_hash : s.end_hash;
     if (l === r.completionId && u === d) return c ? { started: true } : { finished: true };
     let E = !!await L(e, "SELECT 1 FROM self_delivery_tours WHERE tour_id=?", s.id), p = E, g = null;
+    let phone=null;if(c){if(r.startPhoneVersion!==undefined&&r.startPhoneVersion!==1)a('invalid-argument','Handy-Auswahlversion prüfen.');if(p&&(r.startPhone!==undefined||r.startPhoneVersion!==undefined))a('invalid-argument','Bei Selbst-Mitnahme kein Fahrerhandy auswählen.');if(!p)try{phone=tourStartPhone(r.startPhone,{required:r.startPhoneVersion===1});}catch(error){a('invalid-argument',error.message);}}
     try {
       !p && (s.workflow_version >= 2 || r.odometerKm !== void 0) && (g = At(r.odometerKm));if(E && !c && s.vehicle_id && r.odometerKm!==void 0)g=At(r.odometerKm);
     } catch (v) {
@@ -1126,7 +1128,7 @@ async function Hr(e, t, n, i, r, o) {
     if (c) {
       s.status !== "open" && a("already-exists", "Tour wurde bereits gestartet.");
       let v = await L(e, "SELECT * FROM vehicles WHERE id=? AND active=1", I(r.vehicleId));
-      if (v || a("failed-precondition", "Fahrzeug nicht freigegeben."), !(await P(e, `UPDATE tours SET status='running',vehicle_id=?,vehicle_label=(SELECT label FROM vehicles WHERE id=?),started_at=?,start_captured=?,start_id=?,start_hash=?,start_odometer=? WHERE id=? AND driver_id=? AND status='open' AND ${De} AND EXISTS(SELECT 1 FROM vehicles WHERE id=? AND active=1) AND EXISTS(SELECT 1 FROM stops WHERE tour_id=?)`, v.id, v.id, z(), r.capturedAt, r.completionId, d, g, s.id, t, t, v.id, s.id)).meta.changes) {
+      if (v || a("failed-precondition", "Fahrzeug nicht freigegeben."), !(await P(e, `UPDATE tours SET status='running',vehicle_id=?,vehicle_label=(SELECT label FROM vehicles WHERE id=?),started_at=?,start_captured=?,start_id=?,start_hash=?,start_odometer=?,start_phone=? WHERE id=? AND driver_id=? AND status='open' AND ${De} AND EXISTS(SELECT 1 FROM vehicles WHERE id=? AND active=1) AND EXISTS(SELECT 1 FROM stops WHERE tour_id=?)`, v.id, v.id, z(), r.capturedAt, r.completionId, d, g, phone, s.id, t, t, v.id, s.id)).meta.changes) {
         let T = await me(e, t, r, ge(await L(e, "SELECT * FROM users WHERE uid=?", t)));
         (T.start_id !== r.completionId || T.start_hash !== d) && a("failed-precondition", "Vor Start P\xE4ckchen erfassen, Fahrzeug und Tour pr\xFCfen.");
       }
