@@ -1,5 +1,9 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+## Vorbereitet, noch nicht veröffentlicht: nicht gefundene Adressen einzeln prüfen und beim Sortieren auslassen – 23.11.2026
+
+Jeder nicht gefundene Stopp soll einzeln geprüft werden können: Adresse bearbeiten, einen App-Vorschlag im Formular prüfen und speichern oder ausdrücklich nur diesen Stopp auslassen. Erst nach Entscheidung für alle betroffenen Stopps lässt sich der bestätigte Rest vorsortieren. Ausgelassene Stopps bleiben vollständig erhalten, kommen ans Ende und werden dauerhaft bis zum manuellen Platzieren mit ↑/↓ markiert. Beträge, Päckchen und Nachweise bleiben erhalten. Keine Migration, keine produktive Änderung. [Details und Prüfungen](teil-sortierung-2026-11-23.md). Die nachfolgend dokumentierte Veröffentlichung bleibt bis zur konkreten Betreiberfreigabe live.
+
 ## Kilometerkorrektur, Büroverlauf und übersichtliches Zustell-PDF – 23.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ einschließlich zusätzlicher Kilometer-Verlaufstabelle veröffentlicht: Code `40bd76871a86eb1ab6354a23eeadf43c46b9354b`; [GitHub-Gesamtprüfung 45197811114](https://github.com/Marienapotheke/marapo24-test/actions/runs/45197811114) erfolgreich mit 200 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 119 Backend-/PDFprüfungen, 22 Sicherungs-/Restore-/Retentionsprüfungen und fünf Cloudflare-Browserabläufe). Zusätzlich lokal 182 Prüfungen erfolgreich. Worker-Version `96098d7f-b9fe-48e8-8e0f-615f173e179d`.

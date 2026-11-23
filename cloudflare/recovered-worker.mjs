@@ -715,7 +715,7 @@ async function kt(e, t, n, i, r) {
   (h.capturedAt !== i.capturedAt || h.signature !== null) && a("invalid-argument", "Entfernungsbest\xE4tigung pr\xFCfen.");
   let v = O(h.driverComment, 240, true);
   v.length < 3 && a("invalid-argument", "Bitte einen nachvollziehbaren Entfernungsgrund eingeben.");
-  let _ = JSON.parse(g.data), T = { ..._, parcelCount: Y(_.parcelCount), originalCents: te(_), cents: te(_), collectedCents: 0, collectionReason: "", collectionConfirmed: true, kind: "package-removal", removed: true, removalReason: v, removedBy: t, removedByName: n.displayName, tourId: o, stopId: s, driverId: t, status: "nicht zugestellt", completedAt: (/* @__PURE__ */ new Date()).toISOString(), capturedAtClient: i.capturedAt, signature: null, signatureSha256: null };
+  let { _routeManual: routeMarker, ..._ } = JSON.parse(g.data), T = { ..._, parcelCount: Y(_.parcelCount), originalCents: te(_), cents: te(_), collectedCents: 0, collectionReason: "", collectionConfirmed: true, kind: "package-removal", removed: true, removalReason: v, removedBy: t, removedByName: n.displayName, tourId: o, stopId: s, driverId: t, status: "nicht zugestellt", completedAt: (/* @__PURE__ */ new Date()).toISOString(), capturedAtClient: i.capturedAt, signature: null, signatureSha256: null };
   try {
     await e.prepare("INSERT INTO proofs VALUES (?,?,?,?,?,?,?)").bind(d, o, s, t, i.completionId, c, JSON.stringify(T)).run();
   } catch {
@@ -758,7 +758,7 @@ async function Ht(e, t, n, i) {
   } else (_ !== void 0 || T !== void 0) && a("invalid-argument", "Zahlung erst bei Zustellung erfassen.");
   let y = (/* @__PURE__ */ new Date()).toISOString(), j = Object.fromEntries(Object.keys(m).map((U) => [U, u[U]]));
   f && (j.cents = f.cents);
-  let Fe = { by: t, actorName: n.displayName, at: y, afterDelivery: !!l.proof_id, before: j, after: m, ...N ? { paymentBefore: f, paymentAfter: { cents: N.cents, collectedCents: N.collectedCents, collectionReason: N.collectionReason } } : {} }, tr = e.prepare("UPDATE stops SET data=? WHERE id=? AND tour_id=? AND COALESCE(json_extract(data,'$._editVersion'),0)=? AND status=? AND proof_id IS ? AND COALESCE((SELECT max(revision) FROM delivery_amendments WHERE stop_id=stops.id),0)=? AND NOT EXISTS(SELECT 1 FROM cash_settlements WHERE tour_id=stops.tour_id) AND NOT EXISTS(SELECT 1 FROM delivery_amendments WHERE stop_id=stops.id AND kind='reopen') AND EXISTS(SELECT 1 FROM tours t JOIN users u ON u.uid=? WHERE t.id=stops.tour_id AND u.active=1 AND ((t.status='open' AND (EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='office') OR (t.driver_id=u.uid AND EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='driver')))) OR (t.status='running' AND t.driver_id=u.uid AND (EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='driver') OR (EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='office') AND EXISTS(SELECT 1 FROM self_delivery_tours m WHERE m.tour_id=t.id AND m.office_uid=u.uid)))))) RETURNING id").bind(JSON.stringify({ ...m, _editVersion: d + 1, _corrections: [...A, Fe] }), s, o, d, l.status, l.proof_id, p, t), rr = e.prepare("INSERT INTO tour_orders(tour_id,stop_ids,revision,updated_at) SELECT ?,COALESCE((SELECT json_group_array(id) FROM (SELECT id FROM stops WHERE tour_id=? AND status='offen' ORDER BY created_at,id)),'[]'),1,? WHERE changes()=1 ON CONFLICT(tour_id) DO UPDATE SET revision=tour_orders.revision+1,updated_at=excluded.updated_at").bind(o, o, y), Ye = [tr, rr];
+  let Fe = { by: t, actorName: n.displayName, at: y, afterDelivery: !!l.proof_id, before: j, after: m, ...N ? { paymentBefore: f, paymentAfter: { cents: N.cents, collectedCents: N.collectedCents, collectionReason: N.collectionReason } } : {} }, tr = e.prepare("UPDATE stops SET data=? WHERE id=? AND tour_id=? AND COALESCE(json_extract(data,'$._editVersion'),0)=? AND status=? AND proof_id IS ? AND COALESCE((SELECT max(revision) FROM delivery_amendments WHERE stop_id=stops.id),0)=? AND NOT EXISTS(SELECT 1 FROM cash_settlements WHERE tour_id=stops.tour_id) AND NOT EXISTS(SELECT 1 FROM delivery_amendments WHERE stop_id=stops.id AND kind='reopen') AND EXISTS(SELECT 1 FROM tours t JOIN users u ON u.uid=? WHERE t.id=stops.tour_id AND u.active=1 AND ((t.status='open' AND (EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='office') OR (t.driver_id=u.uid AND EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='driver')))) OR (t.status='running' AND t.driver_id=u.uid AND (EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='driver') OR (EXISTS(SELECT 1 FROM json_each(u.roles) WHERE value='office') AND EXISTS(SELECT 1 FROM self_delivery_tours m WHERE m.tour_id=t.id AND m.office_uid=u.uid)))))) RETURNING id").bind(JSON.stringify({ ...m, ...(u._routeManual===true&&u.street===m.street&&u.postalCode===m.postalCode&&u.city===m.city?{_routeManual:true}:{}), _editVersion: d + 1, _corrections: [...A, Fe] }), s, o, d, l.status, l.proof_id, p, t), rr = e.prepare("INSERT INTO tour_orders(tour_id,stop_ids,revision,updated_at) SELECT ?,COALESCE((SELECT json_group_array(id) FROM (SELECT id FROM stops WHERE tour_id=? AND status='offen' ORDER BY created_at,id)),'[]'),1,? WHERE changes()=1 ON CONFLICT(tour_id) DO UPDATE SET revision=tour_orders.revision+1,updated_at=excluded.updated_at").bind(o, o, y), Ye = [tr, rr];
   if (N) {
     let U = crypto.randomUUID(), he = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(i))))).map((_e) => _e.toString(16).padStart(2, "0")).join("");
     Ye.push(e.prepare("INSERT INTO delivery_amendments SELECT ?,?,?,?,?,?,'money',?,?,?,? WHERE changes()=1").bind(U, o, s, l.proof_id, t, p + 1, JSON.stringify(N), he, y, l.completed_at || l.created_at));
@@ -769,7 +769,7 @@ __name(Ht, "Ht");
 async function Pt(e, t) {
   let n = await e.prepare("SELECT data FROM stops WHERE id=? AND tour_id=?").bind(t.stopId, t.tourId).first();
   if (!n) return { ...t, packageCorrections: [] };
-  let { _editVersion: i, _corrections: r = [], ...o } = JSON.parse(n.data);
+  let { _editVersion: i, _corrections: r = [], _routeManual: routeMarker, ...o } = JSON.parse(n.data);
   return { ...t, packageCorrections: r, currentPackage: o };
 }
 __name(Pt, "Pt");
@@ -893,10 +893,15 @@ async function Ve(e, t, n, i) {
 }
 __name(Ve, "Ve");
 var Mr = "EXISTS(SELECT 1 FROM users WHERE uid=? AND active=1 AND (EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='driver') OR (EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value='office') AND EXISTS(SELECT 1 FROM self_delivery_tours m WHERE m.office_uid=users.uid AND m.tour_id=?))))";
-async function Vt(e, t, n, i, r = null) {
-  R(i, ["tourId", "stopIds", "baseRevision"]), await Ve(e, t, i.tourId, n), (!Array.isArray(i.stopIds) || i.stopIds.length > 1e3 || new Set(i.stopIds).size !== i.stopIds.length || i.stopIds.some((c) => typeof c != "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(c)) || !Number.isSafeInteger(i.baseRevision) || i.baseRevision < 0) && a("invalid-argument", "Stoppreihenfolge pr\xFCfen.");
+async function Vt(e, t, n, i, r = null, manualRoutingIds = null) {
+  R(i, ["tourId", "stopIds", "baseRevision", "placedStopId"]), await Ve(e, t, i.tourId, n), (!Array.isArray(i.stopIds) || i.stopIds.length > 1e3 || new Set(i.stopIds).size !== i.stopIds.length || i.stopIds.some((c) => typeof c != "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(c)) || !Number.isSafeInteger(i.baseRevision) || i.baseRevision < 0) && a("invalid-argument", "Stoppreihenfolge pr\xFCfen.");
+  if(i.placedStopId!==undefined&&(!i.stopIds.includes(I(i.placedStopId))||manualRoutingIds!==null))a("invalid-argument","Manuell verschobenen Stopp prüfen.");
   let o = JSON.stringify(i.stopIds), s = i.baseRevision + 1;
-  return (await e.prepare(`INSERT INTO tour_orders(tour_id,stop_ids,revision,updated_at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM tours WHERE id=? AND driver_id=? AND status IN('open','running')) AND ${Mr} AND (SELECT count(*) FROM stops WHERE tour_id=? AND status='offen')=json_array_length(?) AND NOT EXISTS(SELECT 1 FROM json_each(?) j LEFT JOIN stops s ON s.id=j.value AND s.tour_id=? AND s.status='offen' WHERE s.id IS NULL) AND (? IS NULL OR NOT EXISTS(SELECT 1 FROM json_each(?) j LEFT JOIN stops s ON s.id=json_extract(j.value,'$.id') WHERE s.id IS NULL OR s.data!=json_extract(j.value,'$.data'))) AND COALESCE((SELECT revision FROM tour_orders WHERE tour_id=?),0)=? ON CONFLICT(tour_id) DO UPDATE SET stop_ids=excluded.stop_ids,revision=excluded.revision,updated_at=excluded.updated_at WHERE tour_orders.revision=?`).bind(i.tourId, o, s, (/* @__PURE__ */ new Date()).toISOString(), i.tourId, t, t, i.tourId, i.tourId, o, o, i.tourId, r && JSON.stringify(r), r && JSON.stringify(r), i.tourId, i.baseRevision, i.baseRevision).run()).meta.changes < 1 && a("failed-precondition", "Tour oder Stopps wurden inzwischen ge\xE4ndert. Bitte neu laden."), { revision: s, stopIds: i.stopIds };
+  const orderStatement=e.prepare(`INSERT INTO tour_orders(tour_id,stop_ids,revision,updated_at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM tours WHERE id=? AND driver_id=? AND status IN('open','running')) AND ${Mr} AND (SELECT count(*) FROM stops WHERE tour_id=? AND status='offen')=json_array_length(?) AND NOT EXISTS(SELECT 1 FROM json_each(?) j LEFT JOIN stops s ON s.id=j.value AND s.tour_id=? AND s.status='offen' WHERE s.id IS NULL) AND (? IS NULL OR NOT EXISTS(SELECT 1 FROM json_each(?) j LEFT JOIN stops s ON s.id=json_extract(j.value,'$.id') WHERE s.id IS NULL OR s.data!=json_extract(j.value,'$.data'))) AND COALESCE((SELECT revision FROM tour_orders WHERE tour_id=?),0)=? ON CONFLICT(tour_id) DO UPDATE SET stop_ids=excluded.stop_ids,revision=excluded.revision,updated_at=excluded.updated_at WHERE tour_orders.revision=?`).bind(i.tourId, o, s, (/* @__PURE__ */ new Date()).toISOString(), i.tourId, t, t, i.tourId, i.tourId, o, o, i.tourId, r && JSON.stringify(r), r && JSON.stringify(r), i.tourId, i.baseRevision, i.baseRevision);
+  const statements=[orderStatement];
+  if(manualRoutingIds!==null)statements.push(e.prepare("UPDATE stops SET data=CASE WHEN id IN(SELECT value FROM json_each(?)) THEN json_set(data,'$._routeManual',json('true')) ELSE json_remove(data,'$._routeManual') END WHERE tour_id=? AND status='offen' AND changes()=1 AND ((id IN(SELECT value FROM json_each(?)) AND COALESCE(json_extract(data,'$._routeManual'),0)!=1) OR (id NOT IN(SELECT value FROM json_each(?)) AND json_type(data,'$._routeManual') IS NOT NULL))").bind(JSON.stringify(manualRoutingIds),i.tourId,JSON.stringify(manualRoutingIds),JSON.stringify(manualRoutingIds)));
+  else if(i.placedStopId!==undefined)statements.push(e.prepare("UPDATE stops SET data=json_remove(data,'$._routeManual') WHERE tour_id=? AND id=? AND status='offen' AND changes()=1 AND json_type(data,'$._routeManual') IS NOT NULL").bind(i.tourId,i.placedStopId));
+  const result=await e.batch(statements);if(result[0].meta.changes<1)a("failed-precondition","Tour oder Stopps wurden inzwischen geändert. Bitte neu laden.");return {revision:s,stopIds:i.stopIds};
 }
 __name(Vt, "Vt");
 async function $t(e, t, n) {
@@ -955,10 +960,11 @@ async function qt(e, t, n, i, r) {
     let m = await Le(o, "SELECT data FROM stops WHERE tour_id=? AND id=? AND status='offen'", t.tourId, I(t.stopId));
     return m || a("failed-precondition", "Stopp wurde inzwischen ge\xE4ndert."), await Xt(o, JSON.parse(m.data), r.GEOAPIFY_API_KEY,true), { prepared: true };
   }
-  R(t, ["tourId", "baseRevision"]), await Ve(o, n, t.tourId, i), (!Number.isSafeInteger(t.baseRevision) || t.baseRevision < 0) && a("invalid-argument", "Tourversion pr\xFCfen."), (typeof r.GEOAPIFY_API_KEY != "string" || r.GEOAPIFY_API_KEY.length < 10) && a("failed-precondition", "Kostenlose Kartenberechnung wird noch eingerichtet. Manuelle Reihenfolge und Google Maps sind bereits verf\xFCgbar.");
+  R(t, ["tourId", "baseRevision", "ignoredStopIds"]), await Ve(o, n, t.tourId, i), (!Number.isSafeInteger(t.baseRevision) || t.baseRevision < 0) && a("invalid-argument", "Tourversion pr\xFCfen."), (typeof r.GEOAPIFY_API_KEY != "string" || r.GEOAPIFY_API_KEY.length < 10) && a("failed-precondition", "Kostenlose Kartenberechnung wird noch eingerichtet. Manuelle Reihenfolge und Google Maps sind bereits verf\xFCgbar.");
   let s = (await o.prepare("SELECT id,data FROM stops WHERE tour_id=? AND status='offen' ORDER BY created_at,id LIMIT 81").bind(t.tourId).all()).results;
   s.length < 2 && a("failed-precondition", "Mindestens zwei offene Stopps erforderlich."), s.length > 80 && a("resource-exhausted", "Diese Tour bitte in kleineren Abschnitten oder manuell sortieren.");
-  let d = await Le(o, "SELECT stop_ids FROM tour_orders WHERE tour_id=?", t.tourId);
+  const ignored=t.ignoredStopIds===undefined?[]:t.ignoredStopIds;if(!Array.isArray(ignored)||ignored.length>80||new Set(ignored).size!==ignored.length||ignored.some(id=>typeof id!=="string"||!s.some(stop=>stop.id===id)))a("invalid-argument","Ausgelassene Stopps prüfen: nur offene Stopps dieser Tour auswählen.");
+  let d = await Le(o, "SELECT stop_ids,revision FROM tour_orders WHERE tour_id=?", t.tourId);if((d?.revision||0)!==t.baseRevision)a("failed-precondition","Tourreihenfolge inzwischen geändert. Bitte neu laden.");
   if (d) {
     let m = new Map(JSON.parse(d.stop_ids).map((A, N) => [A, N]));
     s.sort((A, N) => (m.get(A.id) ?? 1e5) - (m.get(N.id) ?? 1e5));
@@ -967,7 +973,12 @@ async function qt(e, t, n, i, r) {
     let A = JSON.parse(m.data);
     return Xe(["city-checked-v3", H(A.street), A.postalCode, H(A.city)]);
   }), l = (await o.prepare("SELECT id,lat,lon FROM address_locations WHERE id IN(SELECT value FROM json_each(?))").bind(JSON.stringify(c)).all()).results, u = new Map(l.map((m) => [m.id, m])), E = c.map((m) => u.get(m));
-  E.some((m) => !m) && a("failed-precondition", "Lieferadressen bitte zuerst f\xFCr die Berechnung vorbereiten.");
+  const allStops=s,allLocations=E,ignoredSet=new Set(ignored),manualStops=allStops.filter(stop=>ignoredSet.has(stop.id));
+  if(allStops.some((stop,index)=>ignoredSet.has(stop.id)&&allLocations[index]))a("failed-precondition","Eine ausgelassene Adresse ist inzwischen bestätigt. Bitte neu prüfen.");
+  if(allStops.some((stop,index)=>!ignoredSet.has(stop.id)&&!allLocations[index]))a("failed-precondition","Lieferadressen bitte zuerst für die Berechnung vorbereiten; nicht gefundene Adressen ausdrücklich auslassen.");
+  s=allStops.filter(stop=>!ignoredSet.has(stop.id));E=allLocations.filter((_,index)=>!ignoredSet.has(allStops[index].id));
+  const snapshot=allStops.map(({id,data})=>({id,data})),manualStopIds=manualStops.map(stop=>stop.id);
+  if(s.length<2)return {...await Vt(o,n,i,{tourId:t.tourId,baseRevision:t.baseRevision,stopIds:[...s,...manualStops].map(stop=>stop.id)},snapshot,manualStopIds),manualStopIds,sortedCount:s.length,calculated:false};
   let p = await Xt(o, Lr, r.GEOAPIFY_API_KEY), g = (s.length + 1) * Math.min(s.length + 1, 10);
   await Yt(o, g);
   let h = new URL("https://api-eu.geoapify.com/v1/routeplanner");
@@ -975,7 +986,7 @@ async function qt(e, t, n, i, r) {
   let v = { mode: "drive", agents: [{ start_location: [p.lon, p.lat] }], jobs: E.map((m, A) => ({ id: String(A), location: [m.lon, m.lat] })) }, _ = await Zt(h, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(v) }), T = _.features?.[0]?.properties?.actions;
   (_.features?.length !== 1 || _.features[0].properties.agent_index !== void 0 && _.features[0].properties.agent_index !== 0 || _.properties?.issues?.unassignedJobs?.length) && a("unavailable", "Kartenanbieter konnte nicht alle Stopps zuordnen. Reihenfolge bleibt erhalten.");
   let S = T?.filter((m) => Number.isInteger(m.job_index)).map((m) => m.job_index);
-  return (!S || S.length !== s.length || new Set(S).size !== s.length || S.some((m) => m < 0 || m >= s.length)) && a("unavailable", "Kartenanbieter lieferte keine vollst\xE4ndige Reihenfolge. Vorige Reihenfolge bleibt erhalten."), T.some((m) => Number.isInteger(m.job_index) && m.job_id !== void 0 && m.job_id !== String(m.job_index)) && a("unavailable", "Kartenanbieter lieferte widerspr\xFCchliche Stoppnummern. Reihenfolge bleibt erhalten."), { ...await Vt(o, n, i, { tourId: t.tourId, baseRevision: t.baseRevision, stopIds: S.map((m) => s[m].id) }, s.map(({ id: m, data: A }) => ({ id: m, data: A }))), attribution: "Geoapify / OpenStreetMap", distance: _.features[0].properties.distance, time: _.features[0].properties.time };
+  return (!S || S.length !== s.length || new Set(S).size !== s.length || S.some((m) => m < 0 || m >= s.length)) && a("unavailable", "Kartenanbieter lieferte keine vollst\xE4ndige Reihenfolge. Vorige Reihenfolge bleibt erhalten."), T.some((m) => Number.isInteger(m.job_index) && m.job_id !== void 0 && m.job_id !== String(m.job_index)) && a("unavailable", "Kartenanbieter lieferte widerspr\xFCchliche Stoppnummern. Reihenfolge bleibt erhalten."), { ...await Vt(o, n, i, { tourId: t.tourId, baseRevision: t.baseRevision, stopIds: [...S.map((m) => s[m].id),...manualStopIds] }, snapshot, manualStopIds), manualStopIds, sortedCount:s.length, calculated:true, attribution: "Geoapify / OpenStreetMap", distance: _.features[0].properties.distance, time: _.features[0].properties.time };
 }
 __name(qt, "qt");
 var L = /* @__PURE__ */ __name((e, t, ...n) => e.prepare(t).bind(...n).first(), "L");
@@ -993,8 +1004,8 @@ function $e(e) {
 __name($e, "$e");
 function er(e) {
   if (!e) return null;
-  let { _editVersion: t = 0, _corrections: n = [], ...i } = JSON.parse(e.data);
-  return { id: e.id, ...i, parcelCount: Y(i.parcelCount), ...e.payment_data ? JSON.parse(e.payment_data) : {}, ...e.payment_data && JSON.parse(e.payment_data).removed === 1 ? { removed: true, cents: 0 } : {}, editVersion: t, correctionCount: n.length, packageCorrections:n, schemaVersion: 2, status: e.status, createdAt: e.created_at, proofId: e.proof_id, completedAt: e.completed_at };
+  let { _editVersion: t = 0, _corrections: n = [], _routeManual: routeManual=false, ...i } = JSON.parse(e.data);
+  return { id: e.id, ...i, parcelCount: Y(i.parcelCount), ...e.payment_data ? JSON.parse(e.payment_data) : {}, ...e.payment_data && JSON.parse(e.payment_data).removed === 1 ? { removed: true, cents: 0 } : {}, routeManual:e.status==='offen'&&routeManual===true, editVersion: t, correctionCount: n.length, packageCorrections:n, schemaVersion: 2, status: e.status, createdAt: e.created_at, proofId: e.proof_id, completedAt: e.completed_at };
 }
 __name(er, "er");
 async function me(e, t, n, i) {
@@ -1182,7 +1193,7 @@ async function Hr(e, t, n, i, r, o) {
     } catch (N) {
       a("invalid-argument", N.message);
     }
-    let { _corrections: D, ...m } = JSON.parse(E.data), A = { ...m, photo: v, photoSha256: _, parcelCount: Y(m.parcelCount), cents: te(m), driverComment: S, ...g, ...h, ...Gt(m), tourId: s.id, stopId: d, driverId: t, status: r.status, completedAt: z(), capturedAtClient: r.capturedAt, signature: p.signature, signatureSha256: T };
+    let { _corrections: D, _routeManual: routeMarker, ...m } = JSON.parse(E.data), A = { ...m, photo: v, photoSha256: _, parcelCount: Y(m.parcelCount), cents: te(m), driverComment: S, ...g, ...h, ...Gt(m), tourId: s.id, stopId: d, driverId: t, status: r.status, completedAt: z(), capturedAtClient: r.capturedAt, signature: p.signature, signatureSha256: T };
     try {
       await P(e, "INSERT INTO proofs VALUES (?,?,?,?,?,?,?)", c, s.id, d, t, r.completionId, l, JSON.stringify(A));
     } catch (N) {
