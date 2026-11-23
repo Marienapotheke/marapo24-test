@@ -1,5 +1,11 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+## Vorbereitet, noch nicht veröffentlicht: Kilometerkorrektur, Büroverlauf und Zustell-PDF – 23.11.2026
+
+Nach Betreiberfestlegung vorbereitet: Startkilometer nur während laufender Fahrertour, Endkilometer nach Tourende bis zur Abrechnung, jeweils mit Pflichtgrund und unverändertem Original. Fahrer-/Büroansicht zeigen den Kilometerverlauf; bestehende Päckchendatenänderungen erscheinen direkt beim Kunden im Büro aufklappbar. Vereinfachtes Zustell-PDF behält Kunden-/Zahlungsangaben, Herkunftsapotheke, Zustell-/Versuchszeit und Unterschrift; entfernt technische Kennungen, Serverzeitpunkt, Hashes und leere Angaben. Ursprünglich unterschriebene Daten bleiben erhalten; nachträgliche Korrekturen sind gekennzeichnet und im App-Verlauf einsehbar. Abrechnungs-/Entfernungsdarstellung unverändert.
+
+Separate additive Migration `cloudflare/tour-odometer.sql` vorbereitet, **nicht produktiv angewendet**. Veröffentlichung benötigt konkrete Betreiberfreigabe einschließlich neuer Verlaufstabelle/Schutzregeln und frische verschlüsselte Sicherung mit isoliertem Restore-Test. Details und Prüfumfang: [Kilometer, Verlauf und PDF](kilometer-verlauf-pdf-2026-11-23.md). Der folgende veröffentlichte Betriebsstand vom 18.11. bleibt live; 22 öffentliche Dateien lesend bytegenau bestätigt. Keine produktiven Änderungen, kein Merge nach main/v3.
+
 ## Handy-Auswahl beim Fahrer-Tourstart – 18.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ einschließlich zusätzlichem Datenfeld veröffentlicht: Code `fc9c594025d8ed3e9bc6b3b9219d3bc5768b5843`; [GitHub-Gesamtprüfung 44314828866](https://github.com/Marienapotheke/marapo24-test/actions/runs/44314828866) erfolgreich mit 191 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 112 Cloudflare-Backendprüfungen, 20 Sicherungs-/Restoreprüfungen und fünf Cloudflare-Browserabläufe). Worker-Version `f095d154-e9ce-4788-9b4b-f25c380b39b8`.

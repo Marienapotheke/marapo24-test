@@ -1,4 +1,6 @@
 import {tourStartPhone} from './tour-workflow.mjs';
+import {correctTourOdometer,applyOdometerCorrections,odometerHistory,effectiveOdometer} from './tour-odometer.mjs';
+import odometerPolicy from '../functions/policy.cjs';
 import {addressSuggestions as recoveredAddressSuggestions,splitStreetAddress as recoveredSplitStreet,normalizeHouseNumber as recoveredHouseNumber} from './address-suggestions.mjs';
 // Editable recovered Worker; exact baseline: recovery/cloudflare-20261030/.
 var __defProp = Object.defineProperty;
@@ -551,7 +553,7 @@ async function It(e, { policy: t, now: n = /* @__PURE__ */ new Date() } = {}) {
     if (!l?.sql?.includes("BEFORE DELETE ON cash_settlements") || !l.sql.includes("RAISE(ABORT,'immutable cash settlement')")) throw Error("Unexpected cash archive protection; cleanup stopped");
   }
   let o = Ue(n), s = Nr(o, r), d = new Set((await e.prepare("SELECT name FROM sqlite_master WHERE type='table'").all()).results.map((l) => l.name));
-  for (let [l, u, E, p] of [["delivery_amendments", "retention_at", "amendment_immutable_delete", "immutable amendment"], ["tour_assignments", "retention_at", "assignment_immutable_delete", "immutable assignment"], ["tour_handover_offers", "created_at", null, null], ["work_starts", "started_at", null, null]]) d.has(l) && (E && s.push(["DROP TRIGGER " + E, []]), s.push(["DELETE FROM " + l + " WHERE " + u + " < ?", [o]]), E && s.push(["CREATE TRIGGER " + E + " BEFORE DELETE ON " + l + " BEGIN SELECT RAISE(ABORT,'" + p + "'); END", []]));
+  for (let [l, u, E, p] of [["tour_odometer_corrections", "retention_at", "odometer_immutable_delete", "immutable odometer correction"], ["delivery_amendments", "retention_at", "amendment_immutable_delete", "immutable amendment"], ["tour_assignments", "retention_at", "assignment_immutable_delete", "immutable assignment"], ["tour_handover_offers", "created_at", null, null], ["work_starts", "started_at", null, null]]) d.has(l) && (E && s.push(["DROP TRIGGER " + E, []]), s.push(["DELETE FROM " + l + " WHERE " + u + " < ?", [o]]), E && s.push(["CREATE TRIGGER " + E + " BEFORE DELETE ON " + l + " BEGIN SELECT RAISE(ABORT,'" + p + "'); END", []]));
   let c = await e.batch(s.map(([l, u]) => u.length ? e.prepare(l).bind(...u) : e.prepare(l)));
   return { checkedAt: n.toISOString(), cutoff: o, maximumLiveDays: 364, deleted: { proofs: c[1].meta.changes, stops: c[3].results?.length ?? c[3].meta.changes, tourOrders: c[4].meta.changes, tours: c[5].meta.changes, customers: c[6].meta.changes, addressLocations: c[7].meta.changes, cashSettlements: r ? c[10].meta.changes : 0 } };
 }
@@ -992,7 +994,7 @@ __name($e, "$e");
 function er(e) {
   if (!e) return null;
   let { _editVersion: t = 0, _corrections: n = [], ...i } = JSON.parse(e.data);
-  return { id: e.id, ...i, parcelCount: Y(i.parcelCount), ...e.payment_data ? JSON.parse(e.payment_data) : {}, ...e.payment_data && JSON.parse(e.payment_data).removed === 1 ? { removed: true, cents: 0 } : {}, editVersion: t, correctionCount: n.length, schemaVersion: 2, status: e.status, createdAt: e.created_at, proofId: e.proof_id, completedAt: e.completed_at };
+  return { id: e.id, ...i, parcelCount: Y(i.parcelCount), ...e.payment_data ? JSON.parse(e.payment_data) : {}, ...e.payment_data && JSON.parse(e.payment_data).removed === 1 ? { removed: true, cents: 0 } : {}, editVersion: t, correctionCount: n.length, packageCorrections:n, schemaVersion: 2, status: e.status, createdAt: e.created_at, proofId: e.proof_id, completedAt: e.completed_at };
 }
 __name(er, "er");
 async function me(e, t, n, i) {
@@ -1015,7 +1017,7 @@ async function kr(e, t, n, i) {
   l.length > 3e3 && a("resource-exhausted", "Zu viele P\xE4ckchen f\xFCr den Testlauf. Bitte B\xFCro informieren.");
   let u = {};
   for (let f of d) u[f.id] = [];
-  for (let f of l) u[f.tour_id] && u[f.tour_id].push(er(f));
+  for (let f of l) if(u[f.tour_id]){const stop=er(f);if(o!=='office')delete stop.packageCorrections;u[f.tour_id].push(stop);}
   let E = await B(e, o === "office" ? "SELECT * FROM vehicles LIMIT 101" : "SELECT * FROM vehicles WHERE active=1 LIMIT 101"), p = o === "office" ? await B(e, "SELECT * FROM users WHERE active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value IN ('driver','office')) LIMIT 101") : [], g = await B(e, "SELECT t.id,t.regular_type,t.driver_id,t.status,u.display_name AS owner_name FROM tours t LEFT JOIN users u ON u.uid=t.driver_id WHERE t.date=? AND t.regular_type IS NOT NULL", o === "office" ? r : b()), h = (w(n, "driver") || o === "office" ? Ne(o === "office" ? r : b()) : []).map((f) => {
     let y = g.find((j) => j.regular_type === f.id);
     return { ...f, date: b(), reserved: !!y?.driver_id, prepared: !!y, status: y?.status || "open", mine: y?.driver_id === t, ownerId: y?.driver_id || null, ownerName: y?.owner_name || "", canTakeOver: !!y?.driver_id && y.driver_id !== t && y.status === "open", tourId: y?.id || null };
@@ -1031,12 +1033,14 @@ async function kr(e, t, n, i) {
     y && (f.cashSettlement = { collectedCents: y.collected_cents, signerName: y.signer_name, completedAt: y.completed_at });
   }
   await $t(e, T, u), await pt(e, T);
+  try{await applyOdometerCorrections(e,T);}catch(error){if(error instanceof odometerPolicy.PolicyError)a(error.code,error.message);throw error;}
   let A = w(n, "driver") || o === "office" ? await vt(e, t, o, T) : { incomingHandovers: [], handoverDrivers: [] }, N = await gt(e, t, o, o === "office" ? r : b(), T);
   if (i.correctionsVersion !== 1) for (let f of Object.keys(u)) u[f] = u[f].filter((y) => !y.voided);
   return { profile: n, workStarts: N, ...A, tours: T, stops: u, vehicles: E.map((f) => ({ id: f.id, label: f.label, active: f.active === 1, createdAt: f.created_at })), employees: p.map((f) => ({ id: f.uid, ...ge(f) })), catalog: h, specialTours: v, cash: Object.entries(_).map(([f, y]) => ({ origin: f, cents: y })) };
 }
 __name(kr, "kr");
 async function Hr(e, t, n, i, r, o) {
+  if (i === 'correctTourOdometer'){try{return await correctTourOdometer(e,t,n,r);}catch(error){if(error instanceof odometerPolicy.PolicyError)a(error.code,error.message);throw error;}}
   if (i === "state") return kr(e, t, n, r);
   if (i === "deleteOwnTour") return Et(e, t, n, r);
   if (i === "startWork") return mt(e, t, n, r);
@@ -1124,7 +1128,8 @@ async function Hr(e, t, n, i, r, o) {
     } catch (v) {
       a("invalid-argument", v.message + " Bitte aktuelle App \xF6ffnen.");
     }
-    if (!c && g !== null && s.start_odometer !== null && g < s.start_odometer && a("invalid-argument", "End-Kilometerstand darf nicht unter dem Start liegen."), c && p) return (await P(e, `UPDATE tours SET status='running',vehicle_label='Privatfahrzeug',started_at=?,start_captured=?,start_id=?,start_hash=? WHERE id=? AND driver_id=? AND status='open' AND ${De} AND EXISTS(SELECT 1 FROM self_delivery_tours WHERE tour_id=tours.id AND office_uid=?) AND EXISTS(SELECT 1 FROM stops WHERE tour_id=tours.id)`, z(), r.capturedAt, r.completionId, d, s.id, t, t, t)).meta.changes || a("failed-precondition", "Vor Start P\xE4ckchen erfassen und Tour pr\xFCfen."), { started: true };
+    const effectiveStart=c?null:effectiveOdometer(s,await odometerHistory(e,s.id),'start');
+    if (!c && g !== null && effectiveStart !== null && g < effectiveStart && a("invalid-argument", "End-Kilometerstand darf nicht unter dem Start liegen."), c && p) return (await P(e, `UPDATE tours SET status='running',vehicle_label='Privatfahrzeug',started_at=?,start_captured=?,start_id=?,start_hash=? WHERE id=? AND driver_id=? AND status='open' AND ${De} AND EXISTS(SELECT 1 FROM self_delivery_tours WHERE tour_id=tours.id AND office_uid=?) AND EXISTS(SELECT 1 FROM stops WHERE tour_id=tours.id)`, z(), r.capturedAt, r.completionId, d, s.id, t, t, t)).meta.changes || a("failed-precondition", "Vor Start P\xE4ckchen erfassen und Tour pr\xFCfen."), { started: true };
     if (c) {
       s.status !== "open" && a("already-exists", "Tour wurde bereits gestartet.");
       let v = await L(e, "SELECT * FROM vehicles WHERE id=? AND active=1", I(r.vehicleId));

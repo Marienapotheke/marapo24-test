@@ -22,6 +22,7 @@ export async function fixtureRuntime({bindings={},outbound}={}){
   if(outbound)return outbound(request);return new Response('External network disabled in tests',{status:503});
  }});
  await runtime.ready;const db=await runtime.getD1Database('DB');await db.exec((await fs.readFile(path.join(base,'../recovery/cloudflare-20261030/schema.sql'),'utf8')).replace(/\r?\n/g,' '));await db.exec((await fs.readFile(path.join(base,'tour-start-phone.sql'),'utf8')).replace(/^--.*$/gm,'').replace(/\r?\n/g,' '));
+ await db.exec((await fs.readFile(path.join(base,'tour-odometer.sql'),'utf8')).replace(/^--.*$/gm,'').replace(/\r?\n/g,' '));
  for(const [uid,roles,isAdmin,special] of [['driver-a',['driver'],0,0],['driver-b',['driver'],0,0],['office',['office'],0,0],['dual',['office','driver'],0,0],['admin',['office'],1,1]])await db.prepare('INSERT INTO users VALUES (?,?,?,1,?,?)').bind(uid,'Fiktiv '+uid,JSON.stringify(roles),isAdmin,special).run();
  for(let i=4;i<=11;i++)await db.prepare('INSERT INTO users VALUES (?,?,?,1,0,0)').bind('driver-'+i,'Fiktiver Fahrer '+i,'["driver"]').run();
  for(let i=4;i<=20;i++)await db.prepare('INSERT INTO users VALUES (?,?,?,1,0,0)').bind('office-'+i,'Fiktives Büro '+i,'["office"]').run();
