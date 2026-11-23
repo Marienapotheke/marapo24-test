@@ -10,6 +10,7 @@ Stand: 23.11.2026. Vorbereitung im bestehenden Zweig `test-geschuetzte-zustellna
 - Schaltfläche bei den Tourdaten: „Startkilometer korrigieren“ beziehungsweise „Endkilometer korrigieren“. Bestätigte Internetverbindung und vorherige Übertragung ausstehender Tourvorgänge erforderlich, wie bei bisherigen Betragskorrekturen. Keine Kilometer bei Mitarbeiter-Mitnahme.
 - „Kilometer-Korrekturverlauf“ direkt bei der Tour in Fahrer- und Büroansicht: alter und neuer Wert, Fahrer, Speicherzeitpunkt und Pflichtgrund. Die gefahrene Strecke verwendet die gültigen Werte.
 - Vorhandene Päckchenänderungen erscheinen beim Kunden in der Büroansicht unter „Korrekturverlauf“, auch vor einem Zustellabschluss: geänderte Felder, vorheriger/neuer Wert, Name, Zeitpunkt und bereits erfasste Gründe. Frühere nicht erhobene Gründe werden nicht nachträglich erfunden. Bestehende Geldkorrekturen und Rücknahmen bleiben dort ebenfalls sichtbar. Kein PDF erforderlich.
+- Geöffnete Korrekturverläufe bleiben bei Hintergrundaktualisierungen aufgeklappt; beim Abmelden wird der Ansichtsstatus verworfen.
 
 ## Zustell-PDF
 

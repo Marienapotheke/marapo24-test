@@ -1,6 +1,6 @@
 import {odometer,localTimestamp} from './tour-workflow.mjs';
 export function odometerCorrectionHistory(tour,esc){
- const rows=tour.odometerCorrections||[];return rows.length?'<details class="odometer-history"><summary>Kilometer-Korrekturverlauf ('+rows.length+')</summary>'+rows.map(row=>'<p><b>'+esc(row.kind==='start'?'Startkilometer':'Endkilometer')+': '+esc(row.previousKm)+' → '+esc(row.odometerKm)+' km</b><br>'+esc(row.actorName)+' · '+esc(localTimestamp(row.createdAt))+'<br><b>Grund:</b> '+esc(row.reason)+'</p>').join('')+'</details>':'';
+ const rows=tour.odometerCorrections||[];return rows.length?'<details class="odometer-history" data-history-key="km:'+esc(tour.id)+'"><summary>Kilometer-Korrekturverlauf ('+rows.length+')</summary>'+rows.map(row=>'<p><b>'+esc(row.kind==='start'?'Startkilometer':'Endkilometer')+': '+esc(row.previousKm)+' → '+esc(row.odometerKm)+' km</b><br>'+esc(row.actorName)+' · '+esc(localTimestamp(row.createdAt))+'<br><b>Grund:</b> '+esc(row.reason)+'</p>').join('')+'</details>':'';
 }
 export function installOdometerControls({get,call,reload,message,esc}){
  const $=id=>document.getElementById(id),panel=document.createElement('section');panel.id='odometerCorrections';$('tourStatus').after(panel);

@@ -1,6 +1,6 @@
 // Local packaging only. Does not call Cloudflare or deploy/migrate anything.
 import fs from 'node:fs/promises';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {isDeepStrictEqual} from 'node:util';
-const out=path.resolve(process.argv[2]||'artifacts/marapo24-odometer-20261123'),artifactRoot=path.resolve('artifacts');if(!out.startsWith(artifactRoot+path.sep))throw Error('Package must be inside artifacts');
+const out=path.resolve(process.argv[2]||'artifacts/marapo24-odometer-20261123-r2'),artifactRoot=path.resolve('artifacts');if(!out.startsWith(artifactRoot+path.sep))throw Error('Package must be inside artifacts');
 try{await fs.access(out);throw Error('Package already exists; refusing overwrite');}catch(e){if(e.code!=='ENOENT')throw e;}
 function git(...args){const r=spawnSync('git',args,{encoding:'utf8',windowsHide:true});if(r.status!==0)throw Error('Git check failed');return r.stdout.trim();}
 if(git('branch','--show-current')!=='test-geschuetzte-zustellnachweise'||git('status','--porcelain'))throw Error('Committed clean test branch required');const sourceCommit=git('rev-parse','HEAD');
