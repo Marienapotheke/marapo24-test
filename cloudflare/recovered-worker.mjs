@@ -1,3 +1,4 @@
+import {correctPackageOrigin} from './origin-correction.mjs';
 import {tourStartPhone} from './tour-workflow.mjs';
 import {correctTourOdometer,applyOdometerCorrections,odometerHistory,effectiveOdometer} from './tour-odometer.mjs';
 import odometerPolicy from '../functions/policy.cjs';
@@ -770,7 +771,7 @@ async function Pt(e, t) {
   let n = await e.prepare("SELECT data FROM stops WHERE id=? AND tour_id=?").bind(t.stopId, t.tourId).first();
   if (!n) return { ...t, packageCorrections: [] };
   let { _editVersion: i, _corrections: r = [], _routeManual: routeMarker, ...o } = JSON.parse(n.data);
-  return { ...t, packageCorrections: r, currentPackage: o };
+  return { ...t, packageCorrections:r.map(({fingerprint,...entry})=>entry), currentPackage: o };
 }
 __name(Pt, "Pt");
 async function Wt(e, t, n, i, r) {
@@ -1005,7 +1006,7 @@ __name($e, "$e");
 function er(e) {
   if (!e) return null;
   let { _editVersion: t = 0, _corrections: n = [], _routeManual: routeManual=false, ...i } = JSON.parse(e.data);
-  return { id: e.id, ...i, parcelCount: Y(i.parcelCount), ...e.payment_data ? JSON.parse(e.payment_data) : {}, ...e.payment_data && JSON.parse(e.payment_data).removed === 1 ? { removed: true, cents: 0 } : {}, routeManual:e.status==='offen'&&routeManual===true, editVersion: t, correctionCount: n.length, packageCorrections:n, schemaVersion: 2, status: e.status, createdAt: e.created_at, proofId: e.proof_id, completedAt: e.completed_at };
+  return { id: e.id, ...i, parcelCount: Y(i.parcelCount), ...e.payment_data ? JSON.parse(e.payment_data) : {}, ...e.payment_data && JSON.parse(e.payment_data).removed === 1 ? { removed: true, cents: 0 } : {}, routeManual:e.status==='offen'&&routeManual===true, editVersion: t, correctionCount: n.length, packageCorrections:n.map(({fingerprint,...entry})=>entry), schemaVersion: 2, status: e.status, createdAt: e.created_at, proofId: e.proof_id, completedAt: e.completed_at };
 }
 __name(er, "er");
 async function me(e, t, n, i) {
@@ -1028,7 +1029,7 @@ async function kr(e, t, n, i) {
   l.length > 3e3 && a("resource-exhausted", "Zu viele P\xE4ckchen f\xFCr den Testlauf. Bitte B\xFCro informieren.");
   let u = {};
   for (let f of d) u[f.id] = [];
-  for (let f of l) if(u[f.tour_id]){const stop=er(f);if(o!=='office')delete stop.packageCorrections;u[f.tour_id].push(stop);}
+  for (let f of l) if(u[f.tour_id]){const stop=er(f);if(o!=='office'){const origins=stop.packageCorrections.filter(row=>row.kind==='origin');if(origins.length)stop.packageCorrections=origins;else delete stop.packageCorrections;}u[f.tour_id].push(stop);}
   let E = await B(e, o === "office" ? "SELECT * FROM vehicles LIMIT 101" : "SELECT * FROM vehicles WHERE active=1 LIMIT 101"), p = o === "office" ? await B(e, "SELECT * FROM users WHERE active=1 AND EXISTS(SELECT 1 FROM json_each(users.roles) WHERE value IN ('driver','office')) LIMIT 101") : [], g = await B(e, "SELECT t.id,t.regular_type,t.driver_id,t.status,u.display_name AS owner_name FROM tours t LEFT JOIN users u ON u.uid=t.driver_id WHERE t.date=? AND t.regular_type IS NOT NULL", o === "office" ? r : b()), h = (w(n, "driver") || o === "office" ? Ne(o === "office" ? r : b()) : []).map((f) => {
     let y = g.find((j) => j.regular_type === f.id);
     return { ...f, date: b(), reserved: !!y?.driver_id, prepared: !!y, status: y?.status || "open", mine: y?.driver_id === t, ownerId: y?.driver_id || null, ownerName: y?.owner_name || "", canTakeOver: !!y?.driver_id && y.driver_id !== t && y.status === "open", tourId: y?.id || null };
@@ -1051,6 +1052,7 @@ async function kr(e, t, n, i) {
 }
 __name(kr, "kr");
 async function Hr(e, t, n, i, r, o) {
+  if(i==='correctPackageOrigin'){try{return await correctPackageOrigin(e,t,n,r);}catch(error){if(error instanceof odometerPolicy.PolicyError)a(error.code,error.message);throw error;}}
   if (i === 'correctTourOdometer'){try{return await correctTourOdometer(e,t,n,r);}catch(error){if(error instanceof odometerPolicy.PolicyError)a(error.code,error.message);throw error;}}
   if (i === "state") return kr(e, t, n, r);
   if (i === "deleteOwnTour") return Et(e, t, n, r);

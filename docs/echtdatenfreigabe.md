@@ -1,5 +1,9 @@
 # MARAPO24 – freigegebener Betriebsstand
 
+## Vorbereitet, noch nicht veröffentlicht: Herkunftsapotheke nach Zustellabschluss korrigieren – 24.11.2026
+
+Nach Betreiberfestlegung vorbereitet: zugewiesene Fahrer und Bürokräfte können mit Pflichtgrund die Herkunftsapotheke auch nach bestätigter Zustellung und nach Tourende ändern, ausschließlich bis zur unterschriebenen Abrechnung, einschließlich Sperre bei unterschriebener Null-Abrechnung. Beträge bleiben unverändert und werden in Fahrer-/Büroansicht und Abrechnung der korrigierten Apotheke zugeordnet. Originalnachweis, ursprüngliche Unterschrift und Kundenprofile bleiben erhalten. Verlauf mit bisheriger/neuer Apotheke, Grund, Zugang und Zeitpunkt direkt beim Kunden. Keine Migration und keine produktive Änderung; Veröffentlichung benötigt konkrete Betreiberfreigabe und frische verschlüsselte Sicherung mit isoliertem Restore-Test. [Details und Prüfungen](herkunftskorrektur-2026-11-24.md). Der nachfolgende Betriebsstand bleibt bis dahin live.
+
 ## Einzelprüfung und Teilsortierung nicht gefundener Adressen – 23.11.2026, aktueller Betriebsstand
 
 Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `4ac9f02ce3a699da9fa7f8c0f0c000982f35c76a`; [GitHub-Gesamtprüfung 45229952394](https://github.com/Marienapotheke/marapo24-test/actions/runs/45229952394) erfolgreich mit 205 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 123 Backend-/PDFprüfungen, 22 Sicherungs-/Restore-/Retentionsprüfungen und sechs Cloudflare-Browserabläufe). Zusätzlich lokal 187 Prüfungen erfolgreich. Worker-Version `ede54002-8aed-4a73-8db2-3fc91cdcb8c8`.
