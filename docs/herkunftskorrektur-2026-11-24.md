@@ -1,6 +1,6 @@
 # Herkunftsapotheke nach Zustellung oder Tourende korrigieren
 
-Vorbereitet am 24.11.2026 im bestehenden Zweig `test-geschuetzte-zustellnachweise`. Noch nicht veröffentlicht; keine produktive Änderung und keine Datenbankmigration.
+Veröffentlicht am 24.11.2026 nach ausdrücklicher Betreiberfreigabe. Entwicklungszweig `test-geschuetzte-zustellnachweise`; keine Datenbankmigration. main/v3 unverändert.
 
 ## Vereinbarte Bedienung
 
@@ -24,4 +24,14 @@ Archivierter Zustellnachweis, ursprüngliche Apotheke darin, Unterschrift, Hash,
 
 Lokal erfolgreich: **192 Prüfungen** (36 Grundprüfungen, 127 Cloudflare-Backend-/PDFprüfungen, 22 Sicherungs-/Restore-/Retentionsprüfungen und sieben Browserabläufe), ausschließlich fiktive Daten. Neue Prüfungen umfassen Fahrer nach Zustellung, Büro nach Tourende, Teilzahlungen und vorherige/spätere Betragskorrekturen, richtige Zuordnung in SQL-/UI-Summen, Pflichtgrund und exklusive Eingabefelder, Rollen und fremde Touren, abgegebene Signaturen, Schutz entfernter/zurückgenommener Originale, vollständigen Erhalt von Nachweisen/Unterschriften/Kundenprofilen, konkurrierende Bearbeitung/Abrechnung, Null-Abrechnungssperre und identische Wiederholung nach verlorener Bestätigung. Der Browserablauf prüft auch Farben, Korrekturverlauf, Kontosummen und das Verschwinden der Funktion nach Abrechnungsunterschrift; fiktive Darstellung visuell kontrolliert.
 
-Die 24 öffentlichen Dateien der laufenden App wurden lesend bytegenau gegen die bisherige Veröffentlichung `ede54002-8aed-4a73-8db2-3fc91cdcb8c8` bestätigt. Keine produktiven Kunden-/Tourdatensätze für diese Vorbereitung gelesen oder verändert. GitHub-Gesamtprüfung für den festgeschriebenen Stand zusätzlich vor Veröffentlichung. Veröffentlichung erst nach konkreter Betreiberfreigabe und frischer verschlüsselter Sicherung mit isoliertem Wiederherstellungstest. Danach Live-Dateien, API-Sperren, unverändertes Schema, EU/Bindings/Retention und Originalarchive prüfen. `main` und v3 bleiben unverändert; kein Merge.
+## Herkunftsapotheke nach Zustellabschluss korrigieren – 24.11.2026, aktueller Betriebsstand
+
+Nach ausdrücklicher Betreiberfreigabe „ja“ veröffentlicht: Code `e15f7c8d2866b487c267881809d188451edccf6c`; [GitHub-Gesamtprüfung 45409696379](https://github.com/Marienapotheke/marapo24-test/actions/runs/45409696379) erfolgreich mit 210 Prüfungen (36 Grundprüfungen, 17 Emulatorprüfungen, ein v3-Browserablauf, 127 Backend-/PDFprüfungen, 22 Sicherungs-/Restore-/Retentionsprüfungen und sieben Cloudflare-Browserabläufe). Zusätzlich lokal 192 Prüfungen mit fiktiven Daten erfolgreich. Worker-Version `e1f2d975-0887-41a3-bb44-f43ecbd18053`.
+
+Zugewiesene Fahrer und aktive Bürokräfte können mit „Herkunftsapotheke korrigieren“ und Pflichtgrund die Apotheke auch nach bestätigtem Zustellabschluss und nach Tourende ändern, ausschließlich bis zur unterschriebenen Abrechnung. Auch eine unterschriebene Null-Abrechnung sperrt weitere Änderungen. Die Beträge bleiben unverändert und zählen anschließend in Fahrer-/Büroansicht und Abrechnung zur korrigierten Apotheke. Verlauf mit bisheriger/neuer Apotheke, Grund, Zugang und Zeitpunkt direkt beim Kunden. Internetverbindung erforderlich; ausstehende Abschlüsse zunächst übertragen. Bei verlorener Bestätigung lässt sich derselbe Vorgang ohne doppelten Eintrag erneut prüfen. [Details und Prüfungen](herkunftskorrektur-2026-11-24.md).
+
+Originalnachweis, ursprüngliche Unterschrift und Kundenprofile bleiben unverändert. Gleichzeitige Bearbeitungen und die Abrechnungssperre werden atomar geprüft. Keine Datenbankmigration; das gesamte bestehende Schema einschließlich Archiv- und Kilometerschutz unverändert. Verschlüsselte Offline-Datenbank und Warteschlangen bleiben erhalten.
+
+Verschlüsselte Betriebssicherung auf S1 vor Veröffentlichung um 15:14 Uhr und danach um 15:16 Uhr (Europe/Berlin), beide erfolgreich isoliert wiederhergestellt. Alle 2107 ursprünglichen Zustellnachweise, 109 Abrechnungen, 13 Zustellkorrekturen und 3 Fahrerzuordnungsnachweise bytegenau unverändert; Kilometerkorrekturen ebenfalls abgeglichen (0 Altzeilen). Vorhandene Korrekturhistorien von 114 abgeschlossenen Stopps erhalten. 25 öffentliche Dateien entsprechen dem geprüften Paket; 21 unangemeldete API-Zugriffe gesperrt. Schlüsselbindungen, Live-Einstellungen, EU-D1 und Aufbewahrungszeitplan unverändert. Keine künstlichen Produktivdatensätze angelegt; main/v3 unverändert, kein Merge.
+
+Neue vollständige Offline-App-Version `origin-correction-20261124`. Laufende Eingaben speichern und ausstehende Vorgänge vollständig übertragen, alle MARAPO24-Fenster schließen und im WLAN neu öffnen. Vor Abfahrt „Für Funklöcher vorbereitet“ prüfen. Browserdaten nicht löschen.
